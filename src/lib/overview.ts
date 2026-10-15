@@ -25,9 +25,9 @@ export interface OverviewContent {
 
 export const OVERVIEW: OverviewContent = {
 	eyebrow: 'AIChieve // Enterprise Command Center',
-	headline: 'Cost control for the systems you already run.',
+	headline: 'Model the spend before you approve it.',
 	subheadline:
-		'Deterministic engines, buyer-side audits and operational dispatches for the people who sign off on AI compute, agentic workflows and supply-chain spend. Every model runs client-side on your own numbers — nothing is estimated on your behalf.',
+		'Deterministic engines and buyer-side audits for the people who approve AI compute, agentic workflows and supply-chain spend. Every model runs in your browser on your own numbers — nothing is estimated on your behalf.',
 	mission:
 		'AIChieve exists so enterprise leaders can put a number on a systemic risk before they sign for it: what a GPU estate actually costs to own, what a vendor’s automation business case looks like when it is re-run on your loaded costs, and which line on an AI or carrier invoice has no basis.',
 	originStory:

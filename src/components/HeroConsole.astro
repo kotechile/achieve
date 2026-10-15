@@ -7,6 +7,8 @@
  * system enforces (invented proof is the fastest way to make an operations audience distrust
  * the whole property).
  */
+import { OVERVIEW } from '../lib/overview';
+
 interface DomainRow {
 	name: string;
 	slug: string;
@@ -30,19 +32,17 @@ const board = domains.slice(0, 6);
 <section class="pt-6 sm:pt-10" aria-labelledby="hero-heading">
 	<div class="grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-start lg:gap-16">
 		<div class="ai-rise">
-			<p class="ai-label ai-label--signal">AIChieve // Enterprise Command Center</p>
+			<p class="ai-label ai-label--signal">{OVERVIEW.eyebrow}</p>
 
 			<h1
 				id="hero-heading"
 				class="ai-display mt-5 text-[2.6rem] sm:text-6xl lg:text-[4.25rem]"
 			>
-				Cost control for the systems you already run.
+				{OVERVIEW.headline}
 			</h1>
 
 			<p class="ai-lede mt-6">
-				Deterministic engines, buyer-side audits and operational dispatches for the people who
-				sign off on AI compute, agentic workflows and supply-chain spend. Every model runs
-				client-side on your own numbers — nothing is estimated on your behalf.
+				{OVERVIEW.subheadline}
 			</p>
 
 			<div class="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -50,7 +50,7 @@ const board = domains.slice(0, 6);
 					Open the tool register
 					<span aria-hidden="true">→</span>
 				</a>
-				<a class="ai-btn ai-btn--ghost" href="/apps/">PRO apps</a>
+				<a class="ai-btn ai-btn--ghost" href="/apps/">See the PRO apps</a>
 			</div>
 
 			<div class="mt-12 grid grid-cols-3 gap-6 border-t border-[var(--ai-line)] pt-8">
