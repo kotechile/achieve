@@ -43,8 +43,7 @@ const websiteSchema = {
 		domains={displayDomains.map((domain) => ({
 			name: domain.name,
 			slug: domain.slug,
-			postCount: domain.postCount,
-			level: domain.level
+			postCount: domain.postCount
 		}))}
 		dispatchCount={OWNED_POST_SLUGS.size}
 		engineCount={calculators.length}

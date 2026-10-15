@@ -11,7 +11,6 @@ interface DomainRow {
 	name: string;
 	slug: string;
 	postCount: number | null;
-	level: number;
 }
 
 interface Props {
@@ -22,7 +21,10 @@ interface Props {
 }
 
 const { domains, dispatchCount, engineCount, appCount } = Astro.props;
-const board = domains.filter((d) => d.level === 2).slice(0, 6);
+// The caller has already de-duplicated the taxonomy into browsable domains and sorted them by
+// volume. Do NOT re-filter on hierarchy here: the largest domain (supply-chain-operations) is a
+// top-level category, and filtering to children only quietly dropped it from the board.
+const board = domains.slice(0, 6);
 ---
 
 <section class="pt-6 sm:pt-10" aria-labelledby="hero-heading">
