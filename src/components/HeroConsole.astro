@@ -1,0 +1,115 @@
+---
+/**
+ * Command Deck hero.
+ *
+ * Every number on this panel is read from the live WordPress install or from the tool/app
+ * registers — there are no illustrative statistics here, per the honesty rule the design
+ * system enforces (invented proof is the fastest way to make an operations audience distrust
+ * the whole property).
+ */
+interface DomainRow {
+	name: string;
+	slug: string;
+	postCount: number | null;
+	level: number;
+}
+
+interface Props {
+	domains: DomainRow[];
+	dispatchCount: number;
+	engineCount: number;
+	appCount: number;
+}
+
+const { domains, dispatchCount, engineCount, appCount } = Astro.props;
+const board = domains.filter((d) => d.level === 2).slice(0, 6);
+---
+
+<section class="pt-6 sm:pt-10" aria-labelledby="hero-heading">
+	<div class="grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-start lg:gap-16">
+		<div class="ai-rise">
+			<p class="ai-label ai-label--signal">AIChieve // Enterprise Command Center</p>
+
+			<h1
+				id="hero-heading"
+				class="ai-display mt-5 text-[2.6rem] sm:text-6xl lg:text-[4.25rem]"
+			>
+				Cost control for the systems you already run.
+			</h1>
+
+			<p class="ai-lede mt-6">
+				Deterministic engines, buyer-side audits and operational dispatches for the people who
+				sign off on AI compute, agentic workflows and supply-chain spend. Every model runs
+				client-side on your own numbers — nothing is estimated on your behalf.
+			</p>
+
+			<div class="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+				<a class="ai-btn" href="/tools/">
+					Open the tool register
+					<span aria-hidden="true">→</span>
+				</a>
+				<a class="ai-btn ai-btn--ghost" href="/apps/">PRO apps</a>
+			</div>
+
+			<div class="mt-12 grid grid-cols-3 gap-6 border-t border-[var(--ai-line)] pt-8">
+				<div class="ai-kpi">
+					<span class="ai-kpi__value">{dispatchCount}</span>
+					<span class="ai-label">Dispatches</span>
+				</div>
+				<div class="ai-kpi border-l border-[var(--ai-line)] pl-6">
+					<span class="ai-kpi__value">{engineCount}</span>
+					<span class="ai-label">Engines</span>
+				</div>
+				<div class="ai-kpi border-l border-[var(--ai-line)] pl-6">
+					<span class="ai-kpi__value ai-kpi__value--signal">{appCount}</span>
+					<span class="ai-label">PRO apps</span>
+				</div>
+			</div>
+		</div>
+
+		<div class="ai-rise" style="animation-delay: 80ms">
+			<div class="ai-panel ai-panel--cap">
+				<div
+					class="flex items-center justify-between border-b border-[var(--ai-line)] px-4 py-3 font-mono text-[0.62rem] uppercase tracking-[0.2em] text-[var(--ai-ink-4)]"
+				>
+					<span>Coverage board</span>
+					<span class="flex items-center gap-2">
+						<span class="ai-lamp" aria-hidden="true"></span>
+						Live
+					</span>
+				</div>
+
+				<ul>
+					{
+						board.map((domain, index) => (
+							<li class={index > 0 ? 'border-t border-[var(--ai-line-soft)]' : ''}>
+								<a
+									href={`/categories/${domain.slug}/`}
+									class="group flex items-center justify-between gap-4 px-4 py-3.5 transition hover:bg-[var(--ai-panel-2)]"
+								>
+									<span class="min-w-0">
+										<span class="block truncate text-sm font-semibold text-[var(--ai-ink)] transition group-hover:text-[var(--ai-signal)]">
+											{domain.name}
+										</span>
+										<span class="mt-1 block font-mono text-[0.6rem] uppercase tracking-[0.16em] text-[var(--ai-ink-4)]">
+											{domain.slug}
+										</span>
+									</span>
+									<span class="shrink-0 font-mono text-sm font-bold text-[var(--ai-ink-2)] tabular-nums">
+										{domain.postCount ?? 0}
+									</span>
+								</a>
+							</li>
+						))
+					}
+				</ul>
+
+				<div class="border-t border-[var(--ai-line)] px-4 py-3">
+					<p class="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-[var(--ai-ink-4)]">
+						Counts read from the live CMS at build time
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>

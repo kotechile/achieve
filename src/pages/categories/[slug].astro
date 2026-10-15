@@ -1,0 +1,93 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import JsonLd from '../../components/JsonLd.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getAllCategories, categoryIdsFor } from '../../lib/categories';
+import { fetchPostsByCategory } from '../../lib/wordpress';
+
+export async function getStaticPaths() {
+	const categories = await getAllCategories();
+
+	// Only top-level domains and their children get pages — the allow-list is applied in
+	// `lib/categories.ts`, so giniloh.com's consumer categories never reach this builder.
+	const pageable = categories.filter(
+		(category) => !category.parentCategoryId || category.children.length > 0
+	);
+
+	return Promise.all(
+		pageable.map(async (category) => {
+			const ids = categoryIdsFor(category);
+			const posts = ids.length ? await fetchPostsByCategory(ids, 60) : [];
+			return { params: { slug: category.slug }, props: { category, posts } };
+		})
+	);
+}
+
+const { category, posts } = Astro.props;
+
+const siteOrigin = Astro.site?.toString().replace(/\/$/, '') || 'https://aichieve.net';
+const pageUrl = `${siteOrigin}/categories/${category.slug}/`;
+---
+
+<BaseLayout
+	title={`${category.name} — dispatches and tools | AIChieve`}
+	description={category.description || `${posts.length} dispatches on ${category.name} from the AIChieve archive.`}
+>
+	<link slot="head" rel="canonical" href={pageUrl} />
+	<JsonLd
+		slot="head"
+		data={{
+			'@context': 'https://schema.org',
+			'@type': 'CollectionPage',
+			name: category.name,
+			url: pageUrl,
+			numberOfItems: posts.length
+		}}
+	/>
+
+	<nav class="pt-4 font-mono text-[0.62rem] uppercase tracking-[0.16em] text-[var(--ai-ink-4)]" aria-label="Breadcrumb">
+		<a class="transition hover:text-[var(--ai-signal)]" href="/categories/">Domains</a>
+		<span class="px-2" aria-hidden="true">/</span>
+		<span class="text-[var(--ai-ink-2)]">{category.name}</span>
+	</nav>
+
+	<section class="mt-5">
+		<div class="flex flex-wrap items-center gap-3">
+			<span class="ai-tag ai-tag--signal !border-[var(--ai-signal)] !text-[var(--ai-signal)]">
+				{posts.length} dispatches
+			</span>
+			<span class="font-mono text-[0.62rem] uppercase tracking-[0.16em] text-[var(--ai-ink-4)]">{category.slug}</span>
+		</div>
+		<h1 class="ai-display mt-5 max-w-4xl text-[2.1rem] sm:text-4xl lg:text-5xl">{category.name}</h1>
+		{category.description && <p class="ai-lede mt-5">{category.description}</p>}
+	</section>
+
+	{
+		posts.length ? (
+			<div class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+				{posts.map((post) => (
+					<PostCard post={post} />
+				))}
+			</div>
+		) : (
+			<div class="ai-panel mt-12 p-6">
+				<p class="font-mono text-xs text-[var(--ai-ink-3)]">
+					&gt; No dispatches filed to this domain yet.
+				</p>
+			</div>
+		)
+	}
+
+	{category.children.length > 0 && (
+		<section class="mt-16 border-t border-[var(--ai-line)] pt-8">
+			<p class="ai-label">Sub-domains</p>
+			<div class="mt-4 flex flex-wrap gap-2">
+				{category.children.map((child) => (
+					<a href={`/categories/${child.slug}/`} class="ai-tag !py-1.5 transition hover:border-[var(--ai-signal)] hover:text-[var(--ai-signal)]">
+						{child.name} · {child.postCount ?? 0}
+					</a>
+				))}
+			</div>
+		</section>
+	)}
+</BaseLayout>

@@ -1,0 +1,56 @@
+---
+/**
+ * Instrument bay.
+ *
+ * The console chrome is dark; the bay is white because both engines were authored against a
+ * light surface (they carry their own light-theme classes). Framing them as a bright readout
+ * mounted in a dark rack is a deliberate pattern, not a compromise — it also means the
+ * engines render exactly as verified instead of being force-inverted.
+ */
+interface Props {
+	eyebrow: string;
+	title: string;
+	description: string;
+}
+
+const { eyebrow, title, description } = Astro.props;
+---
+
+<section class="pb-16 pt-2">
+	<div class="max-w-4xl">
+		<p class="ai-label ai-label--signal">{eyebrow}</p>
+		<h1 class="ai-display mt-4 text-[2.1rem] sm:text-4xl lg:text-5xl">{title}</h1>
+		<p class="ai-lede mt-5">{description}</p>
+		<div class="mt-6 flex flex-wrap items-center gap-3">
+			<span class="ai-tag ai-tag--live">
+				<span class="ai-lamp" aria-hidden="true"></span>
+				Runs in your browser
+			</span>
+			<span class="font-mono text-[0.62rem] uppercase tracking-[0.16em] text-[var(--ai-ink-4)]">
+				Audited by
+				<a href="/author/gini-loh/" class="text-[var(--ai-link)] transition hover:text-[var(--ai-signal)]">Gini Loh</a>
+			</span>
+		</div>
+	</div>
+
+	<div class="mt-12 flex flex-col gap-14">
+		<div class="ai-panel">
+			<div
+				class="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--ai-line)] px-4 py-3 font-mono text-[0.62rem] uppercase tracking-[0.2em] text-[var(--ai-ink-4)]"
+			>
+				<span>Instrument panel</span>
+				<span class="flex items-center gap-2">
+					<span class="ai-lamp" aria-hidden="true"></span>
+					Deterministic · nothing leaves the page
+				</span>
+			</div>
+			<div class="instrument-surface">
+				<slot name="calculator" />
+			</div>
+		</div>
+
+		<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+			<slot name="aside" />
+		</div>
+	</div>
+</section>

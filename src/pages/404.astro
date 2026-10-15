@@ -1,0 +1,40 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const suggestions = [
+	{ href: '/tools/', label: 'Tool register' },
+	{ href: '/apps/', label: 'PRO apps' },
+	{ href: '/articles/', label: 'Article archive' },
+	{ href: '/categories/', label: 'Domains' }
+];
+---
+
+<BaseLayout
+	title="404 — no such dispatch | AIChieve"
+	description="That page is not in the AIChieve index."
+	disableAnalytics={true}
+>
+	<section class="pt-10">
+		<p class="ai-label ai-label--signal">Error 404</p>
+		<h1 class="ai-display mt-5 max-w-3xl text-[2.2rem] sm:text-5xl">No such dispatch.</h1>
+		<p class="ai-lede mt-6">
+			The page you asked for is not in this index. If you followed a link from
+			<span class="text-[var(--ai-ink)]">giniloh.com</span>, the dispatch may have moved when the two
+			properties were split in 2026 — enterprise compute, agentic and supply-chain pages live here;
+			career, compensation and personal-finance pages live there.
+		</p>
+
+		<nav class="mt-10 flex flex-wrap gap-2" aria-label="Suggested destinations">
+			{suggestions.map((item) => (
+				<a href={item.href} class="ai-tag !py-2 transition hover:border-[var(--ai-signal)] hover:text-[var(--ai-signal)]">
+					{item.label}
+				</a>
+			))}
+		</nav>
+
+		<div class="mt-12 flex flex-col gap-3 sm:flex-row">
+			<a class="ai-btn" href="/">Back to the command center</a>
+			<button type="button" class="ai-btn ai-btn--ghost" data-search-open>Search the archive</button>
+		</div>
+	</section>
+</BaseLayout>

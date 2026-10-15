@@ -1,0 +1,994 @@
+/* AIChieve layout + component stylesheet.
+ *
+ * This is a partial: it is imported by `aichieve.css`, which owns the Tailwind entry
+ * (`@import "tailwindcss"`) and the font imports, and which layers the industrial console
+ * theme on top of the rules below. Do not add a Tailwind import here — two entries in one
+ * bundle means Tailwind runs twice.
+ */
+
+:root {
+	--font-sans: "Inter", "Avenir Next", "Segoe UI", sans-serif;
+	--font-mono: "JetBrains Mono", "Fira Code", monospace;
+	--brand-blue: #5A7A8F;
+	--brand-charcoal: #262626;
+	--brand-navy: #262626;
+	--brand-ink: #262626;
+	--brand-slate-text: #5E5E5E;
+	--brand-muted-text: #8C8C8C;
+	--brand-cyan: #5A7A8F;
+	--brand-emerald: #262626;
+	--brand-slate: #f8fafc;
+	--brand-deep-slate: #FFFFFF;
+	--site-bg: #FFFFFF;
+}
+
+@theme {
+	--font-sans: var(--font-sans);
+	--font-mono: var(--font-mono);
+	--color-brand-blue: var(--brand-blue);
+	--color-brand-charcoal: var(--brand-charcoal);
+	--color-brand-navy: var(--brand-navy);
+	--color-brand-ink: var(--brand-ink);
+	--color-brand-cyan: var(--brand-cyan);
+	--color-brand-emerald: var(--brand-emerald);
+	--color-brand-slate: var(--brand-slate);
+	--color-brand-deep-slate: var(--brand-deep-slate);
+}
+
+html,
+body {
+	margin: 0;
+	min-height: 100%;
+	font-family: var(--font-sans);
+	color: #1A1A1A;
+	background: #FFFFFF;
+}
+
+body {
+	position: relative;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-family: var(--font-sans);
+	font-weight: 600;
+	color: #262626;
+}
+
+.font-mono {
+	font-family: var(--font-mono);
+}
+
+a {
+	text-decoration: none;
+}
+
+.bg-site {
+	background: var(--site-bg);
+}
+
+/* Clean solid background */
+.site-background {
+	position: fixed;
+	inset: 0;
+	z-index: 0;
+	overflow: hidden;
+	pointer-events: none;
+}
+
+.orb {
+	position: absolute;
+	border-radius: 9999px;
+	filter: blur(80px);
+	opacity: 0.15;
+}
+
+.orb-one {
+	top: -10rem;
+	left: -5rem;
+	height: 30rem;
+	width: 30rem;
+	background: radial-gradient(circle, var(--brand-blue), transparent 70%);
+}
+
+.orb-two {
+	right: -10rem;
+	top: 20rem;
+	height: 40rem;
+	width: 40rem;
+	background: radial-gradient(circle, var(--brand-emerald), transparent 70%);
+}
+
+.orb-three {
+	bottom: -10rem;
+	left: 30%;
+	height: 25rem;
+	width: 25rem;
+	background: radial-gradient(circle, var(--brand-cyan), transparent 70%);
+}
+
+.panel-shell {
+	backdrop-filter: blur(24px);
+}
+
+.panel-soft {
+	backdrop-filter: blur(18px);
+	background-color: transparent;
+	border: none;
+}
+
+.section-eyebrow {
+	font-family: var(--font-mono);
+	font-size: 0.72rem;
+	font-weight: 750;
+	letter-spacing: 0.28em;
+	text-transform: uppercase;
+	color: #8C8C8C;
+}
+
+.data-point {
+	font-family: var(--font-mono);
+	color: #1A1A1A;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-inline {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 600;
+	transition:
+		transform 180ms ease,
+		box-shadow 180ms ease,
+		background-color 180ms ease;
+}
+
+.btn-primary {
+	border-radius: 8px; /* Sharper edges */
+	background: #1A1A1A;
+	padding: 0.95rem 1.35rem;
+	color: white;
+	box-shadow: none;
+}
+
+.btn-secondary {
+	border-radius: 8px; /* Sharper edges */
+	border: 1px solid #E5E5E5;
+	background: white;
+	padding: 0.95rem 1.35rem;
+	color: #1A1A1A;
+	box-shadow: none;
+}
+
+.btn-inline {
+	gap: 0.4rem;
+	color: #5A7A8F;
+}
+
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-inline:hover {
+	transform: translateY(-1px);
+}
+
+.btn-primary:hover {
+	background: #333333;
+}
+
+.btn-secondary:hover {
+	background: #f9f9f9;
+}
+
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible,
+.btn-inline:focus-visible {
+	outline: 2px solid #5A7A8F;
+	outline-offset: 3px;
+}
+
+/* --- Technical Typography (Prose Overrides) --- */
+.prose {
+  --tw-prose-body: #5E5E5E;
+  --tw-prose-headings: #262626;
+  max-width: none !important;
+}
+
+/* Force Headers to Charcoal Color and Clean Sizing */
+.prose h1 { 
+  font-size: 2.25rem !important;
+  line-height: 2.5rem !important;
+  font-weight: 800 !important;
+  margin-bottom: 2rem !important;
+  color: #262626 !important; /* Charcoal dark gray */
+  letter-spacing: -0.025em !important;
+}
+@media (min-width: 768px) {
+  .prose h1 { font-size: 3.75rem !important; line-height: 1 !important; }
+}
+
+.prose h2 { 
+  font-size: 1.875rem !important;
+  line-height: 2.25rem !important;
+  font-weight: 700 !important;
+  margin-top: 4rem !important;
+  margin-bottom: 1.5rem !important;
+  color: #262626 !important; /* Charcoal dark gray */
+  border-left: 4px solid #5A7A8F !important;
+  padding-left: 1.5rem !important;
+}
+
+.prose h3 { 
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  margin-top: 3rem !important;
+  margin-bottom: 1rem !important;
+  color: #262626 !important; /* Charcoal dark gray */
+}
+
+.prose h4 { 
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: #262626 !important; /* Charcoal dark gray */
+}
+
+.prose a,
+.article-body a {
+  color: #5A7A8F !important;
+  text-decoration: underline !important;
+  text-decoration-color: rgba(90, 122, 143, 0.7) !important;
+  text-decoration-thickness: 0.08em !important;
+  text-underline-offset: 0.18em !important;
+  transition:
+    color 180ms ease,
+    text-decoration-color 180ms ease,
+    text-shadow 180ms ease;
+}
+
+.prose a:hover,
+.article-body a:hover {
+  color: #262626 !important;
+  text-decoration-color: #262626 !important;
+  text-shadow: none;
+}
+
+.prose a:focus-visible,
+.article-body a:focus-visible {
+  outline: 2px solid #5A7A8F !important;
+  outline-offset: 3px !important;
+  border-radius: 0.2rem;
+}
+
+/* --- Blended Editorial Tables --- */
+.prose table, 
+.prose thead, 
+.prose tbody, 
+.prose tr, 
+.prose th, 
+.prose td {
+  background-color: transparent !important; /* Kill all WP injected backgrounds */
+  background: none !important;
+  border-color: #E5E5E5 !important;
+}
+
+.prose table,
+.article-body table {
+  margin-top: 3rem !important;
+  margin-bottom: 3rem !important;
+  width: 100% !important;
+  border-collapse: collapse !important;
+  border-top: 2px solid #262626 !important;
+}
+
+.prose th,
+.article-body th {
+  padding: 1.25rem 1rem !important;
+  font-family: var(--font-mono), ui-monospace, monospace !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  line-height: 1.4 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  color: #262626 !important;
+  text-align: left !important;
+  border-bottom: 2px solid #E5E5E5 !important;
+}
+
+.prose td,
+.article-body td {
+  padding: 1.25rem 1rem !important;
+  color: #262626 !important; /* Charcoal Text */
+  font-size: 1.15rem !important;
+  line-height: 1.7 !important;
+  border-bottom: 1px solid #E5E5E5 !important;
+}
+
+.prose td p,
+.article-body td p,
+.prose td span,
+.article-body td span,
+.prose td strong,
+.article-body td strong,
+.prose th p,
+.article-body th p,
+.prose th span,
+.article-body th span {
+  font-size: inherit !important;
+  line-height: inherit !important;
+  margin: 0 !important;
+}
+
+.prose tr:last-child td,
+.article-body tr:last-child td {
+  border-bottom: none !important;
+}
+
+/* Subtle Row Highlight */
+.prose tr:hover td,
+.article-body tr:hover td {
+  background-color: transparent !important;
+}
+
+/* Key Takeaway / Light Blocks (Refined) */
+.prose .wp-block-group,
+.prose .wp-block-columns,
+.prose .wp-block-group.has-background,
+.prose .wp-block-columns.has-background,
+.prose [class*="has-"][class*="-background-color"],
+.prose div[style*="background-color"] {
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 1.5rem 0 !important;
+  margin: 2rem 0 !important;
+}
+
+/* Force clean styling for standard groups and columns to blend with the page */
+.prose div[style*="background-color: #ffffff"],
+.prose div[style*="background-color:#ffffff"],
+.prose .has-white-background-color,
+.prose .has-light-gray-background-color,
+.prose .has-very-light-gray-background-color,
+.prose .wp-block-group.has-background,
+.prose .wp-block-columns.has-background {
+  background: transparent !important;
+  color: #5E5E5E !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.prose .has-white-background-color h1,
+.prose .has-white-background-color h2,
+.prose .has-white-background-color h3,
+.prose .has-light-gray-background-color h1,
+.prose .has-light-gray-background-color h2,
+.prose .has-light-gray-background-color h3,
+.prose .has-very-light-gray-background-color h1,
+.prose .has-very-light-gray-background-color h2,
+.prose .has-very-light-gray-background-color h3,
+.prose div[style*="background-color"] h1,
+.prose div[style*="background-color"] h2,
+.prose div[style*="background-color"] h3,
+.prose div[style*="background-color"] strong,
+.prose .has-white-background-color strong,
+.prose .has-light-gray-background-color strong,
+.prose .has-very-light-gray-background-color strong,
+.prose .wp-block-group.has-background h1,
+.prose .wp-block-group.has-background h2,
+.prose .wp-block-group.has-background h3,
+.prose .wp-block-group.has-background strong,
+.prose .wp-block-columns.has-background h1,
+.prose .wp-block-columns.has-background h2,
+.prose .wp-block-columns.has-background h3,
+.prose .wp-block-columns.has-background strong {
+  color: #262626 !important;
+}
+
+.prose div[style*="background-color"] p,
+.prose .has-white-background-color li,
+.prose .has-light-gray-background-color li,
+.prose .has-very-light-gray-background-color li,
+.prose .wp-block-group.has-background p,
+.prose .wp-block-group.has-background li,
+.prose .wp-block-columns.has-background p,
+.prose .wp-block-columns.has-background li {
+  color: #5E5E5E !important;
+}
+
+.prose .has-white-background-color h2,
+.prose .has-light-gray-background-color h2,
+.prose .has-very-light-gray-background-color h2,
+.prose .wp-block-group.has-background h2,
+.prose .wp-block-columns.has-background h2,
+.prose div[style*="background-color"] h2 {
+  margin-top: 0 !important;
+  margin-bottom: 1.5rem !important;
+  padding-left: 1rem !important;
+  border-left: 4px solid #5A7A8F !important;
+  font-size: 1.875rem !important;
+  line-height: 2.25rem !important;
+  font-weight: 700 !important;
+  color: #262626 !important;
+}
+
+.prose .has-white-background-color ul,
+.prose .has-light-gray-background-color ul,
+.prose .has-very-light-gray-background-color ul,
+.prose .wp-block-group.has-background ul,
+.prose .wp-block-columns.has-background ul,
+.prose div[style*="background-color"] ul {
+  color: #5E5E5E !important;
+  padding-left: 1.5rem !important;
+}
+
+.prose .has-white-background-color p,
+.prose .has-light-gray-background-color p,
+.prose .has-very-light-gray-background-color p,
+.prose .wp-block-group.has-background p,
+.prose .wp-block-columns.has-background p,
+.prose div[style*="background-color"] p,
+.prose .has-white-background-color li,
+.prose .has-light-gray-background-color li,
+.prose .has-very-light-gray-background-color li,
+.prose .wp-block-group.has-background li,
+.prose .wp-block-columns.has-background li,
+.prose div[style*="background-color"] li {
+  font-size: 1.05rem !important;
+  line-height: 1.8 !important;
+}
+
+.prose .has-white-background-color a,
+.prose .has-light-gray-background-color a,
+.prose .has-very-light-gray-background-color a,
+.prose .wp-block-group.has-background a,
+.prose .wp-block-columns.has-background a,
+.prose div[style*="background-color"] a,
+.prose .geo-key-takeaways a,
+.prose [data-geo-injected="key-takeaways"] a {
+  color: #5A7A8F !important;
+  text-decoration-color: rgba(90, 122, 143, 0.7) !important;
+}
+
+.prose .has-white-background-color a:hover,
+.prose .has-light-gray-background-color a:hover,
+.prose .has-very-light-gray-background-color a:hover,
+.prose .wp-block-group.has-background a:hover,
+.prose .wp-block-columns.has-background a:hover,
+.prose div[style*="background-color"] a:hover,
+.prose .geo-key-takeaways a:hover,
+.prose [data-geo-injected="key-takeaways"] a:hover {
+  color: #262626 !important;
+  text-decoration-color: #262626 !important;
+}
+
+.prose .has-white-background-color li + li,
+.prose .has-light-gray-background-color li + li,
+.prose .has-very-light-gray-background-color li + li,
+.prose .wp-block-group.has-background li + li,
+.prose .wp-block-columns.has-background li + li,
+.prose div[style*="background-color"] li + li {
+  margin-top: 1rem !important;
+}
+
+.prose .has-white-background-color > :first-child,
+.prose .has-light-gray-background-color > :first-child,
+.prose .has-very-light-gray-background-color > :first-child,
+.prose .wp-block-group.has-background > :first-child,
+.prose .wp-block-columns.has-background > :first-child,
+.prose div[style*="background-color"] > :first-child {
+  margin-top: 0 !important;
+}
+
+.prose .has-white-background-color > :last-child,
+.prose .has-light-gray-background-color > :last-child,
+.prose .has-very-light-gray-background-color > :last-child,
+.prose .wp-block-group.has-background > :last-child,
+.prose .wp-block-columns.has-background > :last-child,
+.prose div[style*="background-color"] > :last-child {
+  margin-bottom: 0 !important;
+}
+
+/* WordPress injected takeaway summary block */
+.prose .geo-key-takeaways,
+.prose [data-geo-injected="key-takeaways"] {
+  background: #F8FAFC !important; /* Cool pale gray background */
+  color: #262626 !important;      /* Crisp charcoal body text */
+  border: 1px solid #E5E5E5 !important;
+  border-left: 4px solid #5A7A8F !important; /* Steel blue left accent border */
+  border-radius: 12px !important;
+  padding: 1.75rem 2rem !important;
+  margin: 0 0 24px 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+.prose .geo-key-takeaways h2,
+.prose [data-geo-injected="key-takeaways"] h2 {
+  margin: 0 0 1.25rem 0 !important;
+  padding-left: 0 !important;
+  border-left: 0 !important;
+  color: #262626 !important; /* Charcoal heading */
+  font-size: 1.875rem !important;
+  line-height: 2.25rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.025em !important;
+}
+
+.prose .geo-key-takeaways ul,
+.prose [data-geo-injected="key-takeaways"] ul {
+  margin: 0 !important;
+  padding-left: 1.5rem !important;
+  color: #262626 !important; /* Charcoal text */
+  list-style: disc !important;
+  list-style-position: outside !important;
+}
+
+.prose .geo-key-takeaways li,
+.prose [data-geo-injected="key-takeaways"] li,
+.prose .geo-key-takeaways p,
+.prose [data-geo-injected="key-takeaways"] p {
+  color: #262626 !important; /* Charcoal text */
+  font-size: 1.05rem !important;
+  line-height: 1.8 !important;
+}
+
+.prose .geo-key-takeaways li,
+.prose [data-geo-injected="key-takeaways"] li {
+  margin: 0 0 1rem 0 !important;
+  padding-left: 0.15rem !important;
+}
+
+.prose .geo-key-takeaways li::marker,
+.prose [data-geo-injected="key-takeaways"] li::marker {
+  color: #5A7A8F !important; /* Steel blue bullets */
+  font-size: 0.95em !important;
+}
+
+.prose img {
+  margin-top: 3rem !important;
+  margin-bottom: 3rem !important;
+  border-radius: 1rem !important;
+  border: 1px solid #E5E5E5 !important;
+}
+
+/* Light, high-contrast blockquote highlight */
+.prose blockquote,
+.article-body blockquote {
+  border: 1px solid #E5E5E5 !important;
+  border-left: 4px solid #5A7A8F !important;
+  background-color: #F8FAFC !important; /* Light pale background */
+  padding: 1.5rem 2rem !important;
+  border-radius: 0 0.75rem 0.75rem 0 !important;
+  color: #262626 !important;
+  margin: 2.5rem 0 !important;
+  box-shadow: none !important;
+}
+
+.prose blockquote p,
+.article-body blockquote p {
+  color: #262626 !important; /* Charcoal dark font for strong contrast */
+  font-size: 1.1rem !important;
+  line-height: 1.75 !important;
+  font-style: italic !important;
+  margin: 0 !important;
+}
+
+/* Hide the redundant context/summary box before the article content */
+.prose .article-context {
+  display: none !important;
+}
+
+/* Clean, light code block styling */
+.prose pre,
+.article-body pre {
+  background-color: #F8FAFC !important;
+  border: 1px solid #E5E5E5 !important;
+  border-radius: 0.75rem !important;
+  padding: 1.25rem 1.5rem !important;
+  color: #262626 !important;
+  font-family: var(--font-mono) !important;
+  overflow-x: auto !important;
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+}
+
+.prose code,
+.article-body code {
+  color: #5A7A8F !important;
+  background-color: rgba(90, 122, 143, 0.08) !important;
+  padding: 0.2rem 0.4rem !important;
+  border-radius: 0.375rem !important;
+  font-family: var(--font-mono) !important;
+  font-size: 0.9em !important;
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+}
+
+.prose pre code,
+.article-body pre code {
+  color: #262626 !important;
+  background-color: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  font-size: 0.95em !important;
+}
+
+
+/* ============================================================
+   EDITORIAL NEUTRAL STYLEGUIDE & OVERRIDES (CLAY-INSPIRED)
+   Sitewide enforcement of the unboxed, flat design system.
+   ============================================================ */
+
+/* 1. Global Flatness Constraint */
+*, *::before, *::after {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* 2. Ditch Background Grids and Orbs */
+.site-background {
+  background-color: #FFFFFF !important;
+  background-image: none !important;
+}
+.orb, .orb-one, .orb-two, .orb-three {
+  display: none !important;
+}
+
+/* 3. Ditch All Gradients Sitewide */
+[class*="bg-gradient-"],
+[class*="from-"],
+[class*="to-"],
+[class*="via-"],
+[class*="[.light_&]:bg-[linear-gradient("] {
+  background-image: none !important;
+  background: transparent !important;
+}
+
+/* 4. Ditch Bounding Boxes & Gray Metric Containers */
+.panel-soft,
+.panel-shell,
+.bg-slate-900,
+.bg-slate-950,
+.bg-slate-900\/40,
+.bg-slate-950\/60,
+.bg-slate-950\/20,
+.bg-slate-950\/85,
+.bg-slate-950\/65,
+.bg-slate-900\/50,
+.bg-gray-100,
+.bg-slate-50,
+.bg-slate-50\/95,
+.bg-gray-50,
+.bg-gray-50\/50,
+.bg-gray-50\/30,
+.bg-white\/5,
+.bg-white\/6,
+.bg-white\/8,
+.bg-white\/10 {
+  background-color: #FFFFFF !important;
+  border-color: #E5E5E5 !important;
+}
+
+/* 5. Typography and High-Contrast Hierarchy */
+h1, .text-5xl, .text-6xl {
+  color: #262626 !important; /* Charcoal dark gray */
+  font-weight: 800 !important; /* font-extrabold */
+  font-family: var(--font-sans) !important;
+}
+h2, h3, .text-3xl, .text-4xl {
+  color: #262626 !important; /* Charcoal dark gray */
+  font-weight: 900 !important; /* font-black */
+  font-family: var(--font-sans) !important;
+}
+h4, .text-xl, .text-lg {
+  color: #262626 !important; /* Charcoal dark gray */
+  font-weight: 700 !important; /* font-bold */
+  font-family: var(--font-sans) !important;
+}
+p, .text-base, .text-sm {
+  color: #5E5E5E !important;
+  font-weight: 400 !important; /* font-normal */
+}
+.section-eyebrow,
+.font-mono.text-xs,
+.font-mono.text-\[0\.65rem\],
+.font-mono.text-\[0\.68rem\],
+.font-mono.text-\[0\.72rem\],
+.font-mono.text-\[10px\] {
+  color: #8C8C8C !important;
+  font-weight: 700 !important; /* font-bold */
+  text-transform: uppercase !important;
+  letter-spacing: 0.25em !important;
+}
+
+/* Ensure text-white is always pure white and never overridden by general body text rules */
+.text-white,
+[class*="text-white"],
+[class*="text-slate-100"],
+[class*="text-gray-100"] {
+  color: #FFFFFF !important;
+}
+
+/* 6. Form Inputs & Interactive Controls */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="search"],
+select,
+textarea {
+  background-color: #FFFFFF !important;
+  border: 1px solid #E5E5E5 !important;
+  color: #1A1A1A !important;
+  border-radius: 8px !important;
+  padding: 0.75rem 1rem; /* Breathable controls */
+  font-family: var(--font-mono) !important;
+  outline: none !important;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: #5A7A8F !important;
+}
+
+/* Range Slider Styling */
+input[type="range"] {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  height: 8px !important;
+  border-radius: 8px !important;
+  background-color: #E5E5E5 !important; /* Inactive slider track */
+  accent-color: #5A7A8F !important;
+  outline: none !important;
+  border: none !important;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 8px !important;
+  background-color: #E5E5E5 !important;
+  border-radius: 8px !important;
+  border: none !important;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  width: 18px !important;
+  height: 18px !important;
+  border-radius: 9999px !important;
+  background-color: #5A7A8F !important; /* Active indicator */
+  border: 2px solid #FFFFFF !important; /* Clay-inspired stroke */
+  cursor: pointer !important;
+  margin-top: -5px !important;
+}
+
+input[type="range"]::-moz-range-track {
+  height: 8px !important;
+  background-color: #E5E5E5 !important;
+  border-radius: 8px !important;
+  border: none !important;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 18px !important;
+  height: 18px !important;
+  border-radius: 9999px !important;
+  background-color: #5A7A8F !important;
+  border: 2px solid #FFFFFF !important;
+  cursor: pointer !important;
+}
+
+/* 7. Buttons & Actions */
+.btn-primary,
+button.bg-\[\#1A1A1A\],
+button.bg-slate-950,
+button.bg-black {
+  background-color: #1A1A1A !important;
+  color: #FFFFFF !important;
+  border-radius: 8px !important;
+  border: none !important;
+}
+.btn-secondary {
+  background-color: #FFFFFF !important;
+  color: #1A1A1A !important;
+  border: 1px solid #E5E5E5 !important;
+  border-radius: 8px !important;
+}
+.btn-inline,
+.secondary-action {
+  background-color: transparent !important;
+  color: #5E5E5E !important;
+  border: none !important;
+  text-decoration: underline !important;
+}
+
+/* 8. Table Alignment and Formatting */
+.prose table,
+.article-body table {
+  border-top: 2px solid #1A1A1A !important;
+  width: 100% !important;
+}
+.prose th,
+.article-body th {
+  text-align: left !important;
+  color: #1A1A1A !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  border-bottom: 2px solid #E5E5E5 !important;
+}
+.prose td,
+.article-body td {
+  text-align: left !important;
+  color: #1A1A1A !important;
+  font-size: 1.15rem !important;
+  line-height: 1.7 !important;
+  border-bottom: 1px solid #E5E5E5 !important;
+}
+.prose tr:hover td,
+.article-body tr:hover td {
+  background-color: transparent !important; /* No hover grey highlight */
+}
+
+/* 9. Risk & Active UI Semantic Override Colors */
+.text-risk-high, .text-[#B85C5C], .text-red-500, .text-red-400 { color: #B85C5C !important; }
+.bg-risk-high, .bg-[#B85C5C], .bg-red-500, .bg-red-600 { background-color: #B85C5C !important; }
+.text-risk-medium, .text-[#C88D4E], .text-amber-500, .text-amber-400 { color: #C88D4E !important; }
+.bg-risk-medium, .bg-[#C88D4E], .bg-amber-500, .bg-amber-600 { background-color: #C88D4E !important; }
+.text-risk-low, .text-[#5A7A8F], .text-cyan-500, .text-cyan-400, .text-emerald-500, .text-emerald-400, .text-blue-500, .text-blue-400 { color: #5A7A8F !important; }
+.bg-risk-low, .bg-[#5A7A8F], .bg-cyan-500, .bg-cyan-600, .bg-emerald-500, .bg-emerald-600, .bg-blue-500, .bg-blue-600 { background-color: #5A7A8F !important; }
+
+/* Inactive tracks or indicators */
+.bg-gray-200, .bg-slate-200 {
+  background-color: #E5E5E5 !important;
+}
+.border-gray-200, .border-slate-200 {
+  border-color: #E5E5E5 !important;
+}
+
+/* 10. Horizontal whitespace division for Metrics and KPIs */
+.naked-divider {
+  border-left: 1px solid #E5E5E5 !important;
+}
+
+/* 11. Calculator-Specific Layout & Background Overrides */
+[class*="bg-[linear-gradient"],
+[class*="bg-[radial-gradient"],
+[class*="bg-slate-900"],
+[class*="bg-slate-950"],
+[class*="bg-gray-50"],
+[class*="bg-slate-50"],
+[class*="bg-white/5"],
+[class*="bg-white/6"],
+[class*="bg-white/8"],
+[class*="bg-white/10"],
+.rounded-\[1\.8rem\] {
+  background-image: none !important;
+  background-color: #FFFFFF !important;
+  background: #FFFFFF !important;
+  border-color: #E5E5E5 !important;
+}
+
+/* Reset and ensure high contrast for all text inside overridden headers/banners */
+[class*="bg-[linear-gradient"] h2,
+[class*="bg-[linear-gradient"] h3,
+[class*="bg-[linear-gradient"] p,
+[class*="bg-[linear-gradient"] span,
+[class*="bg-[linear-gradient"] div,
+[class*="bg-[radial-gradient"] h2,
+[class*="bg-[radial-gradient"] h3,
+[class*="bg-[radial-gradient"] p,
+[class*="bg-[radial-gradient"] span,
+[class*="bg-[radial-gradient"] div,
+.rounded-\[1\.8rem\] h2,
+.rounded-\[1\.8rem\] h3,
+.rounded-\[1\.8rem\] p,
+.rounded-\[1\.8rem\] span {
+  color: inherit;
+}
+
+/* Specific text colors used in dark sections that must remain readable on white background */
+[class*="text-blue-300"],
+[class*="text-cyan-300"],
+[class*="text-cyan-200"],
+[class*="text-violet-200"],
+[class*="text-pink-400"] {
+  color: #5A7A8F !important;
+}
+
+/* Make sure all metric cards inside KPI cards are flat and unboxed */
+div[class*="bg-slate-900/40"],
+div[class*="bg-slate-900/30"],
+div[class*="bg-gray-50"],
+div[class*="bg-slate-50"],
+div[class*="bg-blue-500/5"] {
+  background-color: #FFFFFF !important;
+  background: #FFFFFF !important;
+  border: 1px solid #E5E5E5 !important;
+  border-color: #E5E5E5 !important;
+}
+
+/* Unboxed layout for inner values of KPI lists */
+div[class*="bg-slate-900/40"] p,
+div[class*="bg-slate-900/30"] p,
+div[class*="bg-gray-50"] p,
+div[class*="bg-slate-50"] p,
+div[class*="bg-blue-500/5"] p {
+  color: #1A1A1A !important;
+}
+div[class*="bg-slate-900/40"] p[class*="text-[#8C8C8C]"],
+div[class*="bg-slate-900/40"] p[class*="text-blue-300"],
+div[class*="bg-blue-500/5"] p[class*="text-blue-300"] {
+  color: #8C8C8C !important;
+}
+
+/* Print PDF or secondary buttons in headers */
+[class*="bg-[linear-gradient"] button,
+.rounded-\[1\.8rem\] button {
+  background-color: #FFFFFF !important;
+  border: 1px solid #E5E5E5 !important;
+  color: #1A1A1A !important;
+}
+[class*="bg-[linear-gradient"] button:hover,
+.rounded-\[1\.8rem\] button:hover {
+  background-color: #E5E5E5 !important;
+}
+
+/* Badges inside calculator headers */
+[class*="bg-[linear-gradient"] span.rounded-full,
+.rounded-\[1\.8rem\] span.rounded-full {
+  background-color: #FFFFFF !important;
+  border: 1px solid #E5E5E5 !important;
+  color: #8C8C8C !important;
+}
+
+/* Checkbox inputs flat styling */
+input[type="checkbox"] {
+  accent-color: #5A7A8F !important;
+  background-color: #FFFFFF !important;
+  border: 1px solid #E5E5E5 !important;
+}
+
+/* Sidebar Padding Fixes to prevent resets */
+.sidebar-card,
+.calculator-aside-grid > article {
+  padding: 1.5rem !important; /* 24px */
+}
+
+.sidebar-sub-card,
+.calculator-aside-grid > article .p-4,
+.calculator-aside-grid > article [class*="p-4"] {
+  padding: 1rem !important; /* 16px */
+}
+
+/* Responsive SVG support for embedded WordPress graphics */
+.article-body svg {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Sleek custom scrollbar for feed containers */
+.sleek-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E1 transparent;
+}
+
+.sleek-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.sleek-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sleek-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #E2E8F0;
+  border-radius: 9999px;
+}
+
+.sleek-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #94A3B8;
+}

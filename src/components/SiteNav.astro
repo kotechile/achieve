@@ -1,0 +1,87 @@
+---
+/**
+ * Console header.
+ *
+ * Deliberately not a floating pill: giniloh.com owns that gesture. This one is bolted edge to
+ * edge and ruled underneath, so the two properties do not read as colour-swaps of each other.
+ */
+interface NavLink {
+	href: string;
+	label: string;
+	badge?: string;
+}
+
+const navLinks: NavLink[] = [
+	{ href: '/', label: 'Home' },
+	{ href: '/tools/', label: 'Tools' },
+	{ href: '/apps/', label: 'Apps', badge: 'PRO' },
+	{ href: '/articles/', label: 'Articles' },
+	{ href: '/about/', label: 'About' }
+];
+
+const pathname = Astro.url.pathname;
+
+const isActive = (href: string) =>
+	href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href.replace(/\/$/, '')}/`);
+---
+
+<header class="ai-header">
+	<div class="ai-wrap">
+		<div class="ai-header__inner">
+			<a href="/" class="ai-mark" aria-label="AIChieve — home">
+				<span class="ai-mark__glyph" aria-hidden="true">AI</span>
+				<span class="hidden sm:block">
+					<span class="ai-mark__word">AIChieve</span>
+					<span class="ai-mark__sub">Enterprise Command Center</span>
+				</span>
+			</a>
+
+			<nav class="ai-nav hidden lg:flex" aria-label="Primary navigation">
+				{navLinks.map((link) => (
+					<a
+						href={link.href}
+						class="ai-nav__link inline-flex items-center gap-1.5"
+						aria-current={isActive(link.href) ? 'page' : undefined}
+					>
+						<span>{link.label}</span>
+						{link.badge && (
+							<span class="ai-tag ai-tag--pro !px-1 !py-[1px] !text-[0.55rem]">{link.badge}</span>
+						)}
+					</a>
+				))}
+			</nav>
+
+			<div class="flex items-center gap-2">
+				<button type="button" data-search-open aria-label="Open search" class="ai-icon-btn">
+					<svg viewBox="0 0 24 24" fill="none" class="h-4 w-4" aria-hidden="true">
+						<path
+							d="M21 21l-4.35-4.35m1.35-5.15a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"
+							stroke="currentColor"
+							stroke-width="1.7"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						/>
+					</svg>
+				</button>
+
+				<details class="group relative lg:hidden">
+					<summary class="ai-icon-btn cursor-pointer list-none" aria-label="Open navigation menu">
+						<svg viewBox="0 0 24 24" fill="none" class="h-4 w-4" aria-hidden="true">
+							<path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+						</svg>
+					</summary>
+					<nav class="ai-drawer" aria-label="Mobile navigation">
+						{navLinks.map((link) => (
+							<a href={link.href} aria-current={isActive(link.href) ? 'page' : undefined}>
+								<span class="inline-flex items-center gap-2">
+									<span>{link.label}</span>
+									{link.badge && <span class="ai-tag ai-tag--pro !px-1 !py-[1px] !text-[0.55rem]">{link.badge}</span>}
+								</span>
+							</a>
+						))}
+					</nav>
+				</details>
+			</div>
+		</div>
+	</div>
+</header>

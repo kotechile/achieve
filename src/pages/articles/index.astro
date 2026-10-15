@@ -1,0 +1,61 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import JsonLd from '../../components/JsonLd.astro';
+import DispatchLog from '../../components/DispatchLog.astro';
+import { getTopLevelCategories } from '../../lib/categories';
+import { fetchAllPosts } from '../../lib/wordpress';
+import { OWNED_POST_SLUGS } from '../../lib/site-content';
+
+const [posts, topLevel] = await Promise.all([fetchAllPosts(), getTopLevelCategories()]);
+
+const domains = [
+	...topLevel.filter((category) => category.children.length === 0),
+	...topLevel.flatMap((category) => category.children)
+].sort((left, right) => (right.postCount ?? 0) - (left.postCount ?? 0));
+
+const siteOrigin = Astro.site?.toString().replace(/\/$/, '') || 'https://aichieve.net';
+const pageUrl = `${siteOrigin}/articles/`;
+---
+
+<BaseLayout
+	title={`Article archive — ${OWNED_POST_SLUGS.size} operations dispatches | AIChieve`}
+	description="Every AIChieve dispatch on AI stack economics, agentic workflow operations, compute infrastructure and supply-chain cost control."
+>
+	<link slot="head" rel="canonical" href={pageUrl} />
+	<JsonLd
+		slot="head"
+		data={{
+			'@context': 'https://schema.org',
+			'@type': 'CollectionPage',
+			name: 'AIChieve article archive',
+			url: pageUrl,
+			numberOfItems: posts.length
+		}}
+	/>
+
+	<section class="pt-4">
+		<p class="ai-label ai-label--signal">Archive</p>
+		<h1 class="ai-display mt-4 max-w-3xl text-[2.2rem] sm:text-4xl lg:text-5xl">
+			{posts.length} dispatches, newest first
+		</h1>
+		<p class="ai-lede mt-5">
+			Field notes on the cost mechanics of AI, compute and logistics — written from the model, not
+			from the press release. Filter by domain below or search the archive from the header.
+		</p>
+	</section>
+
+	<nav class="mt-10 flex flex-wrap gap-2" aria-label="Filter by domain">
+		{
+			domains.map((domain) => (
+				<a
+					href={`/categories/${domain.slug}/`}
+					class="ai-tag !py-1.5 transition hover:border-[var(--ai-signal)] hover:text-[var(--ai-signal)]"
+				>
+					{domain.name} · {domain.postCount ?? 0}
+				</a>
+			))
+		}
+	</nav>
+
+	<DispatchLog posts={posts} eyebrow="Complete archive" title="All dispatches" id="all-dispatches" scrollable={false} />
+</BaseLayout>

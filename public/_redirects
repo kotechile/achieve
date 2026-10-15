@@ -1,0 +1,22 @@
+# Edge redirects for hosts that read a `_redirects` file (Netlify / Cloudflare Pages style).
+#
+# The production deployment is the nginx image built from ./Dockerfile, which handles these in
+# default.conf — this file exists so a non-nginx deploy does not silently lose the moved-tool
+# redirects. Keep the two in sync.
+#
+# CRITICAL: /apps/ is a real route on this site (the PRO app directory). It must never be
+# redirected — only the legacy giniloh aliases collapse into it.
+
+# Moved tool paths (these lived under /calculators/ on giniloh.com)
+/calculators              /tools/                       301
+/calculators/             /tools/                       301
+/calculators/gpu-compute             /tools/gpu-compute/        301
+/calculators/gpu-compute/            /tools/gpu-compute/        301
+/calculators/decision-intelligence   /tools/master-asset-tco/   301
+/calculators/decision-intelligence/  /tools/master-asset-tco/   301
+
+# Legacy giniloh names for the app directory
+/showcase                 /apps/                        301
+/showcase/                /apps/                        301
+/pro-apps                 /apps/                        301
+/pro-apps/                /apps/                        301

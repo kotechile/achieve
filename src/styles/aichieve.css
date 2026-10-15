@@ -1,0 +1,510 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@import "@fontsource/inter/300.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/400-italic.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+@import "@fontsource/inter/800.css";
+@import "@fontsource/inter/900.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/jetbrains-mono/700.css";
+
+/* Layout + component rules carried over from the shared design system (prose, article body,
+   instrument controls, scrollbars). Loaded BEFORE the theme layer below so the console theme
+   wins on every conflict. */
+@import "./global.css";
+
+/* Hallmark · macrostructure: Command Deck · genre: modern-minimal(industrial)
+ * theme: custom (vibe: "graphite console, amber signal, engineering drawing")
+ *   paper:  #0E1116 graphite   ·  accent: #E8A33D safety amber  ·  structure: hairline + mono
+ * Diversification: differs from giniloh.com on paper band (dark vs light), display style
+ *   (mono-chrome + uppercase grotesk vs editorial sentence-case), accent hue (amber vs steel).
+ */
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   1 · TOKENS
+   The console half of the 2026 split. giniloh.com is white paper and quiet steel;
+   aichieve.net is graphite and safety amber. One accent, ranked second only by the
+   hairline rule — restraint is what makes an operations surface read as precise
+   instead of decorative.
+   ───────────────────────────────────────────────────────────────────────────── */
+:root {
+	--font-sans: "Inter", "Avenir Next", "Segoe UI", sans-serif;
+	--font-mono: "JetBrains Mono", "Fira Code", monospace;
+
+	/* Surfaces, darkest to lightest */
+	--ai-void: #08090b;
+	--ai-shell: #0e1116;
+	--ai-panel: #141920;
+	--ai-panel-2: #1b2129;
+	--ai-panel-3: #222a34;
+
+	/* Hairlines — the only structural device on this site. No shadows. */
+	--ai-line: rgba(255, 255, 255, 0.11);
+	--ai-line-soft: rgba(255, 255, 255, 0.055);
+	--ai-grid: rgba(255, 255, 255, 0.028);
+
+	/* Ink */
+	--ai-ink: #e9eef4;
+	--ai-ink-2: #a3b0be;
+	--ai-ink-3: #6b7885;
+	--ai-ink-4: #4a545f;
+
+	/* Signal */
+	--ai-signal: #e8a33d;
+	--ai-signal-soft: rgba(232, 163, 61, 0.14);
+	--ai-link: #6fa8c7;
+	--ai-ok: #4e9e86;
+	--ai-warn: #c99a4e;
+	--ai-bad: #c4655c;
+
+	/* Light surfaces used by instruments + long-form reading */
+	--paper: #ffffff;
+	--paper-ink: #1a1a1a;
+	--paper-ink-2: #5e5e5e;
+	--paper-line: #e5e5e5;
+
+	--ai-max: 78rem;
+}
+
+@theme {
+	--font-sans: var(--font-sans);
+	--font-mono: var(--font-mono);
+	--color-ai-void: var(--ai-void);
+	--color-ai-shell: var(--ai-shell);
+	--color-ai-panel: var(--ai-panel);
+	--color-ai-line: var(--ai-line);
+	--color-ai-ink: var(--ai-ink);
+	--color-ai-signal: var(--ai-signal);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   2 · BASE — engineering-drawing surface
+   A 32px technical grid, drawn with a hairline gradient at 2.8% alpha. It is the
+   one decorative element on the site; everything else is ruled, not painted.
+   ───────────────────────────────────────────────────────────────────────────── */
+html {
+	scroll-behavior: smooth;
+	background: var(--ai-void);
+}
+
+body {
+	margin: 0;
+	min-height: 100vh;
+	font-family: var(--font-sans);
+	color: var(--ai-ink);
+	background-color: var(--ai-void);
+	background-image:
+		linear-gradient(to bottom, rgba(232, 163, 61, 0.05), transparent 42rem),
+		repeating-linear-gradient(to right, var(--ai-grid) 0 1px, transparent 1px 32px),
+		repeating-linear-gradient(to bottom, var(--ai-grid) 0 1px, transparent 1px 32px);
+	color-scheme: dark;
+	-webkit-font-smoothing: antialiased;
+}
+
+/* The layout stylesheet (global.css) pins headings to a light-theme ink. Re-point them. */
+h1, h2, h3, h4, h5, h6 {
+	color: var(--ai-ink);
+	font-family: var(--font-sans);
+	letter-spacing: -0.02em;
+}
+
+a {
+	text-decoration: none;
+	color: inherit;
+}
+
+::selection {
+	background: var(--ai-signal);
+	color: #10131a;
+}
+
+*:focus-visible {
+	outline: 2px solid var(--ai-signal);
+	outline-offset: 2px;
+	border-radius: 2px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   3 · CHROME PRIMITIVES
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Page frame */
+.ai-wrap {
+	width: 100%;
+	max-width: var(--ai-max);
+	margin-inline: auto;
+	padding-inline: 1rem;
+}
+@media (min-width: 640px) { .ai-wrap { padding-inline: 1.5rem; } }
+
+/* Mono eyebrow — every section on this site is labelled like a rack unit. */
+.ai-label {
+	font-family: var(--font-mono);
+	font-size: 0.6875rem;
+	font-weight: 700;
+	letter-spacing: 0.22em;
+	text-transform: uppercase;
+	color: var(--ai-ink-3);
+	margin: 0;
+}
+.ai-label--signal { color: var(--ai-signal); }
+
+/* Display heading — uppercase grotesk, the opposite of giniloh's editorial case. */
+.ai-display {
+	font-weight: 800;
+	letter-spacing: -0.03em;
+	line-height: 0.98;
+	text-transform: uppercase;
+	text-wrap: balance;
+	overflow-wrap: anywhere;
+	min-width: 0;
+}
+
+.ai-lede {
+	color: var(--ai-ink-2);
+	font-size: 1.0625rem;
+	line-height: 1.7;
+	max-width: 44rem;
+}
+
+/* Hairline rule — the divider on this site. */
+.ai-rule {
+	border: 0;
+	border-top: 1px solid var(--ai-line);
+	margin: 0;
+}
+.ai-rule--soft { border-top-color: var(--ai-line-soft); }
+
+/* Panel — flat, ruled, never shadowed. */
+.ai-panel {
+	position: relative;
+	background: var(--ai-panel);
+	border: 1px solid var(--ai-line);
+}
+.ai-panel--cap {
+	/* 3px amber cap rail: the "this unit is powered" tell, used sparingly. */
+	border-top: 2px solid var(--ai-signal);
+}
+.ai-panel--interactive {
+	transition: border-color 180ms cubic-bezier(0.32, 0.72, 0, 1), background-color 180ms cubic-bezier(0.32, 0.72, 0, 1), transform 180ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.ai-panel--interactive:hover {
+	border-color: rgba(232, 163, 61, 0.5);
+	background: var(--ai-panel-2);
+	transform: translateY(-2px);
+}
+@media (prefers-reduced-motion: reduce) {
+	.ai-panel--interactive, .ai-panel--interactive:hover { transition: none; transform: none; }
+}
+
+/* Tag / status chip */
+.ai-tag {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	border: 1px solid var(--ai-line);
+	padding: 0.2rem 0.5rem;
+	font-family: var(--font-mono);
+	font-size: 0.625rem;
+	font-weight: 700;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	color: var(--ai-ink-2);
+	white-space: nowrap;
+}
+.ai-tag--live { border-color: rgba(78, 158, 134, 0.45); color: #7fc7b1; }
+.ai-tag--pro { border-color: rgba(232, 163, 61, 0.5); color: var(--ai-signal); }
+.ai-tag--soon { border-color: var(--ai-line); color: var(--ai-ink-3); }
+
+/* Blinking status lamp — one, not many. */
+.ai-lamp {
+	display: inline-block;
+	width: 6px;
+	height: 6px;
+	background: var(--ai-ok);
+	animation: ai-pulse 2.4s steps(1, end) infinite;
+}
+@keyframes ai-pulse { 0%, 62% { opacity: 1; } 63%, 100% { opacity: 0.25; } }
+
+/* Buttons */
+.ai-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	padding: 0.8rem 1.25rem;
+	background: var(--ai-signal);
+	color: #10131a;
+	font-weight: 700;
+	font-size: 0.8125rem;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	font-family: var(--font-mono);
+	border: 1px solid var(--ai-signal);
+	transition: background-color 160ms ease, color 160ms ease;
+}
+.ai-btn:hover { background: #f4b757; border-color: #f4b757; }
+.ai-btn:active { transform: translateY(1px); }
+.ai-btn--ghost {
+	background: transparent;
+	color: var(--ai-ink);
+	border-color: var(--ai-line);
+}
+.ai-btn--ghost:hover { background: var(--ai-panel-2); border-color: var(--ai-ink-4); color: var(--ai-ink); }
+
+/* Text link with a travelling arrow */
+.ai-link {
+	color: var(--ai-link);
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	font-weight: 600;
+}
+.ai-link:hover { color: #9cc9e2; }
+.ai-link span[aria-hidden] { display: inline-block; transition: transform 180ms cubic-bezier(0.32, 0.72, 0, 1); }
+.ai-link:hover span[aria-hidden] { transform: translateX(4px); }
+@media (prefers-reduced-motion: reduce) { .ai-link span[aria-hidden], .ai-link:hover span[aria-hidden] { transition: none; transform: none; } }
+
+/* KPI readout — naked numbers, monospaced, no boxes. */
+.ai-kpi {
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+}
+.ai-kpi__value {
+	font-family: var(--font-mono);
+	font-size: clamp(1.75rem, 4vw, 2.75rem);
+	font-weight: 700;
+	line-height: 1;
+	letter-spacing: -0.02em;
+	color: var(--ai-ink);
+	font-variant-numeric: tabular-nums;
+}
+.ai-kpi__value--signal { color: var(--ai-signal); }
+.ai-kpi__value--ok { color: #7fc7b1; }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   4 · LIGHT SURFACES
+   Two things on this site are white on purpose: the long-form reading column and
+   the calculator instruments (which were authored against a light surface).
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.paper {
+	background: var(--paper);
+	color: var(--paper-ink);
+	border: 1px solid var(--ai-line);
+	padding: clamp(1.25rem, 4vw, 4rem);
+}
+.paper h1, .paper h2, .paper h3, .paper h4, .paper h5, .paper h6 { color: var(--paper-ink); }
+.paper p, .paper li, .paper dd { color: var(--paper-ink-2); }
+.paper a { color: #46647a; }
+.paper a:hover { color: var(--paper-ink); }
+.paper strong { color: var(--paper-ink); }
+
+/* Instrument bay: the mounted panel the React calculators sit in. */
+.instrument-surface {
+	background: var(--paper);
+	color: var(--paper-ink);
+	border: 1px solid var(--ai-line);
+}
+.instrument-surface h1, .instrument-surface h2, .instrument-surface h3,
+.instrument-surface h4, .instrument-surface h5, .instrument-surface h6 { color: var(--paper-ink); }
+.instrument-surface p, .instrument-surface li, .instrument-surface span, .instrument-surface div { color: inherit; }
+.instrument-surface p { color: var(--paper-ink-2); }
+.instrument-surface strong, .instrument-surface b { color: var(--paper-ink); }
+
+/* The calculators were authored dark and flattened by giniloh's light-mode policy layer.
+   Reproduce just the flattening they depend on, scoped to the bay so it cannot touch chrome. */
+.instrument-surface [class*="bg-slate-900"],
+.instrument-surface [class*="bg-slate-950"],
+.instrument-surface [class*="bg-gray-50"],
+.instrument-surface [class*="bg-slate-50"],
+.instrument-surface [class*="bg-white/5"],
+.instrument-surface [class*="bg-white/6"],
+.instrument-surface [class*="bg-white/8"],
+.instrument-surface [class*="bg-white/10"] {
+	background-color: var(--paper) !important;
+}
+.instrument-surface [class*="bg-[linear-gradient"],
+.instrument-surface [class*="bg-[radial-gradient"] {
+	background-image: none !important;
+	background-color: var(--paper) !important;
+}
+.instrument-surface [class*="text-blue-300"],
+.instrument-surface [class*="text-cyan-300"],
+.instrument-surface [class*="text-cyan-200"],
+.instrument-surface [class*="text-emerald-300"],
+.instrument-surface [class*="text-violet-200"] {
+	color: var(--paper-ink) !important;
+}
+.instrument-surface .panel-soft { background: var(--paper); border-color: var(--paper-line); }
+.instrument-surface table { color: var(--paper-ink); }
+.instrument-surface input, .instrument-surface select, .instrument-surface textarea { color: var(--paper-ink); }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   5 · NAVIGATION — a bolted-on console header, not a floating pill.
+   giniloh's nav floats. This one is pinned edge to edge and ruled underneath, which
+   is the single clearest signal that you have changed properties.
+   ───────────────────────────────────────────────────────────────────────────── */
+.ai-header {
+	position: sticky;
+	top: 0;
+	z-index: 50;
+	background: rgba(8, 9, 11, 0.86);
+	backdrop-filter: blur(14px) saturate(140%);
+	-webkit-backdrop-filter: blur(14px) saturate(140%);
+	border-bottom: 1px solid var(--ai-line);
+}
+.ai-header__inner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	min-height: 3.75rem;
+}
+
+.ai-mark {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.65rem;
+	flex-shrink: 0;
+	min-width: 0;
+}
+.ai-mark__glyph {
+	display: grid;
+	place-items: center;
+	width: 1.9rem;
+	height: 1.9rem;
+	border: 1px solid var(--ai-signal);
+	color: var(--ai-signal);
+	font-family: var(--font-mono);
+	font-size: 0.66rem;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	flex-shrink: 0;
+}
+.ai-mark__word {
+	font-family: var(--font-mono);
+	font-size: 0.82rem;
+	font-weight: 700;
+	letter-spacing: 0.24em;
+	text-transform: uppercase;
+	color: var(--ai-ink);
+	white-space: nowrap;
+}
+.ai-mark__sub {
+	display: block;
+	font-family: var(--font-mono);
+	font-size: 0.56rem;
+	letter-spacing: 0.2em;
+	color: var(--ai-ink-4);
+	text-transform: uppercase;
+}
+
+.ai-nav {
+	display: flex;
+	align-items: center;
+	gap: 0.15rem;
+}
+.ai-nav__link {
+	position: relative;
+	padding: 0.55rem 0.7rem;
+	font-family: var(--font-mono);
+	font-size: 0.7rem;
+	font-weight: 500;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--ai-ink-2);
+	white-space: nowrap;
+	transition: color 150ms ease, background-color 150ms ease;
+}
+.ai-nav__link:hover { color: var(--ai-ink); background: var(--ai-panel-2); }
+.ai-nav__link[aria-current="page"] { color: var(--ai-signal); }
+.ai-nav__link[aria-current="page"]::after {
+	content: "";
+	position: absolute;
+	left: 0.7rem;
+	right: 0.7rem;
+	bottom: 0.12rem;
+	height: 1px;
+	background: var(--ai-signal);
+}
+
+/* Icon button (search, menu) */
+.ai-icon-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2.4rem;
+	height: 2.4rem;
+	border: 1px solid var(--ai-line);
+	background: transparent;
+	color: var(--ai-ink-2);
+	transition: color 150ms ease, border-color 150ms ease, background-color 150ms ease;
+}
+.ai-icon-btn:hover { color: var(--ai-ink); border-color: var(--ai-ink-4); background: var(--ai-panel-2); }
+
+/* Mobile drawer */
+.ai-drawer {
+	position: absolute;
+	right: 1rem;
+	top: calc(100% + 0.5rem);
+	width: min(20rem, calc(100vw - 2rem));
+	background: var(--ai-shell);
+	border: 1px solid var(--ai-line);
+	padding: 0.5rem;
+}
+.ai-drawer a {
+	display: block;
+	padding: 0.8rem 0.9rem;
+	font-family: var(--font-mono);
+	font-size: 0.72rem;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--ai-ink-2);
+}
+.ai-drawer a:hover { background: var(--ai-panel-2); color: var(--ai-ink); }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   6 · MOTION — one entrance, no scroll-jacking.
+   ───────────────────────────────────────────────────────────────────────────── */
+.ai-rise {
+	animation: ai-rise 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes ai-rise {
+	from { opacity: 0; transform: translate3d(0, 10px, 0); }
+	to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+	.ai-rise { animation: none; }
+	.ai-lamp { animation: none; }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   7 · ARTICLE TYPOGRAPHY (dark chrome, light reading column)
+   global.css already styles `.prose` / `.article-body` for a light surface; the
+   overrides here only fix what the dark shell would otherwise inherit into.
+   ───────────────────────────────────────────────────────────────────────────── */
+.prose, .article-body {
+	color: var(--paper-ink-2);
+}
+.prose h1, .prose h2, .prose h3, .prose h4,
+.article-body h1, .article-body h2, .article-body h3, .article-body h4 {
+	color: var(--paper-ink);
+}
+.prose :where(code):not(:where(pre code)) {
+	background: #f4f5f7;
+	color: var(--paper-ink);
+	padding: 0.1em 0.35em;
+	border-radius: 3px;
+	font-family: var(--font-mono);
+	font-size: 0.9em;
+}
+
+/* Horizontal overflow safety at 320px (Hallmark gate 34). */
+html, body { overflow-x: clip; }

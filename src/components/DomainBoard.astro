@@ -1,0 +1,73 @@
+---
+/**
+ * Domain board — the enterprise counterpart to giniloh's consumer bento.
+ *
+ * Spans are asymmetric on purpose (the largest domain gets the widest tile) so the grid
+ * reports volume rather than decorating evenly. Counts come from the live CMS.
+ */
+interface DomainTile {
+	name: string;
+	slug: string;
+	description: string;
+	postCount: number | null;
+}
+
+interface Props {
+	domains: DomainTile[];
+}
+
+const { domains } = Astro.props;
+
+// Widest tile = biggest domain. Sorted descending by volume, then blurred across a 6-col grid.
+const ranked = [...domains].sort((a, b) => (b.postCount ?? 0) - (a.postCount ?? 0));
+const spans = ['lg:col-span-3', 'lg:col-span-3', 'lg:col-span-2', 'lg:col-span-2', 'lg:col-span-2', 'lg:col-span-3'];
+---
+
+<section class="mt-20" aria-labelledby="domains-heading">
+	<div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+		<div>
+			<p class="ai-label">Coverage</p>
+			<h2 id="domains-heading" class="ai-display mt-3 text-2xl sm:text-3xl">Where the money leaks</h2>
+		</div>
+		<a class="ai-link text-sm" href="/categories/">
+			All domains <span aria-hidden="true">→</span>
+		</a>
+	</div>
+
+	<div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+		{
+			ranked.map((domain, index) => (
+				<a
+					href={`/categories/${domain.slug}/`}
+					class:list={[
+						'ai-panel ai-panel--interactive group flex min-h-40 flex-col justify-between p-5',
+						spans[index % spans.length]
+					]}
+				>
+					<div>
+						<div class="flex items-start justify-between gap-4">
+							<span class="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-[var(--ai-ink-4)]">
+								{String(index + 1).padStart(2, '0')}
+							</span>
+							<span class="font-mono text-sm font-bold text-[var(--ai-ink-2)] tabular-nums">
+								{domain.postCount ?? 0}
+							</span>
+						</div>
+						<h3 class="mt-4 text-lg font-bold leading-snug tracking-tight text-[var(--ai-ink)] transition group-hover:text-[var(--ai-signal)]">
+							{domain.name}
+						</h3>
+						{domain.description && (
+							<p class="mt-2 line-clamp-3 text-sm leading-relaxed text-[var(--ai-ink-2)]">
+								{domain.description}
+							</p>
+						)}
+					</div>
+					<span class="mt-5 inline-flex items-center gap-1.5 border-t border-[var(--ai-line-soft)] pt-3.5 font-mono text-[0.62rem] font-bold uppercase tracking-[0.16em] text-[var(--ai-ink-3)] transition group-hover:text-[var(--ai-signal)]">
+						Open domain
+						<span aria-hidden="true" class="inline-block transition-transform duration-200 group-hover:translate-x-1">→</span>
+					</span>
+				</a>
+			))
+		}
+	</div>
+</section>

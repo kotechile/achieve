@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="AIChieve">
+  <rect width="32" height="32" fill="#0E1116"/>
+  <rect x="0.5" y="0.5" width="31" height="31" fill="none" stroke="#E8A33D" stroke-width="1"/>
+  <text x="16" y="21.5" text-anchor="middle"
+        font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+        font-size="13" font-weight="700" letter-spacing="-0.5" fill="#E8A33D">AI</text>
+</svg>

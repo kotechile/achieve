@@ -1,0 +1,161 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import JsonLd from '../components/JsonLd.astro';
+import HeroConsole from '../components/HeroConsole.astro';
+import DomainBoard from '../components/DomainBoard.astro';
+import DispatchLog from '../components/DispatchLog.astro';
+import { getTopLevelCategories } from '../lib/categories';
+import { calculators } from '../lib/calculators/metadata';
+import { PRO_APPS, appUrl } from '../lib/apps';
+import { fetchLatestPosts } from '../lib/wordpress';
+import { OWNED_POST_SLUGS } from '../lib/site-content';
+
+const [topLevel, latest] = await Promise.all([getTopLevelCategories(), fetchLatestPosts(14)]);
+
+// Tiles are the domains a reader can actually browse: top-level categories that have no
+// children of their own, plus every child. Showing a parent *and* its children would report
+// the same dispatches twice.
+const displayDomains = [
+	...topLevel.filter((category) => category.children.length === 0),
+	...topLevel.flatMap((category) => category.children)
+].sort((left, right) => (right.postCount ?? 0) - (left.postCount ?? 0));
+
+const siteOrigin = Astro.site?.toString().replace(/\/$/, '') || 'https://aichieve.net';
+
+const websiteSchema = {
+	'@context': 'https://schema.org',
+	'@type': 'WebSite',
+	name: 'AIChieve',
+	url: `${siteOrigin}/`,
+	description:
+		'Enterprise decision intelligence for AI stack economics, agentic workflow operations and supply-chain cost control.'
+};
+---
+
+<BaseLayout
+	title="AIChieve — enterprise decision intelligence for AI, compute and supply chain"
+	description="Deterministic engines and buyer-side audits for AI stack economics, agentic workflow operations and supply-chain spend. Model GPU build-vs-lease TCO and build-vs-buy without hand-waving."
+>
+	<link slot="head" rel="canonical" href={`${siteOrigin}/`} />
+	<JsonLd slot="head" data={websiteSchema} />
+
+	<HeroConsole
+		domains={displayDomains.map((domain) => ({
+			name: domain.name,
+			slug: domain.slug,
+			postCount: domain.postCount,
+			level: domain.level
+		}))}
+		dispatchCount={OWNED_POST_SLUGS.size}
+		engineCount={calculators.length}
+		appCount={PRO_APPS.length}
+	/>
+
+	<DomainBoard
+		domains={displayDomains.map((domain) => ({
+			name: domain.name,
+			slug: domain.slug,
+			description: domain.description,
+			postCount: domain.postCount
+		}))}
+	/>
+
+	<section class="mt-20" aria-labelledby="engines-heading">
+		<div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+			<div>
+				<p class="ai-label">Tool register</p>
+				<h2 id="engines-heading" class="ai-display mt-3 text-2xl sm:text-3xl">
+					Put a number on it
+				</h2>
+			</div>
+			<a class="ai-link text-sm" href="/tools/">
+				All tools <span aria-hidden="true">→</span>
+			</a>
+		</div>
+
+		<div class="mt-6 grid gap-4 lg:grid-cols-2">
+			{
+				calculators.map((tool) => (
+					<a
+						href={tool.href}
+						class="ai-panel ai-panel--cap ai-panel--interactive group flex min-h-56 flex-col justify-between p-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ai-signal)]"
+					>
+						<div>
+							<div class="flex items-center justify-between gap-4">
+								<span class="ai-label">{tool.domainCategory}</span>
+								<span class="ai-tag ai-tag--live">{tool.status}</span>
+							</div>
+							<h3 class="mt-5 text-2xl font-extrabold leading-tight tracking-tight text-[var(--ai-ink)] transition group-hover:text-[var(--ai-signal)]">
+								{tool.title}
+							</h3>
+							<p class="mt-3 text-sm leading-relaxed text-[var(--ai-ink-2)]">{tool.description}</p>
+						</div>
+						<span class="mt-6 inline-flex items-center gap-1.5 border-t border-[var(--ai-line-soft)] pt-4 font-mono text-[0.65rem] font-bold uppercase tracking-[0.16em] text-[var(--ai-ink-3)] transition group-hover:text-[var(--ai-signal)]">
+							{tool.utility}
+							<span aria-hidden="true" class="inline-block transition-transform duration-200 group-hover:translate-x-1">→</span>
+						</span>
+					</a>
+				))
+			}
+		</div>
+	</section>
+
+	<section class="mt-20" aria-labelledby="apps-heading">
+		<div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+			<div>
+				<p class="ai-label">PRO apps</p>
+				<h2 id="apps-heading" class="ai-display mt-3 text-2xl sm:text-3xl">Audit the file, not the story</h2>
+			</div>
+			<a class="ai-link text-sm" href="/apps/">
+				App directory <span aria-hidden="true">→</span>
+			</a>
+		</div>
+
+		<ul class="mt-6 divide-y divide-[var(--ai-line-soft)] border-y border-[var(--ai-line)]">
+			{
+				PRO_APPS.map((app) => (
+					<li>
+						<a
+							href={appUrl(app.path)}
+							rel="noopener"
+							class="group flex flex-col gap-2 py-5 transition hover:bg-[var(--ai-panel-2)] sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:px-4"
+						>
+							<span class="min-w-0">
+								<span class="flex items-center gap-2">
+									<span class="text-lg font-bold tracking-tight text-[var(--ai-ink)] transition group-hover:text-[var(--ai-signal)]">
+										{app.name}
+									</span>
+									<span class="ai-tag ai-tag--pro">PRO</span>
+								</span>
+								<span class="mt-1 block text-sm leading-relaxed text-[var(--ai-ink-2)]">{app.tagline}</span>
+							</span>
+							<span class="shrink-0 font-mono text-[0.6rem] uppercase tracking-[0.16em] text-[var(--ai-ink-4)]">
+								{app.audience}
+							</span>
+						</a>
+					</li>
+				))
+			}
+		</ul>
+	</section>
+
+	<DispatchLog posts={latest} eyebrow="Dispatch log" title="Latest operations dispatches" />
+
+	<section class="mt-20 border-t border-[var(--ai-line)] pt-10">
+		<div class="grid gap-8 lg:grid-cols-[0.45fr_0.55fr]">
+			<div>
+				<p class="ai-label">Two properties, one author</p>
+				<h2 class="ai-display mt-3 text-2xl sm:text-3xl">Looking for the personal side?</h2>
+			</div>
+			<div>
+				<p class="text-sm leading-relaxed text-[var(--ai-ink-2)]">
+					Career moves, compensation and equity modelling, expat tax regimes, lease exits and
+					personal cost-per-use decisions live on giniloh.com. Same method, personal money.
+				</p>
+				<a class="ai-link mt-5 text-sm" href="https://giniloh.com" rel="noopener">
+					giniloh.com — the quantified professional <span aria-hidden="true">→</span>
+				</a>
+			</div>
+		</div>
+	</section>
+</BaseLayout>

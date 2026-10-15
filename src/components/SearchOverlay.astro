@@ -1,0 +1,299 @@
+---
+import { getConfiguredWordPressApiBase } from '../lib/wordpress';
+import { OWNED_POST_SLUGS } from '../lib/site-content';
+
+const apiBase = getConfiguredWordPressApiBase();
+// Search hits the shared install, which serves both properties. The slug set is bundled so the
+// results list can drop the other property's posts client-side instead of linking into them.
+const ownedSlugs = JSON.stringify([...OWNED_POST_SLUGS]);
+---
+
+<div
+	id="search-overlay"
+	class="pointer-events-none fixed inset-0 z-[70] opacity-0 transition duration-200 data-[open=true]:pointer-events-auto data-[open=true]:opacity-100 motion-reduce:transition-none"
+	data-api-base={apiBase}
+	data-owned-slugs={ownedSlugs}
+	data-open="false"
+	aria-hidden="true"
+>
+	<button
+		class="absolute inset-0 h-full w-full cursor-default bg-[rgba(8,9,11,0.82)] backdrop-blur-xl"
+		type="button"
+		data-search-close
+		aria-label="Close search"
+	></button>
+
+	<div class="relative flex min-h-full items-start justify-center px-4 py-20 sm:px-6">
+		<div
+			class="relative z-10 w-full max-w-3xl border border-[var(--ai-line)] bg-[var(--ai-shell)] p-5 sm:p-7"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="search-overlay-title"
+		>
+			<div class="flex items-start justify-between gap-4">
+				<div>
+					<p class="ai-label ai-label--signal">Query console</p>
+					<h2 id="search-overlay-title" class="mt-3 text-2xl font-extrabold tracking-tight">
+						Search {OWNED_POST_SLUGS.size} dispatches
+					</h2>
+				</div>
+				<button type="button" class="ai-icon-btn" data-search-close aria-label="Close search overlay">
+					<span aria-hidden="true" class="text-lg leading-none">×</span>
+				</button>
+			</div>
+
+			<form class="mt-7" id="search-form" novalidate>
+				<label class="sr-only" for="search-input">Search dispatches</label>
+				<input
+					id="search-input"
+					type="search"
+					name="q"
+					placeholder="gpu tco, kv cache, demurrage, agent timeouts…"
+					autocomplete="off"
+					class="w-full border border-[var(--ai-line)] bg-[var(--ai-void)] px-4 py-3.5 font-mono text-base text-[var(--ai-ink)] placeholder:text-[var(--ai-ink-4)] focus:border-[var(--ai-signal)] focus:outline-none focus:ring-1 focus:ring-[var(--ai-signal)]"
+				/>
+			</form>
+
+			<div class="mt-5 min-h-32 border border-[var(--ai-line)] bg-[var(--ai-void)] p-4">
+				<p id="search-status" class="font-mono text-xs text-[var(--ai-ink-3)]">
+					&gt; Start typing to query the dispatch archive.
+				</p>
+				<ul id="search-results" class="mt-4 grid gap-2" aria-live="polite"></ul>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	type SearchResult = {
+		title: string;
+		excerpt: string;
+		link: string;
+		date: string | null;
+		categoryLabel: string | null;
+	};
+
+	type SearchPostResponse = {
+		slug?: string;
+		date?: string;
+		title?: { rendered?: string };
+		excerpt?: { rendered?: string };
+		_embedded?: { 'wp:term'?: Array<Array<{ name?: string }>> };
+	};
+
+	const overlay = document.querySelector<HTMLDivElement>('#search-overlay');
+	const input = document.querySelector<HTMLInputElement>('#search-input');
+	const resultsList = document.querySelector<HTMLUListElement>('#search-results');
+	const status = document.querySelector<HTMLParagraphElement>('#search-status');
+	const form = document.querySelector<HTMLFormElement>('#search-form');
+	const closeButtons = Array.from(document.querySelectorAll<HTMLElement>('[data-search-close]'));
+	const openButtons = Array.from(document.querySelectorAll<HTMLElement>('[data-search-open]'));
+
+	const apiBase = overlay?.getAttribute('data-api-base') ?? '';
+	const ownedSlugs = new Set<string>(
+		JSON.parse(overlay?.getAttribute('data-owned-slugs') ?? '[]') as string[]
+	);
+
+	const focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+	let previousFocusedElement: HTMLElement | null = null;
+	let activeRequest: AbortController | null = null;
+	let debounceTimer: number | null = null;
+
+	const setOpen = (open: boolean) => {
+		if (!overlay) return;
+
+		overlay.setAttribute('data-open', open ? 'true' : 'false');
+		overlay.setAttribute('aria-hidden', open ? 'false' : 'true');
+		document.documentElement.classList.toggle('overflow-hidden', open);
+
+		if (open) {
+			previousFocusedElement =
+				document.activeElement instanceof HTMLElement ? document.activeElement : null;
+			window.setTimeout(() => input?.focus(), 30);
+		} else {
+			window.setTimeout(() => previousFocusedElement?.focus?.(), 30);
+		}
+	};
+
+	const escapeHtml = (value: string) =>
+		value.replace(/[&<>"']/g, (char) => {
+			switch (char) {
+				case '&':
+					return '&amp;';
+				case '<':
+					return '&lt;';
+				case '>':
+					return '&gt;';
+				case '"':
+					return '&quot;';
+				default:
+					return '&#039;';
+			}
+		});
+
+	const renderResults = (posts: SearchResult[]) => {
+		if (!resultsList || !status) return;
+
+		resultsList.innerHTML = '';
+
+		if (!posts.length) {
+			status.textContent = '> No dispatch matches that query.';
+			return;
+		}
+
+		status.textContent = `> ${posts.length} result${posts.length === 1 ? '' : 's'}`;
+
+		for (const post of posts) {
+			const item = document.createElement('li');
+			item.innerHTML = `
+				<a
+					href="${escapeHtml(post.link)}"
+					class="group block border border-[var(--ai-line)] bg-[var(--ai-panel)] p-4 transition hover:border-[var(--ai-signal)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ai-signal)]"
+				>
+					<div class="flex items-center justify-between gap-4 font-mono text-[0.6rem] uppercase tracking-[0.16em] text-[var(--ai-ink-4)]">
+						<span class="truncate text-[var(--ai-signal)]">${escapeHtml(post.categoryLabel ?? 'Dispatch')}</span>
+						<span class="shrink-0">${post.date ? new Date(post.date).toLocaleDateString() : ''}</span>
+					</div>
+					<h3 class="mt-2 text-base font-bold leading-snug tracking-tight text-[var(--ai-ink)] transition group-hover:text-[var(--ai-signal)]">${escapeHtml(post.title)}</h3>
+					<p class="mt-1.5 line-clamp-2 text-xs leading-relaxed text-[var(--ai-ink-2)]">${escapeHtml(post.excerpt)}</p>
+				</a>
+			`;
+			resultsList.appendChild(item);
+		}
+	};
+
+	const searchPosts = async (query: string) => {
+		if (!status || !resultsList) return;
+
+		if (!apiBase) {
+			status.textContent = '> Search unavailable: PUBLIC_WORDPRESS_API_BASE is not configured.';
+			resultsList.innerHTML = '';
+			return;
+		}
+
+		if (!query.trim()) {
+			status.textContent = '> Start typing to query the dispatch archive.';
+			resultsList.innerHTML = '';
+			return;
+		}
+
+		activeRequest?.abort();
+		activeRequest = new AbortController();
+		status.textContent = '> Querying archive…';
+
+		try {
+			const url = new URL(`${apiBase.replace(/\/$/, '')}/wp-json/wp/v2/posts`);
+			url.searchParams.set('_embed', '1');
+			url.searchParams.set('search', query.trim());
+			// Over-fetch: the shared install returns both properties' posts and results are
+			// filtered to this property's slug set below.
+			url.searchParams.set('per_page', '24');
+
+			const response = await fetch(url, { signal: activeRequest.signal });
+			if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+			const data = (await response.json()) as SearchPostResponse[];
+
+			const namedEntities: Record<string, string> = {
+				'&amp;': '&',
+				'&quot;': '"',
+				'&lt;': '<',
+				'&gt;': '>',
+				'&apos;': "'",
+				'&#039;': "'",
+				'&#8217;': '’',
+				'&#8211;': '–',
+				'&#8212;': '—',
+				'&#8220;': '“',
+				'&#8221;': '”',
+				'&#8230;': '…',
+				'&nbsp;': ' ',
+				'&hellip;': '…'
+			};
+
+			const decodeHtmlEntities = (value: string) => {
+				if (!value) return '';
+				return value.replace(/&[#a-zA-Z0-9]+;/g, (entity) => {
+					if (entity in namedEntities) return namedEntities[entity];
+					if (entity.startsWith('&#x') || entity.startsWith('&#X')) {
+						const num = parseInt(entity.slice(3, -1), 16);
+						return !isNaN(num) ? String.fromCharCode(num) : entity;
+					}
+					if (entity.startsWith('&#')) {
+						const num = parseInt(entity.slice(2, -1), 10);
+						return !isNaN(num) ? String.fromCharCode(num) : entity;
+					}
+					return entity;
+				});
+			};
+
+			const cleanText = (htmlStr: string) =>
+				decodeHtmlEntities(htmlStr.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim());
+
+			const posts: SearchResult[] = data
+				.filter((post) => ownedSlugs.has(post?.slug ?? ''))
+				.map((post) => {
+					const category = (post?._embedded?.['wp:term'] ?? []).flat().find((term) => term?.name);
+					const slug = post?.slug ?? '';
+					return {
+						title: cleanText(post?.title?.rendered ?? 'Untitled dispatch'),
+						excerpt: cleanText(post?.excerpt?.rendered ?? ''),
+						link: slug ? `/${slug}/` : '#',
+						date: post?.date ?? null,
+						categoryLabel: category?.name ? cleanText(category.name).replace(/:\s*$/, '') : null
+					};
+				})
+				.slice(0, 8);
+
+			renderResults(posts);
+		} catch (error) {
+			if (error instanceof DOMException && error.name === 'AbortError') return;
+			status.textContent = '> Query failed. Try again in a moment.';
+			resultsList.innerHTML = '';
+		}
+	};
+
+	const handleTyping = (event: Event) => {
+		const target = event.currentTarget;
+		if (!(target instanceof HTMLInputElement)) return;
+
+		if (debounceTimer !== null) window.clearTimeout(debounceTimer);
+		debounceTimer = window.setTimeout(() => searchPosts(target.value ?? ''), 200);
+	};
+
+	for (const button of openButtons) button.addEventListener('click', () => setOpen(true));
+	for (const button of closeButtons) button.addEventListener('click', () => setOpen(false));
+
+	form?.addEventListener('submit', (event) => {
+		event.preventDefault();
+		searchPosts(input?.value ?? '');
+	});
+
+	input?.addEventListener('input', handleTyping);
+
+	document.addEventListener('keydown', (event) => {
+		if (!overlay || overlay.getAttribute('data-open') !== 'true') return;
+
+		if (event.key === 'Escape') setOpen(false);
+
+		if (event.key === 'Tab') {
+			const focusableElements = Array.from(
+				overlay.querySelectorAll<HTMLElement>(focusableSelector)
+			).filter((element) => !element.hasAttribute('disabled'));
+
+			if (!focusableElements.length) return;
+
+			const firstElement = focusableElements[0];
+			const lastElement = focusableElements[focusableElements.length - 1];
+
+			if (event.shiftKey && document.activeElement === firstElement) {
+				event.preventDefault();
+				lastElement.focus();
+			} else if (!event.shiftKey && document.activeElement === lastElement) {
+				event.preventDefault();
+				firstElement.focus();
+			}
+		}
+	});
+</script>

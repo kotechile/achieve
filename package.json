@@ -1,0 +1,39 @@
+{
+  "name": "aichieve-front-end",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "astro": "astro"
+  },
+  "//": "Dependencies are pinned to EXACT versions, not ranges. They mirror the set giniloh.com runs in production. A fresh `^` range install resolved astro 6.4.8 -> vite 8 + rolldown, which @tailwindcss/vite@4.2.x cannot drive (build dies with `Missing field tsconfigPaths`). Keep these in lockstep with giniloh's package-lock and bump them deliberately, in both repos at once.",
+  "dependencies": {
+    "@astrojs/react": "4.4.2",
+    "@astrojs/sitemap": "3.7.4",
+    "@fontsource/inter": "5.2.8",
+    "@fontsource/jetbrains-mono": "5.2.8",
+    "@tailwindcss/typography": "0.5.19",
+    "@tailwindcss/vite": "4.2.4",
+    "astro": "6.2.1",
+    "framer-motion": "12.43.0",
+    "lucide-react": "1.28.0",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "tailwindcss": "4.2.4"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.9",
+    "@types/node": "25.6.0",
+    "typescript": "5.9.3"
+  },
+  "overrides": {
+    "vite": "7.3.2"
+  }
+}

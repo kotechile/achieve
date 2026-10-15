@@ -1,0 +1,107 @@
+---
+import type { WordPressPost } from '../lib/wordpress';
+
+interface Props {
+	posts: WordPressPost[];
+	eyebrow?: string;
+	title?: string;
+	id?: string;
+	/** Scroll the feed inside a fixed frame (home) or render it whole (archive page). */
+	scrollable?: boolean;
+	maxHeight?: string;
+}
+
+const {
+	posts,
+	eyebrow = 'Dispatch log',
+	title = 'Latest operations dispatches',
+	id = 'dispatch-log',
+	scrollable = true,
+	maxHeight = '38rem'
+} = Astro.props;
+
+const sorted = [...posts].sort((a, b) => {
+	const timeA = a.date ? new Date(a.date).getTime() : 0;
+	const timeB = b.date ? new Date(b.date).getTime() : 0;
+	return timeB - timeA;
+});
+
+function formatDate(dateStr: string | null) {
+	if (!dateStr) return '—';
+	try {
+		return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+	} catch {
+		return '—';
+	}
+}
+---
+
+<section class="mt-20" aria-labelledby={id}>
+	<div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+		<div>
+			<p class="ai-label">{eyebrow}</p>
+			<h2 id={id} class="ai-display mt-3 text-2xl sm:text-3xl">{title}</h2>
+		</div>
+		<p class="flex items-center gap-2 font-mono text-[0.65rem] uppercase tracking-[0.16em] text-[var(--ai-ink-4)]">
+			<span class="ai-lamp" aria-hidden="true"></span>
+			{sorted.length} in feed · newest first
+		</p>
+	</div>
+
+	{
+		sorted.length ? (
+			<div class="ai-panel mt-6">
+				<div
+					class:list={[
+						'sleek-scrollbar divide-y divide-[var(--ai-line-soft)]',
+						scrollable ? 'overflow-y-auto overscroll-contain' : ''
+					]}
+					style={scrollable ? `max-height:${maxHeight}` : undefined}
+					tabindex={scrollable ? '0' : undefined}
+					role={scrollable ? 'region' : undefined}
+					aria-label={scrollable ? 'Scrollable dispatch log' : undefined}
+				>
+					{sorted.map((post) => (
+						<article class="group">
+							<a
+								href={`/${post.slug}/`}
+								class="flex items-start gap-4 px-4 py-4 transition hover:bg-[var(--ai-panel-2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--ai-signal)] sm:gap-6 sm:px-5"
+							>
+								<span class="hidden w-24 shrink-0 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-[var(--ai-ink-4)] sm:block sm:pt-0.5">
+									{formatDate(post.date)}
+								</span>
+
+								<span class="min-w-0 flex-1">
+									<span class="block font-mono text-[0.6rem] uppercase tracking-[0.16em] text-[var(--ai-signal)]">
+										{post.categoryLabel ?? 'Dispatch'}
+									</span>
+									<span class="mt-1.5 block text-base font-semibold leading-snug tracking-tight text-[var(--ai-ink)] transition group-hover:text-[var(--ai-signal)]">
+										{post.title}
+									</span>
+									{post.excerpt && (
+										<span class="mt-1.5 block text-sm leading-relaxed text-[var(--ai-ink-2)] line-clamp-2">
+											{post.excerpt}
+										</span>
+									)}
+								</span>
+
+								<span
+									aria-hidden="true"
+									class="hidden shrink-0 self-center text-[var(--ai-ink-4)] transition group-hover:translate-x-1 group-hover:text-[var(--ai-signal)] md:block"
+								>
+									→
+								</span>
+							</a>
+						</article>
+					))}
+				</div>
+			</div>
+		) : (
+			<div class="ai-panel mt-6 p-6">
+				<p class="font-mono text-xs text-[var(--ai-warn)]">
+					&gt; No dispatches available. Confirm PUBLIC_WORDPRESS_API_BASE and that the CMS is reachable.
+				</p>
+			</div>
+		)
+	}
+</section>

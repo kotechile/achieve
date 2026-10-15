@@ -1,0 +1,115 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import JsonLd from '../components/JsonLd.astro';
+import { OVERVIEW } from '../lib/overview';
+import { SIBLING_SITE, OWNED_POST_SLUGS } from '../lib/site-content';
+import { PRO_APPS } from '../lib/apps';
+import { calculators } from '../lib/calculators/metadata';
+
+const siteOrigin = Astro.site?.toString().replace(/\/$/, '') || 'https://aichieve.net';
+const pageUrl = `${siteOrigin}/about/`;
+---
+
+<BaseLayout
+	title="About AIChieve — enterprise decision intelligence | AIChieve"
+	description={OVERVIEW.subheadline}
+>
+	<link slot="head" rel="canonical" href={pageUrl} />
+	<JsonLd
+		slot="head"
+		data={{
+			'@context': 'https://schema.org',
+			'@type': 'AboutPage',
+			name: 'About AIChieve',
+			url: pageUrl,
+			description: OVERVIEW.subheadline
+		}}
+	/>
+
+	<section class="pt-4">
+		<p class="ai-label ai-label--signal">{OVERVIEW.eyebrow}</p>
+		<h1 class="ai-display mt-4 max-w-4xl text-[2.2rem] sm:text-4xl lg:text-5xl">{OVERVIEW.headline}</h1>
+		<p class="ai-lede mt-6">{OVERVIEW.subheadline}</p>
+	</section>
+
+	<div class="mt-14 grid gap-4 sm:grid-cols-3">
+		<div class="ai-panel p-6">
+			<p class="ai-kpi__value">{OWNED_POST_SLUGS.size}</p>
+			<p class="ai-label mt-2">Operations dispatches</p>
+		</div>
+		<div class="ai-panel p-6">
+			<p class="ai-kpi__value">{calculators.length}</p>
+			<p class="ai-label mt-2">Free deterministic engines</p>
+		</div>
+		<div class="ai-panel p-6">
+			<p class="ai-kpi__value ai-kpi__value--signal">{PRO_APPS.length}</p>
+			<p class="ai-label mt-2">PRO apps</p>
+		</div>
+	</div>
+
+	<section class="mt-16 grid gap-10 lg:grid-cols-[0.42fr_0.58fr]">
+		<div>
+			<p class="ai-label">Mission</p>
+			<h2 class="ai-display mt-3 text-2xl sm:text-3xl">Put a number on the risk before you sign</h2>
+		</div>
+		<div class="grid gap-6">
+			<p class="text-base leading-relaxed text-[var(--ai-ink-2)]">{OVERVIEW.mission}</p>
+			<p class="text-base leading-relaxed text-[var(--ai-ink-2)]">{OVERVIEW.originStory}</p>
+		</div>
+	</section>
+
+	<section class="mt-16" aria-labelledby="who-it-is-for">
+		<p class="ai-label">Audience</p>
+		<h2 id="who-it-is-for" class="ai-display mt-3 text-2xl sm:text-3xl">Who this is built for</h2>
+		<div class="mt-6 grid gap-4 lg:grid-cols-3">
+			{
+				OVERVIEW.audience.map((segment) => (
+					<div class="ai-panel ai-panel--cap p-6">
+						<h3 class="text-lg font-bold tracking-tight text-[var(--ai-ink)]">{segment.title}</h3>
+						<p class="mt-3 text-sm leading-relaxed text-[var(--ai-ink-2)]">{segment.description}</p>
+					</div>
+				))
+			}
+		</div>
+	</section>
+
+	<section class="mt-16" aria-labelledby="how-it-works">
+		<p class="ai-label">Detail</p>
+		<h2 id="how-it-works" class="ai-display mt-3 text-2xl sm:text-3xl">How it works</h2>
+		<div class="mt-6">
+			{
+				OVERVIEW.aboutSections.map((section) => (
+					<div class="border-t border-[var(--ai-line)] py-7">
+						<h3 class="text-lg font-bold tracking-tight text-[var(--ai-ink)]">{section.title}</h3>
+						<p class="mt-3 max-w-3xl text-sm leading-relaxed text-[var(--ai-ink-2)]">{section.body}</p>
+					</div>
+				))
+			}
+			<div class="border-y border-[var(--ai-line)] py-7">
+				<h3 class="text-lg font-bold tracking-tight text-[var(--ai-ink)]">The other property</h3>
+				<p class="mt-3 max-w-3xl text-sm leading-relaxed text-[var(--ai-ink-2)]">
+					AIChieve and {SIBLING_SITE.name} were one site until 2026. The split exists because the
+					audience, the approval chain and the money are different — enterprise budget here,
+					personal money there. Both read the same CMS and share an author.
+				</p>
+				<a class="ai-link mt-4 text-sm" href={SIBLING_SITE.origin} rel="noopener" target="_blank">
+					Visit {SIBLING_SITE.name} <span aria-hidden="true">↗</span>
+				</a>
+			</div>
+		</div>
+	</section>
+
+	<section class="mt-16 border-t border-[var(--ai-line)] pt-10">
+		<div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+			<div>
+				<h2 class="ai-display text-2xl sm:text-3xl">Start with the arithmetic</h2>
+				<p class="mt-3 max-w-xl text-sm leading-relaxed text-[var(--ai-ink-2)]">
+					Both engines are free, run in your browser, and take a few minutes to fill in.
+				</p>
+			</div>
+			<a class="ai-btn" href="/tools/">
+				Open the tool register <span aria-hidden="true">→</span>
+			</a>
+		</div>
+	</section>
+</BaseLayout>

@@ -1,0 +1,96 @@
+---
+import CalculatorShell from '../../components/calculators/CalculatorShell.astro';
+import JsonLd from '../../components/JsonLd.astro';
+import LocalVsCloudGpuCalculator from '../../components/calculators/react/LocalVsCloudGpuCalculator';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import RelatedArticleCard from '../../components/calculators/RelatedArticleCard.astro';
+import { getCalculatorBySlug, getCalculatorSchema } from '../../lib/calculators/metadata';
+import { fetchPostBySlug } from '../../lib/wordpress';
+
+const calculator = getCalculatorBySlug('gpu-compute');
+const schema = calculator && Astro.site ? getCalculatorSchema(calculator, Astro.site) : null;
+
+const description =
+	'Model a local GPU workstation or cluster against rented capacity — hardware, TDP load, persistent storage, depreciation, and the utilization floor at which owning stops paying.';
+
+const faqItems = [
+	{
+		question: 'What goes into the owned-cost side?',
+		answer:
+			'The selected accelerator, the system-component overhead (CPU, RAM, board, cooling, PSU), electricity under sustained TDP load at your tariff, and an annual hardware maintenance reserve. Depreciation is modelled as residual-value decay, because the resale floor moves every generation.'
+	},
+	{
+		question: 'Why does persistent storage show up on the rental side?',
+		answer:
+			'Rental price per GPU-hour is the visible line. Storage for datasets and checkpoints is the one that surprises finance at close, so it is priced at a persistent-volume rate rather than assumed to be free.'
+	},
+	{
+		question: 'What is the real break-even variable?',
+		answer:
+			'Utilization. Below the break-even utilization percentage in your own inputs, renting wins on total cost regardless of how attractive the sticker price of the hardware looks — and the engine reports that floor explicitly rather than hiding it in a single comparison number.'
+	}
+];
+
+const post = await fetchPostBySlug('self-hosted-ai-when-to-buy-vs-rent-gpus');
+---
+
+<BaseLayout
+	title="GPU TCO Analyzer — Local Build vs. Cloud Lease | AIChieve"
+	description={description}
+	productCta={calculator ? null : null}
+>
+	<link slot="head" rel="canonical" href={new URL('/tools/gpu-compute/', Astro.site).toString()} />
+	{schema ? <JsonLd slot="head" data={schema} /> : null}
+
+	<CalculatorShell eyebrow="Compute infrastructure" title="GPU TCO Analyzer" description={description}>
+		<div slot="calculator">
+			<LocalVsCloudGpuCalculator client:load />
+		</div>
+
+		<article slot="aside" class="ai-panel p-6">
+			<p class="ai-label">Operator notes</p>
+			<h2 class="mt-3 text-xl font-bold tracking-tight">How to run it</h2>
+			<ol class="mt-5 grid gap-4 text-sm leading-7 text-[var(--ai-ink-2)]">
+				<li>1. Set sustained active hours per day and days per month — the utilization figure drives everything.</li>
+				<li>2. Select the accelerator and add system-component overhead.</li>
+				<li>3. Enter your electricity tariff and the persistent storage volume your datasets actually need.</li>
+				<li>4. Read the break-even utilization, not just the headline delta.</li>
+			</ol>
+			<div class="mt-6 border-t border-[var(--ai-line-soft)] pt-4">
+				<p class="ai-label">Model logic</p>
+				<p class="mt-2 text-xs leading-6 text-[var(--ai-ink-2)]">
+					Owned cost = hardware + system overhead + TDP × tariff × duty cycle + maintenance reserve − residual value.
+					Leased cost = rate × hours × seats + egress + persistent storage.
+				</p>
+			</div>
+		</article>
+
+		<article slot="aside" class="ai-panel p-6">
+			<p class="ai-label">Walkthrough</p>
+			<h2 class="mt-3 text-xl font-bold tracking-tight">GPU TCO video guide</h2>
+			<div class="relative mt-5 aspect-video overflow-hidden border border-[var(--ai-line)] bg-black">
+				<iframe
+					class="absolute left-0 top-0 h-full w-full"
+					src="https://www.youtube.com/embed/gYBJjWkID_I"
+					title="GPU TCO Analyzer walkthrough"
+					allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+					allowfullscreen
+				></iframe>
+			</div>
+		</article>
+
+		<article slot="aside" class="ai-panel p-6">
+			<p class="ai-label">FAQ</p>
+			<div class="mt-5 grid gap-4">
+				{faqItems.map((item) => (
+					<div class="border-l-2 border-[var(--ai-line)] pl-4">
+						<h3 class="text-sm font-bold tracking-tight text-[var(--ai-ink)]">{item.question}</h3>
+						<p class="mt-2 text-xs leading-6 text-[var(--ai-ink-2)]">{item.answer}</p>
+					</div>
+				))}
+			</div>
+		</article>
+
+		{post && <RelatedArticleCard slot="aside" post={post} />}
+	</CalculatorShell>
+</BaseLayout>

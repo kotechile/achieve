@@ -1,0 +1,84 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import JsonLd from '../../components/JsonLd.astro';
+import DispatchLog from '../../components/DispatchLog.astro';
+import { fetchAllPosts } from '../../lib/wordpress';
+import { SIBLING_SITE } from '../../lib/site-content';
+
+const posts = await fetchAllPosts();
+const siteOrigin = Astro.site?.toString().replace(/\/$/, '') || 'https://aichieve.net';
+const pageUrl = `${siteOrigin}/author/gini-loh/`;
+
+const recent = posts.slice(0, 12);
+---
+
+<BaseLayout
+	title="Gini Loh — author | AIChieve"
+	description="Gini Loh builds deterministic decision engines and writes the operations dispatches on AI stack economics, agentic workflows and supply-chain cost control."
+>
+	<link slot="head" rel="canonical" href={pageUrl} />
+	<JsonLd
+		slot="head"
+		data={{
+			'@context': 'https://schema.org',
+			'@type': 'Person',
+			name: 'Gini Loh',
+			url: pageUrl,
+			jobTitle: 'Decision systems engineer',
+			description:
+				'Builds deterministic decision engines for compute, AI-stack and supply-chain cost decisions.'
+		}}
+	/>
+
+	<section class="pt-4">
+		<p class="ai-label ai-label--signal">Author</p>
+		<div class="mt-6 flex flex-col gap-6 sm:flex-row sm:items-center">
+			<div
+				class="grid h-20 w-20 shrink-0 place-items-center border border-[var(--ai-signal)] font-mono text-2xl font-bold text-[var(--ai-signal)]"
+				aria-hidden="true"
+			>
+				GL
+			</div>
+			<div>
+				<h1 class="ai-display text-[2rem] sm:text-4xl">Gini Loh</h1>
+				<p class="mt-2 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-[var(--ai-ink-4)]">
+					Decision systems engineer
+				</p>
+			</div>
+		</div>
+	</section>
+
+	<section class="mt-10 grid gap-8 lg:grid-cols-[0.55fr_0.45fr]">
+		<div class="grid gap-5">
+			<p class="text-base leading-relaxed text-[var(--ai-ink-2)]">
+				Writes and maintains every engine and dispatch on AIChieve. The method is the same one
+				carried over from {SIBLING_SITE.name}: reduce an expensive, emotionally-loaded choice to its
+				actual components, price each one, and publish the arithmetic so the result can be
+				challenged.
+			</p>
+			<p class="text-base leading-relaxed text-[var(--ai-ink-2)]">
+				The enterprise operating range covers AI stack and tool TCO, agentic workflow reliability,
+				owned versus leased compute, and the freight and inventory mechanics where money leaves an
+				organisation by rule rather than by price.
+			</p>
+		</div>
+		<div class="grid gap-4 sm:grid-cols-2">
+			<div class="ai-panel p-5">
+				<p class="ai-kpi__value">{posts.length}</p>
+				<p class="ai-label mt-2">Dispatches</p>
+			</div>
+			<div class="ai-panel p-5">
+				<p class="ai-kpi__value">2</p>
+				<p class="ai-label mt-2">Engines maintained</p>
+			</div>
+			<div class="ai-panel p-5 sm:col-span-2">
+				<p class="ai-label">Also writes</p>
+				<a class="ai-link mt-3 text-sm" href={SIBLING_SITE.origin} rel="noopener" target="_blank">
+					{SIBLING_SITE.name} — personal &amp; career decisions <span aria-hidden="true">↗</span>
+				</a>
+			</div>
+		</div>
+	</section>
+
+	<DispatchLog posts={recent} eyebrow="Recent work" title="Latest dispatches" id="author-dispatches" />
+</BaseLayout>

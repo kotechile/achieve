@@ -1,0 +1,207 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import JsonLd from '../components/JsonLd.astro';
+import { productCtaFor } from '../lib/product-cta';
+import { fetchAllPosts } from '../lib/wordpress';
+import { SIBLING_SITE } from '../lib/site-content';
+
+export async function getStaticPaths() {
+	// `fetchAllPosts` already filters to this property's slug set, so the "other" site's
+	// articles can never be generated here.
+	const posts = await fetchAllPosts();
+	return posts.map((post) => ({ params: { slug: post.slug }, props: { post } }));
+}
+
+const { post } = Astro.props;
+
+const formattedDate = post.date
+	? new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+	: '';
+
+const productCta = productCtaFor({ slug: post.slug, categorySlug: post.categorySlug });
+
+const siteOrigin = Astro.site?.toString().replace(/\/$/, '') || 'https://aichieve.net';
+const postUrl = `${siteOrigin}/${post.slug}/`;
+const categoryUrl = post.categorySlug ? `${siteOrigin}/categories/${post.categorySlug}/` : null;
+
+const articleSchema = {
+	'@context': 'https://schema.org',
+	'@type': 'Article',
+	headline: post.title,
+	description: post.excerpt,
+	image: post.featuredImage || `${siteOrigin}/default-share-image.png`,
+	datePublished: post.date,
+	dateModified: post.modified || post.date,
+	author: { '@type': 'Person', name: 'Gini Loh', url: `${siteOrigin}/author/gini-loh/` },
+	publisher: { '@type': 'Organization', name: 'AIChieve', url: `${siteOrigin}/` },
+	mainEntityOfPage: { '@type': 'WebPage', '@id': postUrl }
+};
+
+const breadcrumbs = [
+	{ '@type': 'ListItem', position: 1, name: 'Home', item: `${siteOrigin}/` }
+];
+if (post.categoryLabel && categoryUrl) {
+	breadcrumbs.push({ '@type': 'ListItem', position: 2, name: post.categoryLabel, item: categoryUrl });
+}
+breadcrumbs.push({
+	'@type': 'ListItem',
+	position: breadcrumbs.length + 1,
+	name: post.title,
+	item: postUrl
+});
+---
+
+<BaseLayout
+	title={`${post.title} | AIChieve`}
+	description={post.excerpt}
+	image={post.featuredImage || undefined}
+	productCta={productCta}
+>
+	<link slot="head" rel="canonical" href={postUrl} />
+	<JsonLd slot="head" data={articleSchema} />
+	<JsonLd slot="head" data={{ '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: breadcrumbs }} />
+	<meta slot="head" property="og:type" content="article" />
+	{post.date && <meta slot="head" property="article:published_time" content={post.date} />}
+
+	<!-- The archive carries real LaTeX, and `lib/wordpress.ts` cleans wpautop artefacts out of
+	     math blocks specifically so this renders. -->
+	<link slot="head" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css" />
+	<script slot="head" defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+	<script slot="head" defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+
+	<nav class="pt-4 font-mono text-[0.62rem] uppercase tracking-[0.16em] text-[var(--ai-ink-4)]" aria-label="Breadcrumb">
+		<a class="transition hover:text-[var(--ai-signal)]" href="/articles/">Dispatch log</a>
+		<span class="px-2" aria-hidden="true">/</span>
+		{post.categorySlug ? (
+			<a class="transition hover:text-[var(--ai-signal)]" href={`/categories/${post.categorySlug}/`}>
+				{post.categoryLabel ?? post.categorySlug}
+			</a>
+		) : (
+			<span class="text-[var(--ai-ink-2)]">Dispatch</span>
+		)}
+	</nav>
+
+	<header class="mt-6 max-w-4xl">
+		<div class="flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[0.62rem] uppercase tracking-[0.16em] text-[var(--ai-ink-4)]">
+			<time datetime={post.date || ''}>{formattedDate}</time>
+			<span aria-hidden="true">·</span>
+			<span>
+				By
+				<a class="text-[var(--ai-link)] transition hover:text-[var(--ai-signal)]" href="/author/gini-loh/">Gini Loh</a>
+			</span>
+		</div>
+
+		<h1 class="ai-display mt-5 text-[1.85rem] sm:text-4xl lg:text-[3.25rem]">{post.title}</h1>
+
+		{post.excerpt && (
+			<p class="mt-6 border-l-2 border-[var(--ai-signal)] pl-5 text-lg leading-relaxed text-[var(--ai-ink-2)]">
+				{post.excerpt}
+			</p>
+		)}
+	</header>
+
+	<div class="mt-12 grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-14">
+		<div class="min-w-0">
+			<div class="paper">
+				{
+					post.featuredImage && (
+						<figure class="mb-10">
+							<img
+								src={post.featuredImage}
+								alt={post.featuredImageAlt || post.title}
+								loading="eager"
+								class="w-full border border-[var(--paper-line)]"
+							/>
+						</figure>
+					)
+				}
+
+				<div class="prose prose-lg max-w-none">
+					<div class="article-body" set:html={post.content} />
+				</div>
+
+				<div class="mt-14 flex flex-col gap-4 border-t border-[var(--paper-line)] pt-8 sm:flex-row sm:items-center">
+					<div
+						class="grid h-16 w-16 shrink-0 place-items-center border border-[var(--paper-line)] font-mono text-lg font-bold text-[var(--paper-ink)]"
+						aria-hidden="true"
+					>
+						GL
+					</div>
+					<div>
+						<p class="text-base font-bold text-[var(--paper-ink)]">Gini Loh</p>
+						<p class="mt-1 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-[#8C8C8C]">
+							Decision systems engineer
+						</p>
+						<p class="mt-2 text-sm leading-relaxed text-[var(--paper-ink-2)]">
+							Builds deterministic decision engines for compute, AI-stack and supply-chain cost
+							decisions.{' '}
+							<a class="font-semibold" href="/author/gini-loh/">Full profile →</a>
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<aside class="lg:sticky lg:top-24 lg:self-start">
+			<div class="grid gap-4">
+				<div class="ai-panel p-5">
+					<p class="ai-label">Filed under</p>
+					<a
+						class="ai-link mt-3 text-sm"
+						href={post.categorySlug ? `/categories/${post.categorySlug}/` : '/categories/'}
+					>
+						{post.categoryLabel ?? 'All domains'} <span aria-hidden="true">→</span>
+					</a>
+					<p class="mt-5 font-mono text-[0.6rem] uppercase tracking-[0.16em] text-[var(--ai-ink-4)]">
+						{post.slug}
+					</p>
+				</div>
+
+				<div class="ai-panel p-5">
+					<p class="ai-label">Engines</p>
+					<div class="mt-3 grid gap-2 text-sm">
+						<a class="ai-link" href="/tools/gpu-compute/">
+							GPU TCO Analyzer <span aria-hidden="true">→</span>
+						</a>
+						<a class="ai-link" href="/tools/master-asset-tco/">
+							Master Asset &amp; Software TCO <span aria-hidden="true">→</span>
+						</a>
+					</div>
+				</div>
+
+				<div class="ai-panel p-5">
+					<p class="ai-label">Personal side</p>
+					<p class="mt-3 text-xs leading-relaxed text-[var(--ai-ink-2)]">
+						Career, compensation and personal TCO models live on {SIBLING_SITE.name}.
+					</p>
+					<a class="ai-link mt-3 text-sm" href={SIBLING_SITE.origin} rel="noopener" target="_blank">
+						Open {SIBLING_SITE.name} <span aria-hidden="true">↗</span>
+					</a>
+				</div>
+			</div>
+		</aside>
+	</div>
+</BaseLayout>
+
+<script>
+	const initKaTeX = () => {
+		// @ts-expect-error — renderMathInElement is provided by the KaTeX auto-render CDN bundle.
+		if (typeof renderMathInElement !== 'undefined') {
+			const articleBody = document.querySelector('.article-body');
+			if (articleBody) {
+				// @ts-expect-error — see above.
+				renderMathInElement(articleBody, {
+					delimiters: [
+						{ left: '$$', right: '$$', display: true },
+						{ left: '\\[', right: '\\]', display: true },
+						{ left: '\\(', right: '\\)', display: false }
+					]
+				});
+			}
+		} else {
+			setTimeout(initKaTeX, 100);
+		}
+	};
+
+	document.addEventListener('DOMContentLoaded', initKaTeX);
+</script>

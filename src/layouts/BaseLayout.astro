@@ -1,0 +1,100 @@
+---
+import Footer from '../components/Footer.astro';
+import SearchOverlay from '../components/SearchOverlay.astro';
+import SiteNav from '../components/SiteNav.astro';
+import ProductCTA from '../components/ProductCTA.astro';
+import type { ProductCta } from '../lib/product-cta';
+import '../styles/aichieve.css';
+
+interface Props {
+	title: string;
+	description?: string;
+	image?: string;
+	disableAnalytics?: boolean;
+	/** Resolved by the page through `productCtaFor()`; null/absent renders nothing at all. */
+	productCta?: ProductCta | null;
+	/** Reading pages get the light "paper" column; console pages keep the dark shell. */
+	surface?: 'console' | 'paper';
+}
+
+const {
+	title,
+	description = 'Enterprise decision intelligence for AI stack economics, agentic workflow operations, and supply-chain cost control.',
+	image,
+	disableAnalytics = false,
+	productCta = null,
+	surface = 'console'
+} = Astro.props;
+
+const analyticsSrc = import.meta.env.PUBLIC_ANALYTICS_SRC || 'https://cloud.umami.is/script.js';
+const analyticsWebsiteId = import.meta.env.PUBLIC_ANALYTICS_WEBSITE_ID || '';
+const analyticsDomains = import.meta.env.PUBLIC_ANALYTICS_DOMAINS || 'aichieve.net,www.aichieve.net';
+
+const is404 = disableAnalytics || Astro.url.pathname.includes('404');
+const shouldTrack = !is404 && Boolean(analyticsSrc && analyticsWebsiteId);
+
+const googleVerification = import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION;
+const bingVerification = import.meta.env.PUBLIC_BING_SITE_VERIFICATION;
+const siteOrigin = Astro.site?.toString().replace(/\/$/, '') || 'https://aichieve.net';
+const shareImage = image || new URL('/default-share-image.png', siteOrigin).toString();
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="generator" content={Astro.generator} />
+
+		{googleVerification && <meta name="google-site-verification" content={googleVerification} />}
+		{bingVerification && <meta name="msvalidate.01" content={bingVerification} />}
+
+		<meta name="description" content={description} />
+		<meta name="theme-color" content="#0E1116" />
+		<meta name="color-scheme" content="dark" />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content="AIChieve" />
+		<meta property="og:image" content={shareImage} />
+
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={shareImage} />
+
+		{import.meta.env.DEV && <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />}
+		{shouldTrack && (
+			<script defer src={analyticsSrc} data-website-id={analyticsWebsiteId} data-domains={analyticsDomains}></script>
+		)}
+		<title>{title}</title>
+		<slot name="head" />
+	</head>
+	<body>
+		<a
+			href="#main"
+			class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[80] focus:bg-[#E8A33D] focus:px-4 focus:py-2 focus:font-mono focus:text-xs focus:font-bold focus:uppercase focus:text-[#10131a]"
+		>
+			Skip to content
+		</a>
+		<SiteNav />
+		<SearchOverlay />
+		<main id="main" class="relative z-10">
+			{surface === 'paper' ? (
+				<div class="ai-wrap pt-10 pb-4 sm:pt-14">
+					<div class="paper">
+						<slot />
+					</div>
+				</div>
+			) : (
+				<div class="ai-wrap pt-10 pb-16 sm:pt-14">
+					<slot />
+				</div>
+			)}
+			{productCta && <ProductCTA match={productCta} />}
+		</main>
+		<Footer />
+	</body>
+</html>
