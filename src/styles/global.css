@@ -13,7 +13,7 @@
 	--brand-charcoal: #262626;
 	--brand-navy: #262626;
 	--brand-ink: #262626;
-	--brand-slate-text: #5E5E5E;
+	--brand-slate-text: #716F6F;
 	--brand-muted-text: #8C8C8C;
 	--brand-cyan: #5A7A8F;
 	--brand-emerald: #262626;
@@ -188,7 +188,7 @@ a {
 
 /* --- Technical Typography (Prose Overrides) --- */
 .prose {
-  --tw-prose-body: #5E5E5E;
+  --tw-prose-body: #716F6F;
   --tw-prose-headings: #262626;
   max-width: none !important;
 }
@@ -350,7 +350,7 @@ a {
 .prose .wp-block-group.has-background,
 .prose .wp-block-columns.has-background {
   background: transparent !important;
-  color: #5E5E5E !important;
+  color: #716F6F !important;
   border: none !important;
   box-shadow: none !important;
 }
@@ -390,7 +390,7 @@ a {
 .prose .wp-block-group.has-background li,
 .prose .wp-block-columns.has-background p,
 .prose .wp-block-columns.has-background li {
-  color: #5E5E5E !important;
+  color: #716F6F !important;
 }
 
 .prose .has-white-background-color h2,
@@ -415,7 +415,7 @@ a {
 .prose .wp-block-group.has-background ul,
 .prose .wp-block-columns.has-background ul,
 .prose div[style*="background-color"] ul {
-  color: #5E5E5E !important;
+  color: #716F6F !important;
   padding-left: 1.5rem !important;
 }
 
@@ -688,7 +688,7 @@ h4, .text-xl, .text-lg {
   font-family: var(--font-sans) !important;
 }
 p, .text-base, .text-sm {
-  color: #5E5E5E !important;
+  color: #716F6F !important;
   font-weight: 400 !important; /* font-normal */
 }
 .section-eyebrow,
@@ -796,7 +796,7 @@ button.bg-black {
 .btn-inline,
 .secondary-action {
   background-color: transparent !important;
-  color: #5E5E5E !important;
+  color: #716F6F !important;
   border: none !important;
   text-decoration: underline !important;
 }

@@ -649,7 +649,7 @@ export default function LocalVsCloudGpuCalculator() {
 						<span className="text-xl">⚡</span>
 						<h3 className="text-lg font-bold text-[#1A1A1A]">Compare Blackwell 96GB vs Cloud Renting Options</h3>
 					</div>
-					<p className="text-sm text-[#5E5E5E] font-medium mt-1.5 leading-relaxed">Quick-load 1x RTX Pro 6000 Blackwell (96GB) against 1x 96GB Cloud GPU or 2x RTX 6000 Ada (48GB x 2 = 96GB pooled).</p>
+					<p className="text-sm text-[#716F6F] font-medium mt-1.5 leading-relaxed">Quick-load 1x RTX Pro 6000 Blackwell (96GB) against 1x 96GB Cloud GPU or 2x RTX 6000 Ada (48GB x 2 = 96GB pooled).</p>
 				</div>
 				<div className="flex flex-wrap gap-3 w-full lg:w-auto shrink-0">
 					<button
@@ -699,7 +699,7 @@ export default function LocalVsCloudGpuCalculator() {
 
 						{/* Hours per Day Slider */}
 						<div className="space-y-2">
-							<div className="flex justify-between items-center text-sm font-bold text-[#5E5E5E]">
+							<div className="flex justify-between items-center text-sm font-bold text-[#716F6F]">
 								<span>Hours per Day</span>
 								<InteractiveBadge
 									value={hoursPerDay}
@@ -725,7 +725,7 @@ export default function LocalVsCloudGpuCalculator() {
 
 						{/* Days per Month Slider */}
 						<div className="space-y-2">
-							<div className="flex justify-between items-center text-sm font-bold text-[#5E5E5E]">
+							<div className="flex justify-between items-center text-sm font-bold text-[#716F6F]">
 								<span>Days per Month</span>
 								<InteractiveBadge
 									value={daysPerMonth}
@@ -751,7 +751,7 @@ export default function LocalVsCloudGpuCalculator() {
 
 						{/* Evaluation Horizon Slider */}
 						<div className="space-y-2">
-							<div className="flex justify-between items-center text-sm font-bold text-[#5E5E5E]">
+							<div className="flex justify-between items-center text-sm font-bold text-[#716F6F]">
 								<div className="flex items-center gap-2">
 									<span>Evaluation Horizon</span>
 									<span className="text-xs text-cyan-600 font-mono font-bold bg-cyan-50 px-2 py-0.5 rounded-md border border-cyan-200">
@@ -783,7 +783,7 @@ export default function LocalVsCloudGpuCalculator() {
 										className={`px-3 py-1.5 rounded-lg text-xs font-mono font-extrabold transition cursor-pointer ${
 											timePeriodMonths === horizon.months
 												? 'bg-cyan-500 text-white shadow-sm'
-												: 'bg-white border border-gray-250 text-[#5E5E5E] hover:text-[#1A1A1A] hover:border-gray-400'
+												: 'bg-white border border-gray-250 text-[#716F6F] hover:text-[#1A1A1A] hover:border-gray-400'
 										}`}
 									>
 										{horizon.label}
@@ -872,7 +872,7 @@ export default function LocalVsCloudGpuCalculator() {
 
 						{/* Sub card: 3-Year Resale Value % Slider */}
 						<div className="bg-white border border-gray-100 rounded-xl shadow-sm p-5 space-y-3">
-							<div className="flex justify-between items-center text-sm font-bold text-[#5E5E5E]">
+							<div className="flex justify-between items-center text-sm font-bold text-[#716F6F]">
 								<span>3-Year Hardware Resale Value (%)</span>
 								<InteractiveBadge
 									value={resalePercent}
@@ -902,7 +902,7 @@ export default function LocalVsCloudGpuCalculator() {
 
 						{/* Sub card: Annual Cost of Capital / Opportunity Cost (%) Slider */}
 						<div className="bg-white border border-gray-100 rounded-xl shadow-sm p-5 space-y-3">
-							<div className="flex justify-between items-center text-sm font-bold text-[#5E5E5E]">
+							<div className="flex justify-between items-center text-sm font-bold text-[#716F6F]">
 								<span>Cost of Capital / Interest Rate (%/yr)</span>
 								<InteractiveBadge
 									value={costOfCapitalPercent}
@@ -932,7 +932,7 @@ export default function LocalVsCloudGpuCalculator() {
 
 						{/* Sub card: System components price slider */}
 						<div className="bg-white border border-gray-100 rounded-xl shadow-sm p-5 space-y-3">
-							<div className="flex justify-between items-center text-sm font-bold text-[#5E5E5E]">
+							<div className="flex justify-between items-center text-sm font-bold text-[#716F6F]">
 								<span>System components (CPU, RAM, Motherboard, etc.)</span>
 								<InteractiveBadge
 									value={systemCost}
@@ -958,7 +958,7 @@ export default function LocalVsCloudGpuCalculator() {
 
 						{/* Sub card: Electricity Rate Slider */}
 						<div className="bg-white border border-gray-100 rounded-xl shadow-sm p-5 space-y-3">
-							<div className="flex justify-between items-center text-sm font-bold text-[#5E5E5E]">
+							<div className="flex justify-between items-center text-sm font-bold text-[#716F6F]">
 								<span>Local Electricity Rate</span>
 								<InteractiveBadge
 									value={electricityRate}
@@ -1017,7 +1017,7 @@ export default function LocalVsCloudGpuCalculator() {
 						{/* Multi-GPU Cloud Quantity Selector & Storage size slider */}
 						<div className="bg-white border border-gray-100 rounded-xl shadow-sm p-5 space-y-5">
 							<div className="space-y-2">
-								<div className="flex justify-between items-center text-sm font-bold text-[#5E5E5E]">
+								<div className="flex justify-between items-center text-sm font-bold text-[#716F6F]">
 									<span>Number of Cloud GPUs to Rent</span>
 									<div className="flex gap-2">
 										{[1, 2, 4, 8].map((qty) => (
@@ -1028,7 +1028,7 @@ export default function LocalVsCloudGpuCalculator() {
 												className={`px-3 py-1 rounded-lg text-xs font-mono font-extrabold transition cursor-pointer ${
 													cloudGpuCount === qty
 														? 'bg-cyan-500 text-white shadow-sm'
-														: 'bg-white border border-gray-250 text-[#5E5E5E] hover:text-[#1A1A1A]'
+														: 'bg-white border border-gray-250 text-[#716F6F] hover:text-[#1A1A1A]'
 												}`}
 											>
 												{qty}x
@@ -1042,7 +1042,7 @@ export default function LocalVsCloudGpuCalculator() {
 							</div>
 
 							<div className="border-t border-gray-100 pt-4 space-y-3">
-								<div className="flex justify-between items-center text-sm font-bold text-[#5E5E5E]">
+								<div className="flex justify-between items-center text-sm font-bold text-[#716F6F]">
 									<span>Cloud Storage Size</span>
 									<InteractiveBadge
 										value={storageSizeGb}
@@ -1111,7 +1111,7 @@ export default function LocalVsCloudGpuCalculator() {
 						<div className="space-y-3.5 pb-6 border-b border-dashed border-slate-250">
 							<p className="text-xs font-mono font-bold text-[#8C8C8C] uppercase tracking-[0.2em]">LOCAL HARDWARE (1x {activeGpu.vram})</p>
 							
-							<div className="flex justify-between items-center text-sm text-[#5E5E5E]">
+							<div className="flex justify-between items-center text-sm text-[#716F6F]">
 								<div className="flex items-center gap-2">
 									<Cpu className="w-4 h-4 text-[#5A7A8F] shrink-0" strokeWidth={1.5} />
 									<span>GPU Cost:</span>
@@ -1119,7 +1119,7 @@ export default function LocalVsCloudGpuCalculator() {
 								<span className="font-mono font-bold text-[#1A1A1A]">{formatCurrency(activeGpu.cost)}</span>
 							</div>
 							
-							<div className="flex justify-between items-center text-sm text-[#5E5E5E]">
+							<div className="flex justify-between items-center text-sm text-[#716F6F]">
 								<div className="flex items-center gap-2">
 									<Server className="w-4 h-4 text-[#5A7A8F] shrink-0" strokeWidth={1.5} />
 									<span>System components:</span>
@@ -1127,7 +1127,7 @@ export default function LocalVsCloudGpuCalculator() {
 								<span className="font-mono font-bold text-[#1A1A1A]">{formatCurrency(systemCost)}</span>
 							</div>
 							
-							<div className="flex justify-between items-center text-sm text-[#5E5E5E]">
+							<div className="flex justify-between items-center text-sm text-[#716F6F]">
 								<div className="flex items-center gap-2">
 									<Zap className="w-4 h-4 text-[#5A7A8F] shrink-0" strokeWidth={1.5} />
 									<span>Electricity ({timePeriodMonths} mo):</span>
@@ -1135,7 +1135,7 @@ export default function LocalVsCloudGpuCalculator() {
 								<span className="font-mono font-bold text-[#1A1A1A]">{formatCurrency(calculations.electricityCost)}</span>
 							</div>
 							
-							<div className="flex justify-between items-center text-sm text-[#5E5E5E]">
+							<div className="flex justify-between items-center text-sm text-[#716F6F]">
 								<div className="flex items-center gap-2">
 									<Wrench className="w-4 h-4 text-[#5A7A8F] shrink-0" strokeWidth={1.5} />
 									<span>Maintenance budget:</span>
@@ -1181,7 +1181,7 @@ export default function LocalVsCloudGpuCalculator() {
 						<div className="space-y-3.5 pt-2">
 							<p className="text-xs font-mono font-bold text-[#8C8C8C] uppercase tracking-[0.2em]">{activeProvider.providerName} ({cloudGpuCount}x {activeProvider.gpuModel})</p>
 							
-							<div className="flex justify-between items-center text-sm text-[#5E5E5E]">
+							<div className="flex justify-between items-center text-sm text-[#716F6F]">
 								<div className="flex items-center gap-2">
 									<Cloud className="w-4 h-4 text-[#5A7A8F] shrink-0" strokeWidth={1.5} />
 									<span>Usage ({cloudGpuCount}x @ ${activeProvider.rate}/hr):</span>
@@ -1189,7 +1189,7 @@ export default function LocalVsCloudGpuCalculator() {
 								<span className="font-mono font-bold text-[#1A1A1A]">{formatCurrency(calculations.cloudUsageCost)}</span>
 							</div>
 
-							<div className="flex justify-between items-center text-sm text-[#5E5E5E]">
+							<div className="flex justify-between items-center text-sm text-[#716F6F]">
 								<div className="flex items-center gap-2">
 									<Database className="w-4 h-4 text-[#5A7A8F] shrink-0" strokeWidth={1.5} />
 									<span>Storage ({timePeriodMonths} mo):</span>
@@ -1243,7 +1243,7 @@ export default function LocalVsCloudGpuCalculator() {
 								)}
 							</h3>
 
-							<p className="mt-3 text-sm leading-relaxed text-[#5E5E5E] font-medium">
+							<p className="mt-3 text-sm leading-relaxed text-[#716F6F] font-medium">
 								{calculations.localWins 
 									? `Local hardware pays off after ${Number.isFinite(calculations.breakEvenMonths) ? `${calculations.breakEvenMonths} months` : 'Never'}.`
 									: 'Renting on demand prevents costly hardware depreciation and upfront CapEx.'
@@ -1312,11 +1312,11 @@ export default function LocalVsCloudGpuCalculator() {
 					<div className="flex items-center gap-4 text-xs font-mono">
 						<div className="flex items-center gap-2">
 							<span className="w-3 h-3 rounded-full bg-emerald-500 inline-block shadow-[0_0_8px_#10b981]"></span>
-							<span className="text-[#5E5E5E] font-bold">Local Owning Net TCO</span>
+							<span className="text-[#716F6F] font-bold">Local Owning Net TCO</span>
 						</div>
 						<div className="flex items-center gap-2">
 							<span className="w-3 h-3 rounded-full bg-cyan-500 inline-block shadow-[0_0_8px_#22d3ee]"></span>
-							<span className="text-[#5E5E5E] font-bold">Cloud Renting ({cloudGpuCount}x)</span>
+							<span className="text-[#716F6F] font-bold">Cloud Renting ({cloudGpuCount}x)</span>
 						</div>
 					</div>
 				</div>
@@ -1333,7 +1333,7 @@ export default function LocalVsCloudGpuCalculator() {
 			<div className="mt-12 border-t border-gray-200/80 pt-12 space-y-8">
 				<div>
 					<h3 className="text-2xl font-bold text-[#1A1A1A] sm:text-3xl">Cloud GPU Directory & Price Explorer</h3>
-					<p className="text-[#5E5E5E] text-sm mt-2">
+					<p className="text-[#716F6F] text-sm mt-2">
 						Filter and search through detailed specifications, egress policies, storage costs, and hourly rates of 12 major cloud GPU services. Click "Compare" on any GPU configuration to load it into the TCO calculator above.
 					</p>
 				</div>
@@ -1397,7 +1397,7 @@ function CloudGpuDirectory({
 							className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
 								activeTab === tab
 									? 'bg-cyan-500 text-white shadow-sm'
-									: 'bg-white border border-gray-250 text-[#5E5E5E] hover:text-[#1A1A1A] hover:border-gray-400'
+									: 'bg-white border border-gray-250 text-[#716F6F] hover:text-[#1A1A1A] hover:border-gray-400'
 							}`}
 						>
 							{tab}
@@ -1441,7 +1441,7 @@ function CloudGpuDirectory({
 											{p.type}
 										</span>
 									</div>
-									<p className="text-xs text-[#5E5E5E] max-w-3xl leading-5">{p.description}</p>
+									<p className="text-xs text-[#716F6F] max-w-3xl leading-5">{p.description}</p>
 								</div>
 
 								<a
@@ -1489,8 +1489,8 @@ function CloudGpuDirectory({
 
 											return (
 												<tr key={gpu.gpuModel} className={`hover:bg-slate-100/30 transition ${isCurrentlySelected ? 'bg-cyan-500/5' : ''}`}>
-													<td className="py-3.5 px-4 font-semibold text-[#5E5E5E]">{gpu.gpuModel}</td>
-													<td className="py-3.5 px-4 text-[#5E5E5E]">{gpu.vram}</td>
+													<td className="py-3.5 px-4 font-semibold text-[#716F6F]">{gpu.gpuModel}</td>
+													<td className="py-3.5 px-4 text-[#716F6F]">{gpu.vram}</td>
 													<td className="py-3.5 px-4 text-right text-cyan-600 font-bold">
 														${gpu.rate.toFixed(2)}/hr
 													</td>

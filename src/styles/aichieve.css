@@ -52,7 +52,7 @@
 	--ai-ink: #e9eef4;
 	--ai-ink-2: #a3b0be;
 	--ai-ink-3: #6b7885;
-	--ai-ink-4: #4a545f;
+	--ai-ink-4: #5b6877;
 
 	/* Signal */
 	--ai-signal: #e8a33d;
@@ -65,7 +65,7 @@
 	/* Light surfaces used by instruments + long-form reading */
 	--paper: #ffffff;
 	--paper-ink: #1a1a1a;
-	--paper-ink-2: #5e5e5e;
+	--paper-ink-2: #716f6f;
 	--paper-line: #e5e5e5;
 
 	--ai-max: 78rem;
@@ -156,10 +156,15 @@ a {
 	font-weight: 700;
 	letter-spacing: 0.22em;
 	text-transform: uppercase;
-	color: var(--ai-ink-3);
+	/* Needs !important for the same reason the headings did: global.css carries
+	   `p,.text-base,.text-sm{color:…!important}` from the light-theme policy layer, and every
+	   label here is a <p>. That rule is !important while this is not, so it won on specificity
+	   alone being irrelevant — the labels silently took the body-copy grey, and the signal
+	   eyebrow never rendered amber. */
+	color: var(--ai-ink-3) !important;
 	margin: 0;
 }
-.ai-label--signal { color: var(--ai-signal); }
+.ai-label--signal { color: var(--ai-signal) !important; }
 
 /* Display heading — uppercase grotesk, the opposite of giniloh's editorial case. */
 .ai-display {
@@ -313,14 +318,16 @@ a {
 }
 .ai-link--mono:hover { color: var(--ai-signal); }
 
-/* Hero headline. Deliberately NOT a gradient fill.
-   background-clip:text + color:transparent is fragile, and here it was actively harmful: the
-   forced `color:#262626 !important` above kept painting the glyphs dark while the clipped
-   gradient sat behind them, so the headline read as dark-grey on dark and the "gradient" only
-   made it muddier. A solid, slightly brighter ink lifts it off the 32px engineering grid with
-   nothing to fight. Inheritance from the rule above handles section headings. */
+/* Big titles are pinned to --ai-ink (#e9eef4) — the same ink as every other heading, at 16.2:1
+   on this graphite.
+   This rule previously tried #ffffff and silently did nothing: `:root h1` is (0,1,1) and
+   outranked `.ai-display--hero` (0,1,0), so the hero inherited --ai-ink regardless. Saying it
+   explicitly now records what was already true instead of leaving a rule that lied.
+   Still deliberately NOT a gradient fill: background-clip:text + color:transparent is fragile,
+   and it was actively harmful once the light-mode policy layer forced a dark colour onto the
+   glyphs — the headline read as dark-grey with a muddy gradient behind it. */
 .ai-display--hero {
-	color: #ffffff !important;
+	color: var(--ai-ink);
 }
 
 /* KPI readouts carry a context line, and are now links — so the hover is an honest
