@@ -90,6 +90,11 @@
 html {
 	scroll-behavior: smooth;
 	background: var(--ai-void);
+	/* Font smoothing belongs on the root, not on body — set once here and everything inherits
+	   it consistently. -moz-osx-font-smoothing matters for Firefox on macOS, which renders
+	   heavier still. Both are ignored on other platforms, so this is safe to apply universally. */
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
 
 body {
@@ -259,10 +264,12 @@ a {
 	text-transform: uppercase;
 	font-family: var(--font-mono);
 	border: 1px solid var(--ai-signal);
-	transition: background-color 160ms ease, color 160ms ease;
+	transition: background-color 160ms ease, color 160ms ease, transform 100ms ease;
 }
 .ai-btn:hover { background: #f4b757; border-color: #f4b757; }
-.ai-btn:active { transform: translateY(1px); }
+/* scale(0.96): the skill's exact value for press feedback. Never below 0.95 — it reads as
+   exaggerated rather than tactile. Replaces a 1px translateY, which was barely perceptible. */
+.ai-btn:active { transform: scale(0.96); }
 .ai-btn--ghost {
 	background: transparent;
 	color: var(--ai-ink);
@@ -394,6 +401,39 @@ a.ai-kpi:hover .ai-kpi__sub { color: var(--ai-ink-2); }
 
 /* Filter readout under the dispatch log; hidden until a domain is selected. */
 .ai-filter-note[hidden] { display: none; }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   3c · TEXT WRAPPING, IMAGE OUTLINES, ENTRANCE STAGGER
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* text-wrap: pretty on running copy — it stops the last line ending on a single orphaned word.
+   Deliberately NOT on long article bodies: past ~10 lines the browser default is fine and
+   `pretty` costs layout work for no visible gain. `balance` stays scoped to .ai-display. */
+.ai-lede,
+.ai-kpi__sub,
+.ai-board-row__name,
+.ai-filter-note p {
+	text-wrap: pretty;
+}
+
+/* Image outlines. A 1px inset outline gives every image the same edge instead of leaving it to
+   whatever surface it lands on. The colour must be pure white/black at 10% — a tinted neutral
+   (slate, zinc, or this site's graphite tokens) picks up the surface beneath it and reads as
+   dirt along the image edge. So: white on the dark chrome, black inside the white reading
+   column and the instrument bay. `outline` + negative offset adds no layout width. */
+img {
+	outline: 1px solid oklch(1 0 0 / 0.1);
+	outline-offset: -1px;
+}
+.paper img,
+.article-body img,
+.instrument-surface img {
+	outline-color: oklch(0 0 0 / 0.1);
+}
+
+/* Staggered entrance delays live below, immediately after the .ai-rise rule they modify —
+   the `animation` shorthand there resets animation-delay, so a delay declared earlier in the
+   file is silently discarded. */
 
 /* ─────────────────────────────────────────────────────────────────────────────
    4 · LIGHT SURFACES
@@ -528,7 +568,9 @@ a.ai-kpi:hover .ai-kpi__sub { color: var(--ai-ink-2); }
 }
 .ai-nav__link {
 	position: relative;
-	padding: 0.6rem 0.85rem;
+	/* 0.875rem block padding puts the row at ~41px tall — over the 40px dense-desktop floor,
+	   which 0.6rem (≈33px) was under. */
+	padding: 0.875rem 0.85rem;
 	font-family: var(--font-mono);
 	font-size: 0.7rem;
 	font-weight: 500;
@@ -560,8 +602,10 @@ a.ai-kpi:hover .ai-kpi__sub { color: var(--ai-ink-2); }
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 2.4rem;
-	height: 2.4rem;
+	/* 2.75rem = 44px, the touch target floor. At 2.4rem (38.4px) both the search and menu
+	   buttons sat under it — and these are the two controls a thumb hits first. */
+	width: 2.75rem;
+	height: 2.75rem;
 	border: 1px solid var(--ai-line);
 	background: transparent;
 	color: var(--ai-ink-2);
@@ -581,7 +625,8 @@ a.ai-kpi:hover .ai-kpi__sub { color: var(--ai-ink-2); }
 }
 .ai-drawer a {
 	display: block;
-	padding: 0.8rem 0.9rem;
+	/* Mobile drawer rows: 1rem block padding lands these at ~44px, the touch floor. */
+	padding: 1rem 0.9rem;
 	font-family: var(--font-mono);
 	font-size: 0.72rem;
 	letter-spacing: 0.14em;
@@ -595,6 +640,18 @@ a.ai-kpi:hover .ai-kpi__sub { color: var(--ai-ink-2); }
    ───────────────────────────────────────────────────────────────────────────── */
 .ai-rise {
 	animation: ai-rise 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+/* Staggered entrance for the hero: eyebrow → headline → lede → actions → readouts, ~90ms apart,
+   so the eye lands on them in the order they matter instead of the whole block arriving as one
+   slab. One-time and infrequent — never applied to routine interactions.
+   These MUST sit after the shorthand above: `animation` resets animation-delay, so declaring
+   them earlier in the file (as they first were) silently produced 0s and no stagger at all. */
+.ai-rise--2 { animation-delay: 90ms; }
+.ai-rise--3 { animation-delay: 180ms; }
+.ai-rise--4 { animation-delay: 270ms; }
+.ai-rise--5 { animation-delay: 360ms; }
+@media (prefers-reduced-motion: reduce) {
+	.ai-rise, .ai-rise--2, .ai-rise--3, .ai-rise--4, .ai-rise--5 { animation-delay: 0ms; }
 }
 @keyframes ai-rise {
 	from { opacity: 0; transform: translate3d(0, 10px, 0); }

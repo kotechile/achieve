@@ -143,7 +143,7 @@ export default function DecisionIntelligenceCalculator() {
 
 			{/* STEP 1: DYNAMIC VERDICT BANNER */}
 			<div
-				className={`overflow-hidden rounded-[2rem] border transition-all duration-300 p-6 sm:p-8 ${
+				className={`overflow-hidden rounded-[2rem] border transition-[border-color,background-color,box-shadow,transform] duration-300 p-6 sm:p-8 ${
 					outputs.verdict === 'BUY' || outputs.verdict === 'REPAIR'
 						? 'border-emerald-500/30 bg-[linear-gradient(135deg,rgba(2,44,34,0.6),rgba(2,6,23,0.96)_65%,rgba(16,185,129,0.12))] shadow-[0_0_50px_rgba(16,185,129,0.1)]'
 						: outputs.verdict === 'PATCH' || outputs.verdict === 'WAIT'
@@ -662,7 +662,7 @@ export default function DecisionIntelligenceCalculator() {
 				{/* -------------------- ENTERPRISE MATRIX -------------------- */}
 				{inputs.activeMode === 'enterprise_ciam' && (
 					<>
-						<div className="panel-soft flex flex-col rounded-[1.8rem] border border-cyan-500/25 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(8,47,73,0.85)_80%,rgba(34,211,238,0.12))] p-6 shadow-[0_0_35px_rgba(6,182,212,0.06)] hover:border-cyan-500/40 transition-all duration-300">
+						<div className="panel-soft flex flex-col rounded-[1.8rem] border border-cyan-500/25 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(8,47,73,0.85)_80%,rgba(34,211,238,0.12))] p-6 shadow-[0_0_35px_rgba(6,182,212,0.06)] hover:border-cyan-500/40 transition-[border-color,background-color,box-shadow,transform] duration-300">
 							<p className="font-mono text-xs uppercase tracking-[0.28em] #5A7A8F/85">SaaS Managed Platform</p>
 							<h4 className="mt-4 text-sm font-mono uppercase tracking-wider text-[#716F6F]">3-Year SaaS Cumulative TCO</h4>
 							<p className="mt-1 text-4xl font-extrabold tracking-tight text-[#1A1A1A]">{formatCurrency(outputs.saas3YrTco)}</p>
@@ -678,7 +678,7 @@ export default function DecisionIntelligenceCalculator() {
 							</div>
 						</div>
 
-						<div className="panel-soft flex flex-col rounded-[1.8rem] border border-rose-500/20 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(67,20,30,0.85)_80%,rgba(244,63,94,0.12))] p-6 shadow-[0_0_35px_rgba(244,63,94,0.06)] hover:border-rose-500/35 transition-all duration-300">
+						<div className="panel-soft flex flex-col rounded-[1.8rem] border border-rose-500/20 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(67,20,30,0.85)_80%,rgba(244,63,94,0.12))] p-6 shadow-[0_0_35px_rgba(244,63,94,0.06)] hover:border-rose-500/35 transition-[border-color,background-color,box-shadow,transform] duration-300">
 							<p className="font-mono text-xs uppercase tracking-[0.28em] text-[#B85C5C]/85">In-House Custom Build</p>
 							<h4 className="mt-4 text-sm font-mono uppercase tracking-wider text-[#716F6F]">3-Year Custom Cumulative TCO</h4>
 							<p className="mt-1 text-4xl font-extrabold tracking-tight text-[#1A1A1A]">{formatCurrency(outputs.custom3YrTco)}</p>
@@ -703,7 +703,7 @@ export default function DecisionIntelligenceCalculator() {
 				{/* -------------------- PERSONAL CPU MATRIX -------------------- */}
 				{inputs.activeMode === 'personal_cpu' && (
 					<>
-						<div className="panel-soft flex flex-col rounded-[1.8rem] border border-cyan-500/25 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(8,47,73,0.85)_80%,rgba(34,211,238,0.12))] p-6 shadow-[0_0_35px_rgba(6,182,212,0.06)] transition-all duration-300">
+						<div className="panel-soft flex flex-col rounded-[1.8rem] border border-cyan-500/25 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(8,47,73,0.85)_80%,rgba(34,211,238,0.12))] p-6 shadow-[0_0_35px_rgba(6,182,212,0.06)] transition-[border-color,background-color,box-shadow,transform] duration-300">
 							<p className="font-mono text-xs uppercase tracking-[0.28em] #5A7A8F/85">Convenience Outsourcing</p>
 							<h4 className="mt-4 text-sm font-mono uppercase tracking-wider text-[#716F6F]">Lifespan Outsource Total</h4>
 							<p className="mt-1 text-4xl font-extrabold tracking-tight text-[#1A1A1A]">{formatCurrency(outputs.personalCpuOutsourceTco)}</p>
@@ -719,7 +719,7 @@ export default function DecisionIntelligenceCalculator() {
 							</div>
 						</div>
 
-						<div className="panel-soft flex flex-col rounded-[1.8rem] border border-rose-500/20 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(67,20,30,0.85)_80%,rgba(244,63,94,0.12))] p-6 shadow-[0_0_35px_rgba(244,63,94,0.06)] transition-all duration-300">
+						<div className="panel-soft flex flex-col rounded-[1.8rem] border border-rose-500/20 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(67,20,30,0.85)_80%,rgba(244,63,94,0.12))] p-6 shadow-[0_0_35px_rgba(244,63,94,0.06)] transition-[border-color,background-color,box-shadow,transform] duration-300">
 							<p className="font-mono text-xs uppercase tracking-[0.28em] text-[#B85C5C]/85">Home Asset Ownership</p>
 							<h4 className="mt-4 text-sm font-mono uppercase tracking-wider text-[#716F6F]">Lifespan Home Ownership TCO</h4>
 							<p className="mt-1 text-4xl font-extrabold tracking-tight text-[#1A1A1A]">{formatCurrency(outputs.personalCpuHomeTco)}</p>
@@ -744,7 +744,7 @@ export default function DecisionIntelligenceCalculator() {
 				{/* -------------------- PERSONAL REPAIR MATRIX -------------------- */}
 				{inputs.activeMode === 'personal_repair' && (
 					<>
-						<div className="panel-soft flex flex-col rounded-[1.8rem] border border-cyan-500/25 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(8,47,73,0.85)_80%,rgba(34,211,238,0.12))] p-6 shadow-[0_0_35px_rgba(6,182,212,0.06)] transition-all duration-300">
+						<div className="panel-soft flex flex-col rounded-[1.8rem] border border-cyan-500/25 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(8,47,73,0.85)_80%,rgba(34,211,238,0.12))] p-6 shadow-[0_0_35px_rgba(6,182,212,0.06)] transition-[border-color,background-color,box-shadow,transform] duration-300">
 							<p className="font-mono text-xs uppercase tracking-[0.28em] #5A7A8F/85">Repair and Keep</p>
 							<h4 className="mt-4 text-sm font-mono uppercase tracking-wider text-[#716F6F]">Immediate Repair Quote</h4>
 							<p className="mt-1 text-4xl font-extrabold tracking-tight text-[#1A1A1A]">{formatCurrency(inputs.repairCost)}</p>
@@ -760,7 +760,7 @@ export default function DecisionIntelligenceCalculator() {
 							</div>
 						</div>
 
-						<div className="panel-soft flex flex-col rounded-[1.8rem] border border-rose-500/20 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(67,20,30,0.85)_80%,rgba(244,63,94,0.12))] p-6 shadow-[0_0_35px_rgba(244,63,94,0.06)] transition-all duration-300">
+						<div className="panel-soft flex flex-col rounded-[1.8rem] border border-rose-500/20 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(67,20,30,0.85)_80%,rgba(244,63,94,0.12))] p-6 shadow-[0_0_35px_rgba(244,63,94,0.06)] transition-[border-color,background-color,box-shadow,transform] duration-300">
 							<p className="font-mono text-xs uppercase tracking-[0.28em] text-[#B85C5C]/85">Replace with New</p>
 							<h4 className="mt-4 text-sm font-mono uppercase tracking-wider text-[#716F6F]">Threshold Warning</h4>
 							<p className="mt-1 text-4xl font-extrabold tracking-tight text-[#1A1A1A]">{outputs.personalRepairThreshold.toLocaleString()}</p>
@@ -781,7 +781,7 @@ export default function DecisionIntelligenceCalculator() {
 				{/* -------------------- PERSONAL TINKERING MATRIX -------------------- */}
 				{inputs.activeMode === 'personal_tinkering' && (
 					<>
-						<div className="panel-soft flex flex-col rounded-[1.8rem] border border-cyan-500/25 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(8,47,73,0.85)_80%,rgba(34,211,238,0.12))] p-6 shadow-[0_0_35px_rgba(6,182,212,0.06)] transition-all duration-300">
+						<div className="panel-soft flex flex-col rounded-[1.8rem] border border-cyan-500/25 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(8,47,73,0.85)_80%,rgba(34,211,238,0.12))] p-6 shadow-[0_0_35px_rgba(6,182,212,0.06)] transition-[border-color,background-color,box-shadow,transform] duration-300">
 							<p className="font-mono text-xs uppercase tracking-[0.28em] #5A7A8F/85">Paid Subscription Tool</p>
 							<h4 className="mt-4 text-sm font-mono uppercase tracking-wider text-[#716F6F]">3-Year App Subscription</h4>
 							<p className="mt-1 text-4xl font-extrabold tracking-tight text-[#1A1A1A]">{formatCurrency(outputs.personalTinker3YrSubCost)}</p>
@@ -793,7 +793,7 @@ export default function DecisionIntelligenceCalculator() {
 							</div>
 						</div>
 
-						<div className="panel-soft flex flex-col rounded-[1.8rem] border border-rose-500/20 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(67,20,30,0.85)_80%,rgba(244,63,94,0.12))] p-6 shadow-[0_0_35px_rgba(244,63,94,0.06)] transition-all duration-300">
+						<div className="panel-soft flex flex-col rounded-[1.8rem] border border-rose-500/20 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(67,20,30,0.85)_80%,rgba(244,63,94,0.12))] p-6 shadow-[0_0_35px_rgba(244,63,94,0.06)] transition-[border-color,background-color,box-shadow,transform] duration-300">
 							<p className="font-mono text-xs uppercase tracking-[0.28em] text-[#B85C5C]/85">Fragile Workaround Stack</p>
 							<h4 className="mt-4 text-sm font-mono uppercase tracking-wider text-[#716F6F]">3-Year Invisible Time Tax</h4>
 							<p className="mt-1 text-4xl font-extrabold tracking-tight text-[#1A1A1A]">{formatCurrency(outputs.personalTinker3YrTimeCost)}</p>

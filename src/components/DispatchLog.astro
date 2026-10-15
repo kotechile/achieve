@@ -91,11 +91,11 @@ function formatDate(dateStr: string | null) {
 									<span class="block font-mono text-[0.6rem] uppercase tracking-[0.16em] text-[var(--ai-signal)]">
 										{post.categoryLabel ?? 'Dispatch'}
 									</span>
-									<span class="mt-1.5 block text-base font-semibold leading-snug tracking-tight text-[var(--ai-ink)] transition group-hover:text-[var(--ai-signal)]">
+									<span class="mt-1.5 block text-pretty text-base font-semibold leading-snug tracking-tight text-[var(--ai-ink)] transition group-hover:text-[var(--ai-signal)]">
 										{post.title}
 									</span>
 									{post.excerpt && (
-										<span class="mt-1.5 block text-sm leading-relaxed text-[var(--ai-ink-2)] line-clamp-2">
+										<span class="mt-1.5 block text-pretty text-sm leading-relaxed text-[var(--ai-ink-2)] line-clamp-2">
 											{post.excerpt}
 										</span>
 									)}

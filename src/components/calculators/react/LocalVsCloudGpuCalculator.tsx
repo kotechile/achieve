@@ -435,7 +435,7 @@ function InteractiveBadge({ value, min, max, step = 1, unit, prefix, onChange }:
 	};
 
 	return (
-		<div className="flex items-center gap-1 bg-white rounded-md px-2.5 py-1 border border-gray-200 focus-within:border-cyan-500 focus-within:ring-1 focus-within:ring-cyan-500 transition-all shrink-0">
+		<div className="flex items-center gap-1 bg-white rounded-md px-2.5 py-1 border border-gray-200 focus-within:border-cyan-500 focus-within:ring-1 focus-within:ring-cyan-500 transition-[border-color,background-color,box-shadow,transform] shrink-0">
 			{prefix && <span className="text-xs text-gray-400 font-mono font-bold">{prefix}</span>}
 			<input
 				type="number"
@@ -1425,7 +1425,7 @@ function CloudGpuDirectory({
 					</div>
 				) : (
 					filteredProviders.map(p => (
-						<div key={p.id} className="bg-white border border-gray-100 rounded-xl shadow-sm p-6 lg:p-8 space-y-6 transition-all duration-300 hover:border-cyan-500 hover:-translate-y-1">
+						<div key={p.id} className="bg-white border border-gray-100 rounded-xl shadow-sm p-6 lg:p-8 space-y-6 transition-[border-color,background-color,box-shadow,transform] duration-300 hover:border-cyan-500 hover:-translate-y-1">
 							{/* Provider header info */}
 							<div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 pb-5">
 								<div className="space-y-2">

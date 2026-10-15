@@ -25,10 +25,10 @@ const { post } = Astro.props;
 			</div>
 		)
 	}
-	<h2 class="mt-4 text-lg font-bold leading-snug tracking-tight text-[var(--ai-ink)] transition group-hover:text-[var(--ai-signal)]">
+	<h2 class="mt-4 text-pretty text-lg font-bold leading-snug tracking-tight text-[var(--ai-ink)] transition group-hover:text-[var(--ai-signal)]">
 		{post.title}
 	</h2>
-	{post.excerpt && <p class="mt-3 flex-1 text-sm leading-relaxed text-[var(--ai-ink-2)] line-clamp-4">{post.excerpt}</p>}
+	{post.excerpt && <p class="mt-3 flex-1 text-pretty text-sm leading-relaxed text-[var(--ai-ink-2)] line-clamp-4">{post.excerpt}</p>}
 	<span class="mt-4 inline-flex items-center gap-1.5 font-mono text-[0.65rem] font-bold uppercase tracking-[0.16em] text-[var(--ai-ink-3)] transition group-hover:text-[var(--ai-signal)]">
 		Read dispatch
 		<span aria-hidden="true" class="inline-block transition-transform duration-200 group-hover:translate-x-1">→</span>
