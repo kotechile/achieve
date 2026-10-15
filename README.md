@@ -16,9 +16,27 @@ npm run dev       # local dev server
 npm run build     # static build to ./dist
 npm run preview   # preview the build
 npm run check     # astro type check
+npm run verify    # assert the DEPLOY contract against a running origin
+npm run brand     # regenerate favicon / share card (needs Pillow)
 ```
 
 Deployment is the nginx image built from `./Dockerfile` (Coolify → `kotechile/achieve:main`).
+
+### `npm run verify`
+
+`check` and `build` prove the site **compiles**. They say nothing about whether it is *deployed*
+correctly — and every launch failure in 2026 was a deploy-level one. `scripts/verify.mjs` asserts
+the actual contract and exits non-zero on violation, so "green" means something:
+
+```bash
+npm run verify -- https://aichieve.net   # production
+npm run verify                            # local container on :8899
+```
+
+It checks that core routes and assets return 200, that moved paths 301 to the right target
+**without leaking an internal port or downgrading to http**, that this property's posts resolve
+while the sibling's 404, and that the canonical host is correct. The boundary check reads the slug
+lists straight out of `site-content.ts`, so it cannot drift out of sync with the code.
 
 ## Environment
 
