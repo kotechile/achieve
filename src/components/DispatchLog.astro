@@ -44,14 +44,30 @@ function formatDate(dateStr: string | null) {
 		</div>
 		<p class="flex items-center gap-2 font-mono text-[0.65rem] uppercase tracking-[0.16em] text-[var(--ai-ink-4)]">
 			<span class="ai-lamp" aria-hidden="true"></span>
-			{sorted.length} in feed · newest first
+			<span id="dispatch-count">{sorted.length} in feed · newest first</span>
 		</p>
+	</div>
+
+	{/* Filter state, owned by the coverage board in the hero. Kept out of the flow until a
+	    domain is actually selected so the default page has no extra chrome. */}
+	<div class="ai-filter-note mt-4 hidden items-center gap-3 border border-[var(--ai-signal)]/40 bg-[var(--ai-signal-soft)] px-3 py-2" hidden>
+		<p class="font-mono text-[0.62rem] uppercase tracking-[0.16em] text-[var(--ai-signal)]">
+			Filtered to <span id="dispatch-filter-name">—</span>
+		</p>
+		<button
+			type="button"
+			id="dispatch-filter-clear"
+			class="ai-link text-[0.65rem] uppercase tracking-[0.14em]"
+		>
+			Clear <span aria-hidden="true">×</span>
+		</button>
 	</div>
 
 	{
 		sorted.length ? (
 			<div class="ai-panel mt-6">
 				<div
+					id="dispatch-stream"
 					class:list={[
 						'sleek-scrollbar divide-y divide-[var(--ai-line-soft)]',
 						scrollable ? 'overflow-y-auto overscroll-contain' : ''
@@ -62,7 +78,7 @@ function formatDate(dateStr: string | null) {
 					aria-label={scrollable ? 'Scrollable dispatch log' : undefined}
 				>
 					{sorted.map((post) => (
-						<article class="group">
+						<article class="group" data-domain={post.categorySlug ?? ''}>
 							<a
 								href={`/${post.slug}/`}
 								class="flex items-start gap-4 px-4 py-4 transition hover:bg-[var(--ai-panel-2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--ai-signal)] sm:gap-6 sm:px-5"

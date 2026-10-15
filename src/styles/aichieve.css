@@ -106,9 +106,16 @@ body {
 	-webkit-font-smoothing: antialiased;
 }
 
-/* The layout stylesheet (global.css) pins headings to a light-theme ink. Re-point them. */
-h1, h2, h3, h4, h5, h6 {
-	color: var(--ai-ink);
+/* The layout stylesheet (global.css) pins headings to a light-theme ink with `!important`,
+   and it does so in two shapes: bare elements (h1/h2/h3) AND the Tailwind size utilities
+   (.text-lg, .text-xl, .text-3xl … .text-6xl). Those rules exist to keep giniloh's white paper
+   readable; on this dark console they rendered #262626 on #0e1116.
+   Enumerating utilities is a losing game — a class selector (0,1,0) outranks a bare element
+   (0,0,1), so any heading that also carries a size class slipped through. `:root h*` is (0,1,1):
+   it outranks the utility rules without having to name them, and without spraying !important
+   across the size scale (which would catch non-heading copy too). */
+:root h1, :root h2, :root h3, :root h4, :root h5, :root h6 {
+	color: var(--ai-ink) !important;
 	font-family: var(--font-sans);
 	letter-spacing: -0.02em;
 }
@@ -221,15 +228,16 @@ a {
 .ai-tag--pro { border-color: rgba(232, 163, 61, 0.5); color: var(--ai-signal); }
 .ai-tag--soon { border-color: var(--ai-line); color: var(--ai-ink-3); }
 
-/* Blinking status lamp — one, not many. */
+/* Status lamp — a slow breath, not a hard blink. steps(1) read as an alarm light;
+   a 3.2s cubic fade reads as "instrument running", which is the intent. */
 .ai-lamp {
 	display: inline-block;
 	width: 6px;
 	height: 6px;
 	background: var(--ai-ok);
-	animation: ai-pulse 2.4s steps(1, end) infinite;
+	animation: ai-pulse 3.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
-@keyframes ai-pulse { 0%, 62% { opacity: 1; } 63%, 100% { opacity: 0.25; } }
+@keyframes ai-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.32; } }
 
 /* Buttons */
 .ai-btn {
@@ -289,6 +297,98 @@ a {
 .ai-kpi__value--ok { color: #7fc7b1; }
 
 /* ─────────────────────────────────────────────────────────────────────────────
+   3b · HERO ACTIONS, HEADLINE LIFT, KPI READOUTS, BOARD FILTERS
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Secondary hero action is a text link, not a second button. Two bordered controls in the
+   same row split attention; the amber fill must be the only "press me" in the hero. */
+.ai-link--mono {
+	font-family: var(--font-mono);
+	font-size: 0.72rem;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--ai-ink-2);
+	padding-block: 0.8rem;
+}
+.ai-link--mono:hover { color: var(--ai-signal); }
+
+/* Hero headline. Deliberately NOT a gradient fill.
+   background-clip:text + color:transparent is fragile, and here it was actively harmful: the
+   forced `color:#262626 !important` above kept painting the glyphs dark while the clipped
+   gradient sat behind them, so the headline read as dark-grey on dark and the "gradient" only
+   made it muddier. A solid, slightly brighter ink lifts it off the 32px engineering grid with
+   nothing to fight. Inheritance from the rule above handles section headings. */
+.ai-display--hero {
+	color: #ffffff !important;
+}
+
+/* KPI readouts carry a context line, and are now links — so the hover is an honest
+   affordance instead of decoration on something that does nothing when clicked. */
+.ai-kpi {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+	color: inherit;
+	transition: transform 180ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.ai-kpi__value { transition: color 180ms ease; }
+.ai-kpi__sub {
+	font-family: var(--font-mono);
+	font-size: 0.6rem;
+	line-height: 1.45;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	/* --ai-ink-4 lands at ~3.5:1 on this paper, under AA for small text. One step up clears it.
+	   These lines are the whole point of the readout, so they have to be actually readable. */
+	color: var(--ai-ink-3);
+}
+a.ai-kpi:hover { transform: translateY(-2px); }
+a.ai-kpi:hover .ai-kpi__value { color: var(--ai-signal); }
+a.ai-kpi:hover .ai-kpi__sub { color: var(--ai-ink-2); }
+@media (prefers-reduced-motion: reduce) {
+	a.ai-kpi, a.ai-kpi:hover { transform: none; transition: none; }
+}
+
+/* Coverage board rows filter the dispatch log below without leaving the page. The rail on
+   the pressed row is a border, not a shadow — this surface is hairline-only. */
+.ai-board-row {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	width: 100%;
+	padding: 0.875rem 1rem;
+	background: transparent;
+	border: 0;
+	border-top: 1px solid var(--ai-line-soft);
+	font: inherit;
+	text-align: left;
+	color: inherit;
+	cursor: pointer;
+	transition: background-color 180ms ease;
+}
+.ai-board-row:first-child { border-top: 0; }
+.ai-board-row:hover { background: var(--ai-panel-2); }
+.ai-board-row::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: 2px;
+	background: transparent;
+	transition: background-color 180ms ease;
+}
+.ai-board-row[aria-pressed="true"] { background: var(--ai-signal-soft); }
+.ai-board-row[aria-pressed="true"]::before { background: var(--ai-signal); }
+.ai-board-row[aria-pressed="true"] .ai-board-row__name { color: var(--ai-signal); }
+
+/* Filter readout under the dispatch log; hidden until a domain is selected. */
+.ai-filter-note[hidden] { display: none; }
+
+/* ─────────────────────────────────────────────────────────────────────────────
    4 · LIGHT SURFACES
    Two things on this site are white on purpose: the long-form reading column and
    the calculator instruments (which were authored against a light surface).
@@ -300,7 +400,10 @@ a {
 	border: 1px solid var(--ai-line);
 	padding: clamp(1.25rem, 4vw, 4rem);
 }
-.paper h1, .paper h2, .paper h3, .paper h4, .paper h5, .paper h6 { color: var(--paper-ink); }
+/* Light surfaces win the heading ink back at higher specificity than the dark-chrome rule.
+   Without this, the !important above would paint white text onto these white surfaces.
+   `.paper` / `.instrument-surface` are (0,2,1), which outranks `:root h*` (0,1,1). */
+.paper h1, .paper h2, .paper h3, .paper h4, .paper h5, .paper h6 { color: var(--paper-ink) !important; }
 .paper p, .paper li, .paper dd { color: var(--paper-ink-2); }
 .paper a { color: #46647a; }
 .paper a:hover { color: var(--paper-ink); }
@@ -313,7 +416,9 @@ a {
 	border: 1px solid var(--ai-line);
 }
 .instrument-surface h1, .instrument-surface h2, .instrument-surface h3,
-.instrument-surface h4, .instrument-surface h5, .instrument-surface h6 { color: var(--paper-ink); }
+.instrument-surface h4, .instrument-surface h5, .instrument-surface h6,
+.instrument-surface .text-3xl, .instrument-surface .text-4xl,
+.instrument-surface .text-5xl, .instrument-surface .text-6xl { color: var(--paper-ink) !important; }
 .instrument-surface p, .instrument-surface li, .instrument-surface span, .instrument-surface div { color: inherit; }
 .instrument-surface p { color: var(--paper-ink-2); }
 .instrument-surface strong, .instrument-surface b { color: var(--paper-ink); }
@@ -365,7 +470,10 @@ a {
 	align-items: center;
 	justify-content: space-between;
 	gap: 1rem;
-	min-height: 3.75rem;
+	/* Generous vertical room. This bar sits directly under browser chrome, which on a
+	   loaded toolbar is itself busy — crowding it makes the whole page feel compressed. */
+	min-height: 4.25rem;
+	padding-block: 0.7rem;
 }
 
 .ai-mark {
@@ -413,7 +521,7 @@ a {
 }
 .ai-nav__link {
 	position: relative;
-	padding: 0.55rem 0.7rem;
+	padding: 0.6rem 0.85rem;
 	font-family: var(--font-mono);
 	font-size: 0.7rem;
 	font-weight: 500;
@@ -424,14 +532,19 @@ a {
 	transition: color 150ms ease, background-color 150ms ease;
 }
 .ai-nav__link:hover { color: var(--ai-ink); background: var(--ai-panel-2); }
-.ai-nav__link[aria-current="page"] { color: var(--ai-signal); }
+/* Active: signal colour AND a filled tint AND a 2px rail. Colour alone was too quiet to
+   locate you in the hierarchy at a glance. */
+.ai-nav__link[aria-current="page"] {
+	color: var(--ai-signal);
+	background: var(--ai-signal-soft);
+}
 .ai-nav__link[aria-current="page"]::after {
 	content: "";
 	position: absolute;
-	left: 0.7rem;
-	right: 0.7rem;
-	bottom: 0.12rem;
-	height: 1px;
+	left: 0.85rem;
+	right: 0.85rem;
+	bottom: 0;
+	height: 2px;
 	background: var(--ai-signal);
 }
 
@@ -493,9 +606,12 @@ a {
 .prose, .article-body {
 	color: var(--paper-ink-2);
 }
-.prose h1, .prose h2, .prose h3, .prose h4,
-.article-body h1, .article-body h2, .article-body h3, .article-body h4 {
-	color: var(--paper-ink);
+/* Reading column headings. Needs !important to survive the `:root h*` dark-chrome rule above —
+   these sit on the white `.paper` surface and must stay dark. */
+.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6,
+.article-body h1, .article-body h2, .article-body h3, .article-body h4,
+.article-body h5, .article-body h6 {
+	color: var(--paper-ink) !important;
 }
 .prose :where(code):not(:where(pre code)) {
 	background: #f4f5f7;

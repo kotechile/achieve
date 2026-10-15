@@ -157,4 +157,83 @@ const websiteSchema = {
 			</div>
 		</div>
 	</section>
+
+	{/*
+		Coverage board → dispatch log filter.
+
+		Progressive enhancement: with no JS the board is inert and the page reads exactly as
+		before. Nothing here is required to reach any content — the category pages are the real
+		navigation, this just saves the scroll. Escape clears, and the pressed row is announced
+		via aria-pressed so it works from the keyboard.
+	*/}
+	<script>
+		(() => {
+			const board = document.getElementById('coverage-board');
+			const stream = document.getElementById('dispatch-stream');
+			if (!board || !stream) return;
+
+			const rows = Array.from(board.querySelectorAll<HTMLButtonElement>('[data-filter-domain]'));
+			const items = Array.from(stream.querySelectorAll<HTMLElement>('article[data-domain]'));
+			const note = document.querySelector<HTMLElement>('.ai-filter-note');
+			const noteName = document.getElementById('dispatch-filter-name');
+			const clearBtn = document.getElementById('dispatch-filter-clear');
+			const countEl = document.getElementById('dispatch-count');
+			const total = items.length;
+
+			let active = '';
+
+			const apply = (domain: string) => {
+				active = domain;
+				let shown = 0;
+
+				items.forEach((item) => {
+					const match = !domain || item.dataset.domain === domain;
+					item.hidden = !match;
+					if (match) shown += 1;
+				});
+
+				rows.forEach((row) => {
+					row.setAttribute('aria-pressed', row.dataset.filterDomain === domain ? 'true' : 'false');
+				});
+
+				if (note && noteName) {
+					if (domain) {
+						const label = rows
+							.find((row) => row.dataset.filterDomain === domain)
+							?.querySelector('.ai-board-row__name')
+							?.textContent?.trim();
+						noteName.textContent = `${label ?? domain} · ${shown} dispatches`;
+						note.hidden = false;
+						note.classList.remove('hidden');
+						note.classList.add('flex');
+					} else {
+						noteName.textContent = '—';
+						note.hidden = true;
+						note.classList.add('hidden');
+						note.classList.remove('flex');
+					}
+				}
+
+				if (countEl) {
+					countEl.textContent = domain
+						? `${shown} of ${total} shown · filtered`
+						: `${total} in feed · newest first`;
+				}
+			};
+
+			rows.forEach((row) => {
+				row.addEventListener('click', () => {
+					const domain = row.dataset.filterDomain ?? '';
+					// Clicking the active row clears, so the board is its own toggle.
+					apply(active === domain ? '' : domain);
+				});
+			});
+
+			clearBtn?.addEventListener('click', () => apply(''));
+
+			document.addEventListener('keydown', (event) => {
+				if (event.key === 'Escape' && active) apply('');
+			});
+		})();
+	</script>
 </BaseLayout>
