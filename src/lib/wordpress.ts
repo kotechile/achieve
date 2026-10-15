@@ -1,4 +1,5 @@
 import { filterOwnedPosts, belongsToSite, SIBLING_SITE } from './site-content';
+import { resolveInternalLink, INTERNAL_HOSTS } from './link-map';
 
 interface WordPressRenderedField {
 	rendered?: string;
@@ -165,22 +166,27 @@ function normalizePost(post: WordPressPostResponse): WordPressPost {
 	htmlContent = htmlContent.replace(/<p>\s*(<svg[\s\S]*?<\/svg>)\s*<\/p>/gi, '$1');
 	htmlContent = htmlContent.replace(/<p>\s*<\/p>/gi, '');
 
-	// Rewrite internal WordPress links to frontend relative links (preserving uploads / assets)
-	if (apiBase) {
-		const escapedApiBase = apiBase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-		// Category links: https://cms.giniloh.com/category/xyz/ -> /categories/xyz/
-		htmlContent = htmlContent.replace(
-			new RegExp(`href=["']${escapedApiBase}/category/([^"'/]+)/?["']`, 'gi'),
-			'href="/categories/$1/"'
+	// Rewrite internal links so each one points at the property that actually OWNS its target.
+	//
+	// This used to rewrite every internal link to a site-relative path, which was correct while
+	// there was one site. After the 2026 split it silently produced broken links: an aichieve
+	// article linking to a giniloh article became `/that-slug/`, which does not exist here.
+	// Measured at split time: 30 live 404s on aichieve.net, 5 on giniloh.com, across 18 articles.
+	// The ownership rules live in lib/link-map.ts.
+	{
+		const hostPattern = INTERNAL_HOSTS.map((host) => host.replace(/\./g, '\\.')).join('|');
+		const internalHref = new RegExp(
+			`href="(?:https?:\\/\\/(?:${hostPattern}))?(\\/(?!\\/)[^"]*)"`,
+			'gi'
 		);
-		// Post links: https://cms.giniloh.com/post-slug/ -> /post-slug/ (excluding wp-content, wp-includes, wp-admin, wp-json)
-		htmlContent = htmlContent.replace(
-			new RegExp(`href=["']${escapedApiBase}/(?!wp-content|wp-includes|wp-admin|wp-json)([^"']+)["']`, 'gi'),
-			(_match, path) => {
-				const cleanPath = path.replace(/^\/+/, '').replace(/\/+$/, '');
-				return `href="/${cleanPath}/"`;
+		htmlContent = htmlContent.replace(internalHref, (match, rawPath) => {
+			// Uploads and other CMS-owned assets must stay absolute so they keep loading straight
+			// from the CMS. They are files, not pages, and must not be rewritten to a front-end path.
+			if (/^\/(?:wp-content|wp-includes|wp-admin|wp-json)/i.test(rawPath)) {
+				return match;
 			}
-		);
+			return `href="${resolveInternalLink(rawPath)}"`;
+		});
 	}
 
 	return {
