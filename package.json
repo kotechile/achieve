@@ -13,7 +13,9 @@
     "check": "astro check",
     "verify": "node scripts/verify.mjs",
     "brand": "python3 scripts/generate-brand-assets.py",
-    "astro": "astro"
+    "astro": "astro",
+    "routing:sync": "node scripts/routing-sync.mjs",
+    "routing:check": "node scripts/routing-sync.mjs --check"
   },
   "//": "Dependencies are pinned to EXACT versions, not ranges. They mirror the set giniloh.com runs in production. A fresh `^` range install resolved astro 6.4.8 -> vite 8 + rolldown, which @tailwindcss/vite@4.2.x cannot drive (build dies with `Missing field tsconfigPaths`). Keep these in lockstep with giniloh's package-lock and bump them deliberately, in both repos at once.",
   "dependencies": {
