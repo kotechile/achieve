@@ -671,26 +671,45 @@ a {
   border-color: #E5E5E5 !important;
 }
 
-/* 5. Typography and High-Contrast Hierarchy */
-h1, .text-5xl, .text-6xl {
+/* 5. Typography and High-Contrast Hierarchy — ink scoped to the light surfaces.
+ *
+ * These selectors are bare elements and Tailwind size utilities, and every declaration was
+ * !important. That was right while this sheet only drove giniloh's white paper. It is wrong
+ * on aichieve's graphite console: unlayered + !important, they outranked every console class
+ * and every Tailwind text-* utility, so the article standfirst and the homepage's five app
+ * names rendered #262626 on #08090b (1.3:1 — effectively invisible), links threw away their
+ * colour and their hover, and secondary copy sat at 3.5:1.
+ *
+ * The ink now applies only where a light surface actually is: `.paper` (the long-form reading
+ * column) and `.instrument-surface` (the calculator bay). Those two keep exactly the values
+ * they had, because the console's own reading ink is the same pair — --paper-ink (#1a1a1a)
+ * and --paper-ink-2 (#716f6f). The dark chrome's ink is declared in aichieve.css §2b. */
+:is(.paper, .instrument-surface) :is(h1, .text-5xl, .text-6xl) {
   color: #262626 !important; /* Charcoal dark gray */
   font-weight: 800 !important; /* font-extrabold */
   font-family: var(--font-sans) !important;
 }
-h2, h3, .text-3xl, .text-4xl {
+:is(.paper, .instrument-surface) :is(h2, h3, .text-3xl, .text-4xl) {
   color: #262626 !important; /* Charcoal dark gray */
   font-weight: 900 !important; /* font-black */
   font-family: var(--font-sans) !important;
 }
-h4, .text-xl, .text-lg {
+:is(.paper, .instrument-surface) :is(h4, .text-xl, .text-lg) {
   color: #262626 !important; /* Charcoal dark gray */
   font-weight: 700 !important; /* font-bold */
   font-family: var(--font-sans) !important;
 }
-p, .text-base, .text-sm {
+:is(.paper, .instrument-surface) :is(p, .text-base, .text-sm) {
   color: #716F6F !important;
   font-weight: 400 !important; /* font-normal */
 }
+
+/* Only the ink is surface-scoped. Headings keep their weight and family on the dark chrome
+   too, so this change cannot alter the console's typographic weight at all. */
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-sans) !important; }
+h1, .text-5xl, .text-6xl { font-weight: 800 !important; } /* font-extrabold */
+h2, h3, .text-3xl, .text-4xl { font-weight: 900 !important; } /* font-black */
+h4, .text-xl, .text-lg { font-weight: 700 !important; } /* font-bold */
 .section-eyebrow,
 .font-mono.text-xs,
 .font-mono.text-\[0\.65rem\],

@@ -48,16 +48,23 @@
 	--ai-line-soft: rgba(255, 255, 255, 0.055);
 	--ai-grid: rgba(255, 255, 255, 0.028);
 
-	/* Ink */
-	--ai-ink: #e9eef4;
-	--ai-ink-2: #a3b0be;
-	--ai-ink-3: #6b7885;
-	--ai-ink-4: #5b6877;
+	/* Ink — four steps, every one of them measured against the surface it lands on.
+	   The bottom of the scale used to sit under AA: #6b7885 scored 4.41:1 on the void and
+	   3.91:1 on a panel, #5b6877 3.50:1 and 3.10:1. That is 10–11px monospace — the least
+	   forgiving text on the site — so each step now clears 4.5:1 against the *lightest* dark
+	   surface it can land on (panel-2 #1b2129, the hover fill), not merely the void.
+	   Ratios quoted as void / panel. */
+	--ai-ink: #e9eef4; /* 17.1 / 15.1 — display headings, primary key links */
+	--ai-ink-2: #b9c6d3; /* 11.5 / 10.2 — body copy, lede, nav labels, secondary links */
+	--ai-ink-3: #94a3b8; /*  7.8 /  6.9 — eyebrows, card labels, KPI captions */
+	--ai-ink-4: #8496a9; /*  6.6 /  5.8 — dimmest tier: breadcrumb, dateline, slug */
 
 	/* Signal */
 	--ai-signal: #e8a33d;
 	--ai-signal-soft: rgba(232, 163, 61, 0.14);
-	--ai-link: #6fa8c7;
+	/* Links keep the console's steel blue, one step brighter than body copy so an
+	   interactive run is findable at a glance (9.4:1 on a panel, 10.6:1 on the void). */
+	--ai-link: #8fc4e0;
 	--ai-ok: #4e9e86;
 	--ai-warn: #c99a4e;
 	--ai-bad: #c4655c;
@@ -127,7 +134,29 @@ body {
 
 a {
 	text-decoration: none;
-	color: inherit;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   2b · INK POLICY — the chrome's default ink for running copy
+   `global.css` is giniloh's light-paper stylesheet and is imported whole at the top of this
+   file. Its policy layer pinned body copy with bare-element, !important selectors; being
+   unlayered, those outranked every console class AND every Tailwind text-* utility, so on
+   this chrome the article standfirst rendered #262626 on #08090b (1.3:1 — invisible), the
+   homepage's app names the same, and links lost both their colour and their hover. Those
+   rules are now scoped to the light surfaces (global.css §5).
+   What remains is the chrome's own default. It is declared in `base` on purpose: Tailwind
+   declares `theme, base, components, utilities` in that order, so every text-* utility
+   still wins over this.
+   ───────────────────────────────────────────────────────────────────────────── */
+@layer base {
+	/* `.text-lg` / `.text-xl` are deliberately absent. They are size classes, not copy roles,
+	   and a size-classed span on the light surfaces must keep inheriting the surface's ink
+	   rather than be handed the chrome's. */
+	p,
+	.text-base,
+	.text-sm {
+		color: var(--ai-ink-2);
+	}
 }
 
 ::selection {
@@ -189,6 +218,13 @@ a {
 	max-width: 44rem;
 }
 
+/* Article standfirst — the deck under the H1 on `/[slug]`. It owns its ink so the light-paper
+   policy layer can never repaint it charcoal again. It did exactly that: #262626 on #08090b,
+   1.3:1, which read as empty vertical space under the headline rather than as a thesis. */
+.ai-quote {
+	color: var(--ai-ink-2);
+}
+
 /* Hairline rule — the divider on this site. */
 .ai-rule {
 	border: 0;
@@ -235,7 +271,7 @@ a {
 	white-space: nowrap;
 }
 .ai-tag--live { border-color: rgba(78, 158, 134, 0.45); color: #7fc7b1; }
-.ai-tag--pro { border-color: rgba(232, 163, 61, 0.5); color: var(--ai-signal); }
+.ai-tag--pro { border-color: rgba(232, 163, 61, 0.72); color: var(--ai-signal); }
 .ai-tag--soon { border-color: var(--ai-line); color: var(--ai-ink-3); }
 
 /* Status lamp — a slow breath, not a hard blink. steps(1) read as an alarm light;
@@ -555,7 +591,8 @@ img {
 .ai-mark__sub {
 	display: block;
 	font-family: var(--font-mono);
-	font-size: 0.56rem;
+	font-size: 0.6rem;
+	font-weight: 500;
 	letter-spacing: 0.2em;
 	color: var(--ai-ink-4);
 	text-transform: uppercase;

@@ -69,7 +69,7 @@ breadcrumbs.push({
 	<script slot="head" defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 	<script slot="head" defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 
-	<nav class="pt-4 font-mono text-[0.62rem] uppercase tracking-[0.16em] text-[var(--ai-ink-4)]" aria-label="Breadcrumb">
+	<nav class="pt-4 font-mono text-[0.62rem] font-medium uppercase tracking-[0.16em] text-[var(--ai-ink-4)]" aria-label="Breadcrumb">
 		<a class="transition hover:text-[var(--ai-signal)]" href="/articles/">Dispatch log</a>
 		<span class="px-2" aria-hidden="true">/</span>
 		{post.categorySlug ? (
@@ -82,7 +82,7 @@ breadcrumbs.push({
 	</nav>
 
 	<header class="mt-6 max-w-4xl">
-		<div class="flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[0.62rem] uppercase tracking-[0.16em] text-[var(--ai-ink-4)]">
+		<div class="flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[0.62rem] font-medium uppercase tracking-[0.16em] text-[var(--ai-ink-4)]">
 			<time datetime={post.date || ''}>{formattedDate}</time>
 			<span aria-hidden="true">·</span>
 			<span>
@@ -94,7 +94,7 @@ breadcrumbs.push({
 		<h1 class="ai-display mt-5 text-[1.85rem] sm:text-4xl lg:text-[3.25rem]">{post.title}</h1>
 
 		{post.excerpt && (
-			<p class="mt-6 border-l-2 border-[var(--ai-signal)] pl-5 text-lg leading-relaxed text-[var(--ai-ink-2)]">
+			<p class="ai-quote mt-6 border-l-2 border-[var(--ai-signal)] pl-5 text-lg leading-relaxed">
 				{post.excerpt}
 			</p>
 		)}
@@ -129,7 +129,7 @@ breadcrumbs.push({
 					</div>
 					<div>
 						<p class="text-base font-bold text-[var(--paper-ink)]">Gini Loh</p>
-						<p class="mt-1 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-[#8C8C8C]">
+						<p class="mt-1 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-[var(--paper-ink-2)]">
 							Decision systems engineer
 						</p>
 						<p class="mt-2 text-sm leading-relaxed text-[var(--paper-ink-2)]">
@@ -152,7 +152,7 @@ breadcrumbs.push({
 					>
 						{post.categoryLabel ?? 'All domains'} <span aria-hidden="true">→</span>
 					</a>
-					<p class="mt-5 font-mono text-[0.6rem] uppercase tracking-[0.16em] text-[var(--ai-ink-4)]">
+					<p class="mt-5 font-mono text-[0.6rem] font-medium uppercase tracking-[0.16em] text-[var(--ai-ink-4)]">
 						{post.slug}
 					</p>
 				</div>
