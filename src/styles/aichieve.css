@@ -535,6 +535,59 @@ img {
 .instrument-surface input, .instrument-surface select, .instrument-surface textarea { color: var(--paper-ink); }
 
 /* ─────────────────────────────────────────────────────────────────────────────
+   4b · CALCULATOR BAY — the ink and accent floor
+   The bays are authored dark and flattened onto a light surface. Three collisions
+   survive that flattening, each measured on the built pages:
+
+     · #8C8C8C — giniloh's muted grey, used both by the policy rule in global.css §5
+       and hard-coded as `text-[#8C8C8C]` in the components. On the console that grey
+       is 6.1:1; on the bay's white it is 3.36:1, and 3.00:1 on the cyan-100 chip.
+     · Tailwind's cyan-500 / emerald-500 are mid-tones, so the white ink they carry
+       lands at 2.4:1. Darkening the fill keeps the white-on-accent design intact and
+       clears AA — a far smaller change than inverting the ink on 76 controls spread
+       across three React components.
+     · `.text-cyan-600` values read 3.62:1 on white.
+
+   Every rule is scoped to the bay; the console's own ink scale is untouched. Greys are
+   re-pinned by *literal colour*, not by label role, so an element that states its own
+   accent (the cyan-100 chip's text-cyan-800) keeps it.
+   ───────────────────────────────────────────────────────────────────────────── */
+.instrument-surface [class*="text-[#8C8C8C]"],
+.instrument-surface .section-eyebrow,
+.instrument-surface .font-mono.text-xs,
+.instrument-surface .font-mono.text-\[0\.65rem\],
+.instrument-surface .font-mono.text-\[0\.68rem\],
+.instrument-surface .font-mono.text-\[0\.72rem\],
+.instrument-surface .font-mono.text-\[10px\] {
+	color: #5f6b76 !important; /* 5.45:1 on white, 4.86:1 on the cyan-100 chip */
+}
+
+/* Accent fills that carry white ink. Base and hover are both darkened, so the hover
+   still reads as a state change instead of a contrast cliff.
+   The `[class*="text-white"]` leg is load-bearing: without it this also matches the
+   translucent `bg-cyan-500/5` tints (paintable white) and the fills whose own ink is
+   dark and already passes (the DI calculator's tab strip — #1a1a1a on cyan-500 is 7.2:1). */
+.instrument-surface [class*="bg-cyan-500"][class*="text-white"],
+.instrument-surface [class*="bg-cyan-600"][class*="text-white"] { background-color: #0e7490 !important; } /* 5.36:1 with white */
+.instrument-surface [class*="bg-cyan-500"][class*="text-white"]:hover,
+.instrument-surface [class*="bg-cyan-600"][class*="text-white"]:hover { background-color: #005f78 !important; } /* 7.22:1 */
+.instrument-surface [class*="bg-emerald-500"][class*="text-white"],
+.instrument-surface [class*="bg-emerald-600"][class*="text-white"] { background-color: #047857 !important; }
+.instrument-surface [class*="bg-emerald-500"][class*="text-white"]:hover,
+.instrument-surface [class*="bg-emerald-600"][class*="text-white"]:hover { background-color: #065f46 !important; }
+
+/* The label grey above is !important, so on a filled pill it would win over the pill's own
+   white ink and land at 1.4:1. This is the one place the grey has to lose: (0,5,0) beats the
+   (0,3,0) re-pin. */
+.instrument-surface .font-mono.text-xs[class*="bg-cyan-500"][class*="text-white"],
+.instrument-surface .font-mono.text-xs[class*="bg-cyan-600"][class*="text-white"],
+.instrument-surface .font-mono.text-xs[class*="bg-emerald-500"][class*="text-white"],
+.instrument-surface .font-mono.text-xs[class*="bg-emerald-600"][class*="text-white"] { color: #ffffff !important; }
+
+/* Cyan values on the light surface. */
+.instrument-surface [class*="text-cyan-600"] { color: #0e7490 !important; } /* 5.36:1 on white */
+
+/* ─────────────────────────────────────────────────────────────────────────────
    5 · NAVIGATION — a bolted-on console header, not a floating pill.
    giniloh's nav floats. This one is pinned edge to edge and ruled underneath, which
    is the single clearest signal that you have changed properties.
@@ -721,6 +774,36 @@ img {
 	border-radius: 3px;
 	font-family: var(--font-mono);
 	font-size: 0.9em;
+}
+
+/* Inline code, re-pinned. The rule above already declares this ink and a #f4f5f7 chip, but it
+   has never applied: global.css's `.prose code { color: #5A7A8F !important }` outranks it.
+   #5A7A8F is giniloh's brand steel and measures 4.55:1 on white, 4.15:1 on the tint the chip
+   actually paints — so every inline code run in every article sat below AA, while reading as a
+   link. Same declaration as above, with the weight it needs to win. */
+.paper .prose :where(code):not(:where(pre code)),
+.paper .article-body :where(code):not(:where(pre code)) {
+	color: var(--paper-ink) !important;
+}
+
+/* Reading-column links, same story. aichieve.css already declares `.paper a { color: #46647a }`
+   — the console's own ink — and global.css's `.prose a { color: #5A7A8F !important }` has been
+   silently overriding it. The brand steel measures 4.55:1 on white and 4.35:1 on the #f8fafc
+   plate the key-takeaway and blockquote styles paint, so links inside those fell below AA. */
+.paper .prose a,
+.paper .article-body a { color: #46647a !important; }
+.paper .prose a:hover,
+.paper .article-body a:hover { color: var(--paper-ink) !important; }
+
+/* WordPress figures ship their own dark plate (#0f172a) and a five-step fill palette. Four of
+   the five clear AA on it; slate-500 (#64748b) sits at 3.75:1 at 11–13px. It moves one step up
+   the palette it came from — #94a3b8, 6.96:1, which the same figures already use elsewhere.
+   Scoped to the dark plate: the same fill on a light figure would be fine, and must not move. */
+.article-body svg[style*="background:#0f172a"] text[fill="#64748b"],
+.article-body svg[style*="background:#0f172a"] tspan[fill="#64748b"],
+.article-body svg[style*="background: #0f172a"] text[fill="#64748b"],
+.article-body svg[style*="background: #0f172a"] tspan[fill="#64748b"] {
+	fill: #94a3b8;
 }
 
 /* Horizontal overflow safety at 320px (Hallmark gate 34). */

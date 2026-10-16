@@ -1662,7 +1662,7 @@ function GpuBreakEvenChart({
 								stroke="#e5e7eb" 
 								strokeDasharray="3 3" 
 							/>
-							<text x={padding.left - 10} y={y + 4} textAnchor="end" className="text-xs font-mono font-bold fill-slate-400">
+							<text x={padding.left - 10} y={y + 4} textAnchor="end" className="text-xs font-mono font-bold fill-slate-600">
 								{label}
 							</text>
 						</g>
@@ -1675,7 +1675,7 @@ function GpuBreakEvenChart({
 					return (
 						<g key={m}>
 							<line x1={x} y1={padding.top} x2={x} y2={height - padding.bottom} stroke="rgba(0,0,0,0.04)" />
-							<text x={x} y={height - padding.bottom + 22} textAnchor="middle" className="text-xs font-mono font-bold fill-slate-400">
+							<text x={x} y={height - padding.bottom + 22} textAnchor="middle" className="text-xs font-mono font-bold fill-slate-600">
 								m{m}
 							</text>
 						</g>

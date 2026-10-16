@@ -12,6 +12,7 @@
     "preview": "astro preview",
     "check": "astro check",
     "verify": "node scripts/verify.mjs",
+    "audit:contrast": "node scripts/audit-contrast.mjs",
     "brand": "python3 scripts/generate-brand-assets.py",
     "astro": "astro",
     "routing:sync": "node scripts/routing.mjs --sync",
