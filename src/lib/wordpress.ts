@@ -1,5 +1,6 @@
 import { filterOwnedPosts, belongsToSite, SIBLING_SITE } from './site-content';
 import { resolveInternalLink, INTERNAL_HOSTS } from './link-map';
+import { getAppsBase } from './apps';
 
 interface WordPressRenderedField {
 	rendered?: string;
@@ -189,10 +190,12 @@ function normalizePost(post: WordPressPostResponse): WordPressPost {
 		});
 	}
 
+	htmlContent = normaliseLegacyAppHost(htmlContent);
+
 	return {
 		id: post.id,
-		title: stripHtml(post.title?.rendered) || 'Untitled post',
-		excerpt: stripHtml(post.excerpt?.rendered),
+		title: normaliseLegacyAppHost(stripHtml(post.title?.rendered)) || 'Untitled post',
+		excerpt: normaliseLegacyAppHost(stripHtml(post.excerpt?.rendered)),
 		content: htmlContent,
 		slug: post.slug || '',
 		link: post.slug ? `/${post.slug}/` : (post.link ?? '#'),
@@ -203,6 +206,34 @@ function normalizePost(post: WordPressPostResponse): WordPressPost {
 		categoryLabel: category?.name ? stripHtml(category.name).replace(/:\s*$/, '').trim() : null,
 		categorySlug: category?.slug ?? null
 	};
+}
+
+/**
+ * Point any reference to the old PRO app host at the live one.
+ *
+ * The apps moved from apps.giniloh.com to apps.aichieve.net in the 2026 cutover and the old host
+ * now answers 503 for every path, so every reference to it is a dead end — a link that goes
+ * nowhere, and worse, a host printed as anchor text that tells the reader to go there.
+ *
+ * Articles authored in the shared CMS still carry it (ParcelProof and CaseProof, plus the bare
+ * URL published as link text in the LedgerLink piece), and so do the excerpts those articles
+ * feed into the archive and category listings. Both shapes are fixed here, at the same choke
+ * point as the ownership rules, so an article written tomorrow needs no CMS edit. The
+ * replacement is derived from PUBLIC_APPS_BASE, so it cannot drift from the app links the
+ * front end builds itself.
+ *
+ * An href to the bare origin goes to this property's app directory instead: that origin 307s
+ * away to giniloh.com rather than serving the apps, so it is not a destination worth keeping.
+ */
+function normaliseLegacyAppHost(markup: string): string {
+	const live = getAppsBase();
+	const hostOnly = live.replace(/^https?:\/\//, '');
+	return markup
+		.replace(
+			/href="https?:\/\/(?:www\.)?apps\.giniloh\.com(\/[^"]*)?"/gi,
+			(_match, path: string | undefined) => (path ? `href="${live}${path}"` : 'href="/apps/"')
+		)
+		.replace(/(?:www\.)?apps\.giniloh\.com/gi, hostOnly);
 }
 
 async function fetchWordPress(endpoint: string, query: Record<string, string | number | undefined>) {

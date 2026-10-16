@@ -48,16 +48,17 @@ See `.env.example`; the Dockerfile declares matching `ARG`s with production defa
 | --- | --- | --- |
 | `PUBLIC_SITE_URL` | Canonical origin | `https://aichieve.net` |
 | `PUBLIC_WORDPRESS_API_BASE` | Shared CMS | `https://cms.giniloh.com` |
-| `PUBLIC_APPS_BASE` | PRO app host | `https://apps.giniloh.com` |
+| `PUBLIC_APPS_BASE` | PRO app host | `https://apps.aichieve.net` |
 | `PUBLIC_ANALYTICS_*` | Umami analytics | — |
 | `PUBLIC_GOOGLE_/BING_SITE_VERIFICATION` | Search Console | — |
 
-### Open item: the app host
+### The app host
 
-`PUBLIC_APPS_BASE` currently points at `apps.giniloh.com`, because that is where the PRO apps
-actually run today. It defaults to the **live** host on purpose so no link is dead. When the
-apps are redeployed at `apps.aichieve.net`, set `PUBLIC_APPS_BASE` in Coolify — one variable,
-no code change.
+`PUBLIC_APPS_BASE` points at `apps.aichieve.net`, where the PRO apps were cut over to and where
+deep links resolve (`/spendproof`, `/ledgerlink`, …). The old `apps.giniloh.com` host answers
+503 for every path, so nothing here may reference it. The default is the **live** host on purpose
+so no link is dead, and `PUBLIC_APPS_BASE` remains the single place the host is written down —
+overridable in Coolify with no code change.
 
 ## Content ownership
 

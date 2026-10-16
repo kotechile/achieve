@@ -5,11 +5,12 @@
  * B2B by nature. They run on the product host, not on this Astro site, so every
  * reference goes through `appUrl()` and the host is a single environment value.
  *
- * TODAY the live host is apps.giniloh.com. Set PUBLIC_APPS_BASE=https://apps.aichieve.net
- * once that host is provisioned; nothing else in this codebase needs to change.
+ * The apps were cut over to apps.aichieve.net; apps.giniloh.com now answers 503 for every path,
+ * so the default follows the move rather than the old host. PUBLIC_APPS_BASE still overrides it,
+ * and it is still the only place the host is written down.
  */
 const APPS_BASE = (
-	import.meta.env.PUBLIC_APPS_BASE ?? 'https://apps.giniloh.com'
+	import.meta.env.PUBLIC_APPS_BASE ?? 'https://apps.aichieve.net'
 ).replace(/\/$/, '');
 
 export interface ProApp {

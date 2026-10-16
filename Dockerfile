@@ -19,7 +19,7 @@ COPY . .
 # Defaults are the live production values so a bare `docker build` still works.
 ARG PUBLIC_SITE_URL=https://aichieve.net
 ARG PUBLIC_WORDPRESS_API_BASE=https://cms.giniloh.com
-ARG PUBLIC_APPS_BASE=https://apps.giniloh.com
+ARG PUBLIC_APPS_BASE=https://apps.aichieve.net
 ARG PUBLIC_ANALYTICS_SRC=
 ARG PUBLIC_ANALYTICS_WEBSITE_ID=
 ARG PUBLIC_ANALYTICS_DOMAINS=aichieve.net,www.aichieve.net
