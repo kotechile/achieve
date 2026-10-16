@@ -63,6 +63,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"multi-agent-orchestration-building-the-one-person-enterprise",
 	"nearshoring-doesnt-move-the-trade-case",
 	"nvidia-says-its-gpus-arent-sold-out-its-cfos-279-billion-memory-bet",
+	"nyc-buys-night-deliveries-8-diesel-bills-you",
 	"one-approval-two-payments",
 	"one-skill-too-many-green-test",
 	"openai-just-made-the-agent-loop-a-commodity",
@@ -128,9 +129,11 @@ export const FOREIGN_POST_SLUGS_GENERATED = [
 	"the-giniloh-money-flow-simulator-explained",
 	"three-forms-cost-more-than-tax",
 	"why-70-of-startup-options-go-unexercised",
+	"your-ipo-payday-tax-bill",
 	"zapier-notion-integration-calculate-your-tinkering-tax"
 ];
 export const FOREIGN_TARGETS = {
+	"your-ipo-payday-tax-bill": "https://giniloh.com",
 	"three-forms-cost-more-than-tax": "https://giniloh.com",
 	"self-hosting-break-even-one-hour-a-year": "https://giniloh.com",
 	"home-assistant-cloud-rename-hardware-rent": "https://giniloh.com",
@@ -158,4 +161,4 @@ export const FOREIGN_TARGETS = {
 	"the-giniloh-money-flow-simulator-explained": "https://giniloh.com"
 };
 export const GENERATED_FOR = "aichieve.net";
-export const GENERATED_AT = "2026-10-16T02:10:03.942Z";
+export const GENERATED_AT = "2026-10-16T11:47:53.169Z";
