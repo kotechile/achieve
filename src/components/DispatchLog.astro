@@ -87,6 +87,30 @@ function formatDate(dateStr: string | null) {
 									{formatDate(post.date)}
 								</span>
 
+								{/* Small thumbnail, fixed 56x96 box.
+								    The box is deliberately much shorter than the row: the shortest row in the feed
+								    measures 104px at both 500px and 1440px, so this cannot be what makes a row
+								    taller (re-measured after this change — same 104px floor).
+								    `sizes="96px"` is the box's real width, so a phone fetches the 150w derivative
+								    rather than the 1344px original. alt="" because the title sits right beside it.
+								    The empty span is still rendered when a post has no featured image, so the text
+								    column stays aligned down the whole list. */}
+								<span class="hidden h-14 w-24 shrink-0 overflow-hidden border border-[var(--ai-line-soft)] bg-[var(--ai-panel-2)] lg:block">
+									{post.featuredImage && (
+										<img
+											src={post.featuredImage}
+											srcset={post.featuredImageSizes.length
+												? post.featuredImageSizes.map((size) => `${size.url} ${size.width}w`).join(', ')
+												: undefined}
+											sizes="96px"
+											alt=""
+											loading="lazy"
+											decoding="async"
+											class="h-full w-full object-cover"
+										/>
+									)}
+								</span>
+
 								<span class="min-w-0 flex-1">
 									<span class="block font-mono text-[0.6rem] uppercase tracking-[0.16em] text-[var(--ai-signal)]">
 										{post.categoryLabel ?? 'Dispatch'}
