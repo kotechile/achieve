@@ -10,7 +10,7 @@
  * and silently serving a stale file when the API is down is worse than serving a clearly
  * labelled empty state.
  */
-import { fetchAllCategories } from './wordpress';
+import { fetchAllCategories, fetchPostsByCategory } from './wordpress';
 import { OWNED_CATEGORY_SLUGS } from './site-content';
 
 export interface CategoryRecord {
@@ -63,7 +63,10 @@ async function loadCategories(): Promise<CategoryRecord[]> {
 			level: category.parent ? 2 : 1,
 			parentCategoryId: category.parent ? String(category.parent) : null,
 			wordpressCategoryId: category.id,
-			postCount: category.count,
+			// Placeholder: recomputed from this property's own posts below. WordPress' `count` field
+			// is the SHARED install's total, which is why the AI domain advertised 48 dispatches while
+			// its own page listed 47.
+			postCount: 0,
 			children: []
 		});
 	}
@@ -72,6 +75,18 @@ async function loadCategories(): Promise<CategoryRecord[]> {
 		if (record.parentCategoryId && byId.has(record.parentCategoryId)) {
 			byId.get(record.parentCategoryId)!.children.push(record);
 		}
+	}
+
+	// Counts are read from THIS property's posts, via a fetcher that applies the ownership
+	// allow-list. The board prints "Counts are read from the live CMS" — true, and exactly why the
+	// live CMS's own `count` cannot be used: it counts both properties.
+	for (const record of byId.values()) {
+		if (record.wordpressCategoryId == null) {
+			record.postCount = 0;
+			continue;
+		}
+		const owned = await fetchPostsByCategory([record.wordpressCategoryId], 100);
+		record.postCount = owned.length;
 	}
 
 	// A parent's own count excludes posts filed to its children, which understates the domain.
@@ -95,6 +110,24 @@ export async function getTopLevelCategories() {
 	return categories
 		.filter((category) => !category.parentCategoryId)
 		.sort((left, right) => left.name.localeCompare(right.name));
+}
+
+/**
+ * The domains that will actually have a page.
+ *
+ * `postCount > 0` is the rule the route builder uses, so it is the rule a template must use before
+ * emitting a link: an article filed under a domain whose dispatches live on the other property, or a
+ * child domain with nothing filed to it, would otherwise render a link to a page that is never
+ * built. Four such links existed in the build.
+ */
+export async function getPageableCategories() {
+	const categories = await getAllCategories();
+	return categories.filter((category) => category.postCount > 0);
+}
+
+/** Slugs that have a page, for templates that must decide whether something is linkable. */
+export async function getPageableSlugs(): Promise<Set<string>> {
+	return new Set((await getPageableCategories()).map((category) => category.slug));
 }
 
 export async function getCategoryBySlug(slug: string) {

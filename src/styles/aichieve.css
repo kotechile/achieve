@@ -1,17 +1,21 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-@import "@fontsource/inter/300.css";
-@import "@fontsource/inter/400.css";
-@import "@fontsource/inter/400-italic.css";
-@import "@fontsource/inter/500.css";
-@import "@fontsource/inter/600.css";
-@import "@fontsource/inter/700.css";
-@import "@fontsource/inter/800.css";
-@import "@fontsource/inter/900.css";
-@import "@fontsource/jetbrains-mono/400.css";
-@import "@fontsource/jetbrains-mono/500.css";
-@import "@fontsource/jetbrains-mono/700.css";
+/* Latin subset only, and only the weights the markup actually uses.
+   The full-subset files above shipped 68 woff2 files weighing 992KB — more than six times the
+   entire CSS bundle — because each one carries latin, latin-ext, cyrillic, greek and vietnamese
+   for every weight. Measured usage: font-light appears nowhere in src (no `font-weight: 300`
+   either), so Inter 300 is gone; 400-italic is kept for the two italic spans that use it. */
+@import "@fontsource/inter/latin-400.css";
+@import "@fontsource/inter/latin-400-italic.css";
+@import "@fontsource/inter/latin-500.css";
+@import "@fontsource/inter/latin-600.css";
+@import "@fontsource/inter/latin-700.css";
+@import "@fontsource/inter/latin-800.css";
+@import "@fontsource/inter/latin-900.css";
+@import "@fontsource/jetbrains-mono/latin-400.css";
+@import "@fontsource/jetbrains-mono/latin-500.css";
+@import "@fontsource/jetbrains-mono/latin-700.css";
 
 /* Layout + component rules carried over from the shared design system (prose, article body,
    instrument controls, scrollbars). Loaded BEFORE the theme layer below so the console theme

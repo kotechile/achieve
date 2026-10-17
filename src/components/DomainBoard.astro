@@ -36,7 +36,7 @@ const spans = ['lg:col-span-3', 'lg:col-span-3', 'lg:col-span-2', 'lg:col-span-2
 
 	<div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
 		{
-			ranked.map((domain, index) => (
+			ranked.filter((domain) => domain.postCount > 0).map((domain, index) => (
 				<a
 					href={`/categories/${domain.slug}/`}
 					class:list={[

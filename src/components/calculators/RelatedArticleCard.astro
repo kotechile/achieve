@@ -6,6 +6,10 @@ interface Props {
 }
 
 const { post } = Astro.props;
+
+const srcset = post.featuredImageSizes.length
+	? post.featuredImageSizes.map((size) => `${size.url} ${size.width}w`).join(', ')
+	: null;
 ---
 
 <a
@@ -18,9 +22,14 @@ const { post } = Astro.props;
 			<div class="mt-4 aspect-[1.8/1] overflow-hidden border border-[var(--ai-line)]">
 				<img
 					src={post.featuredImage}
+					srcset={srcset}
+					sizes={srcset ? '(min-width: 1024px) 33vw, 100vw' : undefined}
+					width={post.featuredImageWidth ?? undefined}
+					height={post.featuredImageHeight ?? undefined}
 					alt={post.featuredImageAlt || post.title}
 					class="h-full w-full object-cover opacity-85 transition duration-300 group-hover:scale-[1.03] group-hover:opacity-100"
 					loading="lazy"
+					decoding="async"
 				/>
 			</div>
 		)

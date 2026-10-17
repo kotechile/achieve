@@ -849,12 +849,19 @@ button.bg-black {
 }
 
 /* 9. Risk & Active UI Semantic Override Colors */
-.text-risk-high, .text-[#B85C5C], .text-red-500, .text-red-400 { color: #B85C5C !important; }
-.bg-risk-high, .bg-[#B85C5C], .bg-red-500, .bg-red-600 { background-color: #B85C5C !important; }
-.text-risk-medium, .text-[#C88D4E], .text-amber-500, .text-amber-400 { color: #C88D4E !important; }
-.bg-risk-medium, .bg-[#C88D4E], .bg-amber-500, .bg-amber-600 { background-color: #C88D4E !important; }
-.text-risk-low, .text-[#5A7A8F], .text-cyan-500, .text-cyan-400, .text-emerald-500, .text-emerald-400, .text-blue-500, .text-blue-400 { color: #5A7A8F !important; }
-.bg-risk-low, .bg-[#5A7A8F], .bg-cyan-500, .bg-cyan-600, .bg-emerald-500, .bg-emerald-600, .bg-blue-500, .bg-blue-600 { background-color: #5A7A8F !important; }
+/* Severity tokens.
+   The literal `[#hex]` class names that used to sit in these selector lists (.text-[#B85C5C],
+   .bg-[#C88D4E], ...) were invalid CSS: an unescaped `#` starts an ID selector, so the parser
+   rejected the fragment and silently dropped EVERY rule in the comma group, including the valid
+   ones here. Nothing in the markup ever used those names, so the only effect was that the severity
+   colours below never applied at all — and six build warnings on every build.
+   Removed rather than escaped: escaping would keep a class name nobody writes. */
+.text-risk-high, .text-red-500, .text-red-400 { color: #B85C5C !important; }
+.bg-risk-high, .bg-red-500, .bg-red-600 { background-color: #B85C5C !important; }
+.text-risk-medium, .text-amber-500, .text-amber-400 { color: #C88D4E !important; }
+.bg-risk-medium, .bg-amber-500, .bg-amber-600 { background-color: #C88D4E !important; }
+.text-risk-low, .text-cyan-500, .text-cyan-400, .text-emerald-500, .text-emerald-400, .text-blue-500, .text-blue-400 { color: #5A7A8F !important; }
+.bg-risk-low, .bg-cyan-500, .bg-cyan-600, .bg-emerald-500, .bg-emerald-600, .bg-blue-500, .bg-blue-600 { background-color: #5A7A8F !important; }
 
 /* Inactive tracks or indicators */
 .bg-gray-200, .bg-slate-200 {

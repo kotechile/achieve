@@ -21,6 +21,12 @@ function formatDate(dateStr: string | null) {
 }
 
 const date = formatDate(post.date);
+
+const srcset = post.featuredImageSizes.length
+	? post.featuredImageSizes.map((size) => `${size.url} ${size.width}w`).join(', ')
+	: null;
+const sizes = '(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw';
+
 ---
 
 <article class="h-full">
@@ -34,7 +40,12 @@ const date = formatDate(post.date);
 					<img
 						src={post.featuredImage}
 						alt={post.featuredImageAlt || ''}
+						srcset={srcset}
+						sizes={srcset ? sizes : undefined}
+						width={post.featuredImageWidth ?? undefined}
+						height={post.featuredImageHeight ?? undefined}
 						loading="lazy"
+						decoding="async"
 						class="h-full w-full object-cover opacity-85 transition duration-500 ease-out group-hover:scale-[1.03] group-hover:opacity-100"
 					/>
 				</div>

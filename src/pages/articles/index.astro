@@ -46,7 +46,7 @@ const pageUrl = `${siteOrigin}/articles/`;
 
 	<nav class="mt-10 flex flex-wrap gap-2" aria-label="Filter by domain">
 		{
-			domains.map((domain) => (
+			domains.filter((domain) => domain.postCount > 0).map((domain) => (
 				<a
 					href={`/categories/${domain.slug}/`}
 					class="ai-tag !py-1.5 transition hover:border-[var(--ai-signal)] hover:text-[var(--ai-signal)]"

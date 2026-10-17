@@ -51,6 +51,11 @@ export interface WordPressPost {
 	date: string | null;
 	modified: string | null;
 	featuredImage: string | null;
+	/** WordPress' own derivatives, smallest first. Empty when the payload carries no sizes. */
+	featuredImageSizes: { url: string; width: number; height: number }[];
+	/** Intrinsic dimensions of the original, for width/height attributes. Null when unknown. */
+	featuredImageWidth: number | null;
+	featuredImageHeight: number | null;
 	featuredImageAlt: string;
 	categoryLabel: string | null;
 	categorySlug: string | null;
@@ -124,7 +129,17 @@ function stripHtml(value: string | undefined) {
 function normalizePost(post: WordPressPostResponse): WordPressPost {
 	const terms = post._embedded?.['wp:term']?.flat() ?? [];
 	const category = terms.find((term) => term?.slug && term?.name);
-	const featuredMedia = post._embedded?.['wp:featuredmedia']?.[0];
+	const featuredMedia = post._embedded?.['wp:featuredmedia']?.[0] as unknown as
+		| {
+				source_url?: string;
+				alt_text?: string;
+				media_details?: {
+					width?: number;
+					height?: number;
+					sizes?: Record<string, { source_url?: string; width?: number; height?: number }>;
+				};
+		  }
+		| undefined;
 	
 	let featuredImage = featuredMedia?.source_url ?? null;
 	const apiBase = getWordPressApiBase();
@@ -133,6 +148,24 @@ function normalizePost(post: WordPressPostResponse): WordPressPost {
 	if (featuredImage && featuredImage.startsWith('/') && apiBase) {
 		featuredImage = `${apiBase}${featuredImage}`;
 	}
+
+	// Responsive sources from WordPress' own derivatives, already present in the payload. Before
+	// this, every card and hero on the site fetched the full-size original (typically 1344-1376px
+	// wide) to fill slots a fraction of that. Astro's remote-image optimisation was not an option:
+	// it needs network access per image per build, and this build must survive a restricted
+	// environment. When the payload carries no sizes the srcset is simply absent.
+	const mediaDetails = featuredMedia?.media_details;
+	const absolute = (url: string) => (url.startsWith('/') && apiBase ? `${apiBase}${url}` : url);
+	const featuredImageSizes = Object.values(mediaDetails?.sizes ?? {})
+		.filter((size) => Boolean(size?.source_url && size?.width && size?.height))
+		.map((size) => ({
+			url: absolute(size.source_url as string),
+			width: size.width as number,
+			height: size.height as number
+		}))
+		.sort((a, b) => a.width - b.width);
+	const featuredImageWidth = typeof mediaDetails?.width === 'number' ? mediaDetails.width : null;
+	const featuredImageHeight = typeof mediaDetails?.height === 'number' ? mediaDetails.height : null;
 
 	let htmlContent = post.content?.rendered || '';
 	
@@ -202,6 +235,9 @@ function normalizePost(post: WordPressPostResponse): WordPressPost {
 		date: post.date ?? null,
 		modified: post.modified ?? post.date ?? null,
 		featuredImage,
+		featuredImageSizes,
+		featuredImageWidth,
+		featuredImageHeight,
 		featuredImageAlt: featuredMedia?.alt_text || '',
 		categoryLabel: category?.name ? stripHtml(category.name).replace(/:\s*$/, '').trim() : null,
 		categorySlug: category?.slug ?? null

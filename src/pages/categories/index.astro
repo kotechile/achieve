@@ -38,11 +38,12 @@ const totalPosts = topLevel.reduce((sum, category) => sum + (category.postCount 
 
 	<div class="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 		{
+			/* A container, not an anchor. The whole card used to be one <a>, which is why the child
+			   domains could only ever be <span>s — a link inside a link is invalid HTML. Each
+			   destination now owns its own anchor, so the three child domains that hold dispatches
+			   are reachable. */
 			topLevel.map((domain) => (
-				<a
-					href={`/categories/${domain.slug}/`}
-					class="ai-panel ai-panel--interactive group flex flex-col justify-between p-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ai-signal)]"
-				>
+				<div class="ai-panel group flex flex-col justify-between p-6">
 					<div>
 						<div class="flex items-start justify-between gap-4">
 							<span class="ai-label">{domain.slug}</span>
@@ -50,30 +51,43 @@ const totalPosts = topLevel.reduce((sum, category) => sum + (category.postCount 
 								{domain.postCount ?? 0}
 							</span>
 						</div>
-						<h2 class="mt-4 text-xl font-extrabold leading-snug tracking-tight text-[var(--ai-ink)] transition group-hover:text-[var(--ai-signal)]">
-							{domain.name}
+						<h2 class="mt-4 text-xl font-extrabold leading-snug tracking-tight text-[var(--ai-ink)]">
+							<a
+								href={`/categories/${domain.slug}/`}
+								class="transition hover:text-[var(--ai-signal)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ai-signal)]"
+							>
+								{domain.name}
+							</a>
 						</h2>
 						{domain.description && (
 							<p class="mt-3 text-sm leading-relaxed text-[var(--ai-ink-2)]">{domain.description}</p>
 						)}
 					</div>
 
-					{domain.children.length > 0 && (
+					{domain.children.some((child) => child.postCount > 0) && (
 						<ul class="mt-6 grid gap-2 border-t border-[var(--ai-line-soft)] pt-4">
-							{domain.children.map((child) => (
-								<li class="flex items-center justify-between gap-3 font-mono text-[0.62rem] uppercase tracking-[0.12em] text-[var(--ai-ink-4)]">
-									<span class="truncate">{child.name}</span>
-									<span class="tabular-nums">{child.postCount ?? 0}</span>
+							{domain.children.filter((child) => child.postCount > 0).map((child) => (
+								<li>
+									<a
+										href={`/categories/${child.slug}/`}
+										class="flex items-center justify-between gap-3 font-mono text-[0.62rem] uppercase tracking-[0.12em] text-[var(--ai-ink-4)] transition hover:text-[var(--ai-signal)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ai-signal)]"
+									>
+										<span class="truncate">{child.name}</span>
+										<span class="tabular-nums">{child.postCount ?? 0}</span>
+									</a>
 								</li>
 							))}
 						</ul>
 					)}
 
-					<span class="mt-6 inline-flex items-center gap-1.5 font-mono text-[0.65rem] font-bold uppercase tracking-[0.16em] text-[var(--ai-ink-3)] transition group-hover:text-[var(--ai-signal)]">
+					<a
+						href={`/categories/${domain.slug}/`}
+						class="mt-6 inline-flex items-center gap-1.5 font-mono text-[0.65rem] font-bold uppercase tracking-[0.16em] text-[var(--ai-ink-3)] transition hover:text-[var(--ai-signal)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ai-signal)]"
+					>
 						Open domain
 						<span aria-hidden="true" class="inline-block transition-transform duration-200 group-hover:translate-x-1">→</span>
-					</span>
-				</a>
+					</a>
+				</div>
 			))
 		}
 	</div>

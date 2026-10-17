@@ -8,11 +8,15 @@ import { fetchPostsByCategory } from '../../lib/wordpress';
 export async function getStaticPaths() {
 	const categories = await getAllCategories();
 
-	// Only top-level domains and their children get pages — the allow-list is applied in
-	// `lib/categories.ts`, so giniloh.com's consumer categories never reach this builder.
-	const pageable = categories.filter(
-		(category) => !category.parentCategoryId || category.children.length > 0
-	);
+	// Every domain that actually holds dispatches gets a page.
+	//
+	// The previous rule — top-level, or has children — structurally excluded the three child
+	// domains: they are leaves, so they were never built. The hub listed them as unclickable text
+	// while the homepage claimed "94 Dispatches Across 5 domains", so ~40 dispatches had no entry
+	// point at all. `postCount` is now the owned-post count from `lib/categories.ts`, so a domain
+	// with nothing to show is still excluded and cannot become a dead end — the failure mode this
+	// rule used to produce on giniloh.com.
+	const pageable = categories.filter((category) => category.postCount > 0);
 
 	return Promise.all(
 		pageable.map(async (category) => {
@@ -78,11 +82,11 @@ const pageUrl = `${siteOrigin}/categories/${category.slug}/`;
 		)
 	}
 
-	{category.children.length > 0 && (
+	{category.children.some((child) => child.postCount > 0) && (
 		<section class="mt-16 border-t border-[var(--ai-line)] pt-8">
 			<p class="ai-label">Sub-domains</p>
 			<div class="mt-4 flex flex-wrap gap-2">
-				{category.children.map((child) => (
+				{category.children.filter((child) => child.postCount > 0).map((child) => (
 					<a href={`/categories/${child.slug}/`} class="ai-tag !py-1.5 transition hover:border-[var(--ai-signal)] hover:text-[var(--ai-signal)]">
 						{child.name} · {child.postCount ?? 0}
 					</a>
