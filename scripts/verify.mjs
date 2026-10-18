@@ -21,14 +21,23 @@
  * No dependencies, deliberately: this has to run anywhere the image runs, including inside a
  * container that has nothing but nginx and curl.
  */
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { OWNED_POST_SLUGS_GENERATED, FOREIGN_POST_SLUGS_GENERATED, GENERATED_FOR } from '../src/data/ownership.generated.mjs';
 
 const ORIGIN = (process.argv[2] || process.env.VERIFY_ORIGIN || 'http://localhost:8899').replace(/\/$/, '');
-const HERE = dirname(fileURLToPath(import.meta.url));
-const ROOT = join(HERE, '..');
 const TIMEOUT_MS = 20000;
+
+/**
+ * The ownership manifest, imported rather than scraped.
+ *
+ * This used to regex a hardcoded array out of `site-content.ts`. When the lists moved into the
+ * generated manifest, the regex stopped matching and this script threw before its first check —
+ * invisibly, because nothing runs it in CI. That is how `/robots.txt` and `/sitemap.xml` could
+ * 404 for a release while the repo carried a "deploy verification" script: the gate was dead on
+ * arrival and still printed nothing that looked like a failure. An import cannot drift — a rename
+ * fails at startup, loudly.
+ */
+const OWNED = OWNED_POST_SLUGS_GENERATED;
+const FOREIGN = FOREIGN_POST_SLUGS_GENERATED;
 
 let passed = 0;
 const failures = [];
@@ -65,26 +74,6 @@ async function probe(path, { follow = false } = {}) {
 	}
 }
 
-/**
- * Reads the ownership manifest so the boundary check cannot drift out of sync with the code.
- * A stale hardcoded list here would be worse than no check at all.
- */
-function readSlugSet(constantName) {
-	const file = join(ROOT, 'src', 'lib', 'site-content.ts');
-	let src;
-	try {
-		src = readFileSync(file, 'utf8');
-	} catch {
-		throw new Error(`cannot read ${file} — run this from the project root`);
-	}
-	const block = src.match(new RegExp(`${constantName}\\s*=\\s*new Set<string>\\(\\[([\\s\\S]*?)\\]\\)`));
-	if (!block) throw new Error(`could not parse ${constantName} out of site-content.ts`);
-	return [...block[1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
-}
-
-const OWNED = readSlugSet('OWNED_POST_SLUGS');
-const FOREIGN = readSlugSet('FOREIGN_POST_SLUGS');
-
 // ── Checks ────────────────────────────────────────────────────────────────────────────────
 async function checkCoreRoutes() {
 	console.log('\nCore routes');
@@ -112,6 +101,69 @@ async function checkAssets() {
 		const r = await probe(asset);
 		if (r.status === 200) ok(asset, '200');
 		else fail(asset, '200', `${r.status}`);
+	}
+}
+
+/**
+ * Crawl hints.
+ *
+ * `/robots.txt` and `/sitemap.xml` are not pages — nothing in the UI links to them, so a missing
+ * one is invisible in every manual pass. Both 404'd in production while the sitemap itself was
+ * healthy at `/sitemap-index.xml`, which is exactly the kind of gap this script exists to catch:
+ * "renders fine" and "is crawlable" are different contracts.
+ */
+async function checkCrawlHints() {
+	console.log('\nCrawl hints');
+
+	const robots = await probe('/robots.txt');
+	if (robots.status !== 200) {
+		fail('/robots.txt', '200', `${robots.status}`);
+	} else {
+		ok('/robots.txt', '200');
+		const declared = [...robots.body.matchAll(/^Sitemap:\s*(\S+)\s*$/gim)].map((m) => m[1]);
+		if (declared.length === 0) {
+			fail('/robots.txt Sitemap line', 'at least one "Sitemap: <url>"', 'none found');
+		}
+		for (const url of declared) {
+			// Resolve against the host under test, not the host the line declares: a local run
+			// must still prove the path works.
+			const path = url.replace(/^https?:\/\/[^/]+/, '') || '/';
+			const r = await probe(path);
+			if (r.status === 200) ok(`robots.txt declares ${path}`, '200');
+			else fail(`robots.txt declares ${path}`, '200', `${r.status}`);
+		}
+	}
+
+	// The conventional path. Search Console, Bing and every crawler checker probe /sitemap.xml
+	// first; a 404 there reads as "this site has no sitemap" no matter what the index holds.
+	const sitemapFile = await probe('/sitemap.xml');
+	if (sitemapFile.status !== 200) {
+		fail('/sitemap.xml', '200', `${sitemapFile.status}`);
+		return;
+	}
+	const locs = [...sitemapFile.body.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+	if (locs.length === 0) {
+		fail('/sitemap.xml contents', 'a sitemapindex or urlset with <loc> entries', 'zero <loc>');
+		return;
+	}
+	ok('/sitemap.xml', `${locs.length} entry/entries`);
+
+	// An index that points at a dead chunk is worse than no index: crawlers cache the failure.
+	const looksLikeIndex = /<sitemapindex/.test(sitemapFile.body);
+	if (looksLikeIndex) {
+		let total = 0;
+		for (const loc of locs) {
+			const path = loc.replace(/^https?:\/\/[^/]+/, '') || '/';
+			const r = await probe(path);
+			if (r.status !== 200) {
+				fail(`sitemap chunk ${path}`, '200', `${r.status}`);
+				continue;
+			}
+			total += (r.body.match(/<url>/g) || []).length;
+			ok(`sitemap chunk ${path}`, '200');
+		}
+		if (total === 0) fail('sitemap chunk URLs', 'at least one <url>', 'zero across all chunks');
+		else ok('sitemap URL total', `${total} urls`);
 	}
 }
 
@@ -167,6 +219,10 @@ async function checkRedirects() {
  */
 async function checkBoundary() {
 	console.log(`\nContent boundary (${FOREIGN.length} foreign posts must not resolve)`);
+	// The manifest is generated per property. If routing ever emitted the other site's list, every
+	// assertion below would be testing the wrong boundary and still pass.
+	if (GENERATED_FOR !== 'aichieve.net') fail('ownership manifest target', 'aichieve.net', GENERATED_FOR);
+	else ok('ownership manifest target', GENERATED_FOR);
 	// Sampling: a full sweep is thousands of requests. First, last and a couple of interior
 	// entries catch a wholesale leak, which is the realistic failure.
 	const sample = [FOREIGN[0], FOREIGN[1], FOREIGN[Math.floor(FOREIGN.length / 2)], FOREIGN[FOREIGN.length - 1]].filter(Boolean);
@@ -186,7 +242,16 @@ async function checkBoundary() {
 	}
 }
 
-/** The canonical host baked into every page must be this property's origin. */
+/**
+ * The canonical host baked into every page must be this property's origin.
+ *
+ * The failure this exists to catch is a page on aichieve.net declaring a giniloh.com canonical:
+ * two hosts, one article, and the search engine credits the wrong property. A local or staging
+ * origin serving the production canonical is *correct* — the value is baked at build time — so it
+ * is accepted; only a genuinely foreign host is a failure. The old check treated every localhost
+ * run as RED, which taught the reader to ignore the output, and that is how a 404 sitemap shipped
+ * with a green-looking repo.
+ */
 async function checkCanonicalHost() {
 	console.log('\nCanonical host');
 	const r = await probe('/');
@@ -205,11 +270,9 @@ async function checkCanonicalHost() {
 	try {
 		const got = new URL(canonical);
 		const canonicalHost = got.host;
-		// In a local container the built canonical is the production host — that is correct and
-		// expected, so only flag a genuine mismatch (a different site entirely).
-		const acceptable = canonicalHost === expectedHost || (!expectedHost.includes('localhost') && canonicalHost.endsWith('aichieve.net'));
-		if (acceptable) ok(`canonical = ${canonical}`);
-		else fail('canonical host', 'this property\u2019s origin', canonical);
+		const isThisProperty = canonicalHost === expectedHost || canonicalHost === 'aichieve.net' || canonicalHost === 'www.aichieve.net';
+		if (isThisProperty) ok(`canonical = ${canonical}`);
+		else fail('canonical host', 'aichieve.net, www.aichieve.net, or this origin', canonical);
 	} catch {
 		fail('canonical is a valid URL', 'https://…', canonical);
 	}
@@ -220,6 +283,7 @@ async function main() {
 	try {
 		await checkCoreRoutes();
 		await checkAssets();
+		await checkCrawlHints();
 		await checkRedirects();
 		await checkBoundary();
 		await checkCanonicalHost();

@@ -1,9 +1,39 @@
 // @ts-check
+import { copyFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 
 import tailwindcss from '@tailwindcss/vite';
+
+/**
+ * Publishes the sitemap at the path everyone actually looks for.
+ *
+ * `@astrojs/sitemap` emits `sitemap-index.xml` + `sitemap-0.xml`, and the index is the real entry
+ * point — but nothing serves it at `/sitemap.xml`. Every crawler checker, Search Console field and
+ * SEO audit probes `/sitemap.xml` first, so the site reported "no sitemap" while a perfectly good
+ * one sat one URL away.
+ *
+ * The index is COPIED rather than re-generated with a second list of URLs: the URL list stays in
+ * exactly one place (the generated chunk) and cannot drift from a hand-written copy.
+ */
+function sitemapAlias() {
+  return {
+    name: 'aichieve:sitemap-alias',
+    hooks: {
+      /** @param {{ dir: URL, logger: { info: (m: string) => void } }} ctx */
+      'astro:build:done': async ({ dir, logger }) => {
+        const out = fileURLToPath(dir);
+        // Deliberately fatal. If the sitemap integration ever stops emitting the index, a build
+        // that fails loudly is better than one that ships a 404 at /sitemap.xml for a month.
+        await copyFile(`${out}/sitemap-index.xml`, `${out}/sitemap.xml`);
+        logger.info('published /sitemap.xml (copy of sitemap-index.xml)');
+      }
+    }
+  };
+}
 
 /**
  * aichieve.net — the enterprise command center half of the 2026 giniloh.com split.
@@ -30,7 +60,10 @@ export default defineConfig({
   },
   integrations: [
     react(),
-    sitemap()
+    sitemap(),
+    // Must come AFTER sitemap(): build:done hooks run in integration order, and this one reads
+    // the file sitemap() writes.
+    sitemapAlias()
   ],
   vite: {
     plugins: [tailwindcss()],
