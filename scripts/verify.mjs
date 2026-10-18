@@ -243,6 +243,59 @@ async function checkBoundary() {
 }
 
 /**
+ * www must not serve the site.
+ *
+ * `www.<host>` is DNS-identical to the apex on this estate (a CNAME), so a missing www->apex
+ * redirect publishes every URL on two hostnames. Search Console then reports the www variant as a
+ * competing URL and splits whatever signal the pages earn. Only meaningful against a real origin —
+ * a local container has no www — so a local run says so instead of inventing a pass.
+ */
+async function checkWwwCanonicalisation() {
+	console.log('\nwww canonicalisation');
+	let host;
+	try {
+		host = new URL(ORIGIN).host;
+	} catch {
+		host = '';
+	}
+	const isLocal = !host || /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])/.test(host) || /:\d+$/.test(host);
+	if (isLocal) {
+		console.log('  SKIP  local origin — no www host to test');
+		return;
+	}
+	const apex = host.replace(/^www\./, '');
+	const controller = new AbortController();
+	const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+	let res;
+	try {
+		res = await fetch(`https://www.${apex}/`, { redirect: 'manual', signal: controller.signal });
+	} catch (error) {
+		fail(`https://www.${apex}/`, '301 -> https://' + apex + '/', `no response (${error.message})`);
+		return;
+	} finally {
+		clearTimeout(timer);
+	}
+	if (res.status !== 301 && res.status !== 308) {
+		// A 200 here means the site is published on both hosts, which is the defect; anything else
+		// (000/TLS failure, 404) means www is simply not routed.
+		fail(`https://www.${apex}/`, '301 -> https://' + apex + '/', `${res.status}${res.status === 200 ? ' (serving duplicate content)' : ''}`);
+		return;
+	}
+	const location = res.headers.get('location') || '';
+	let locationHost = '';
+	try {
+		locationHost = new URL(location).host;
+	} catch {
+		locationHost = location.replace(/^https?:\/\//, '').split('/')[0];
+	}
+	if (locationHost !== apex) {
+		fail(`https://www.${apex}/ Location`, apex, location || '(none)');
+		return;
+	}
+	ok(`https://www.${apex}/ -> ${location}`);
+}
+
+/**
  * The canonical host baked into every page must be this property's origin.
  *
  * The failure this exists to catch is a page on aichieve.net declaring a giniloh.com canonical:
@@ -287,6 +340,7 @@ async function main() {
 		await checkRedirects();
 		await checkBoundary();
 		await checkCanonicalHost();
+		await checkWwwCanonicalisation();
 	} catch (error) {
 		console.error(`\n\u001b[31mVerification aborted:\u001b[0m ${error.message}`);
 		process.exit(2);
