@@ -71,6 +71,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"planner-as-router-fold-the-model-choice-into-the-plan",
 	"planning-ai-buys-capability-not-autonomy",
 	"prefill-decode-two-pool-gap",
+	"prior-disclosure-clock-cuts-penalty",
 	"rack-power-density-ceiling-build-before-you-buy",
 	"rack-ride-through-two-second-duty",
 	"remediator-recovers-46-percent",
@@ -101,6 +102,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"your-chip-stopped-deciding",
 	"your-cluster-hidden-clock",
 	"your-fleets-charger-gap",
+	"your-mexico-hedge-renewal-risk",
 	"zet-scale-ev-truck-residual-value-risk"
 ];
 export const FOREIGN_POST_SLUGS_GENERATED = [
@@ -117,6 +119,7 @@ export const FOREIGN_POST_SLUGS_GENERATED = [
 	"lease-break-calculator-save-1850-in-3-steps",
 	"negotiate-job-offer-with-giniloh-visualizer",
 	"nvidia-rtx-pro-groundbreaking-performance-but-does-the-math-check",
+	"pi-5-price-jump-older-kit-wins",
 	"post-termination-option-clock-tax",
 	"replace-laptop-screen-let-this-decision-engine-do-the-math",
 	"self-hosting-break-even-one-hour-a-year",
@@ -128,6 +131,7 @@ export const FOREIGN_POST_SLUGS_GENERATED = [
 	"the-giniloh-money-flow-simulator-explained",
 	"three-forms-cost-more-than-tax",
 	"why-70-of-startup-options-go-unexercised",
+	"your-disks-35-dead-by-year-six",
 	"your-ipo-payday-tax-bill",
 	"your-raise-dies-at-51-5-hours",
 	"zapier-notion-integration-calculate-your-tinkering-tax"
@@ -146,6 +150,7 @@ export const FOREIGN_TARGETS = {
 	"lease-break-calculator-save-1850-in-3-steps": "https://giniloh.com",
 	"negotiate-job-offer-with-giniloh-visualizer": "https://giniloh.com",
 	"nvidia-rtx-pro-groundbreaking-performance-but-does-the-math-check": "https://giniloh.com",
+	"pi-5-price-jump-older-kit-wins": "https://giniloh.com",
 	"post-termination-option-clock-tax": "https://giniloh.com",
 	"replace-laptop-screen-let-this-decision-engine-do-the-math": "https://giniloh.com",
 	"self-hosting-break-even-one-hour-a-year": "https://giniloh.com",
@@ -157,9 +162,10 @@ export const FOREIGN_TARGETS = {
 	"the-giniloh-money-flow-simulator-explained": "https://giniloh.com",
 	"three-forms-cost-more-than-tax": "https://giniloh.com",
 	"why-70-of-startup-options-go-unexercised": "https://giniloh.com",
+	"your-disks-35-dead-by-year-six": "https://giniloh.com",
 	"your-ipo-payday-tax-bill": "https://giniloh.com",
 	"your-raise-dies-at-51-5-hours": "https://giniloh.com",
 	"zapier-notion-integration-calculate-your-tinkering-tax": "https://giniloh.com"
 };
 export const GENERATED_FOR = "aichieve.net";
-export const GENERATED_AT = "2026-10-17T01:01:37.601Z";
+export const GENERATED_AT = "2026-10-18T19:30:40.649Z";

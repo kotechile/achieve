@@ -22,7 +22,7 @@ export const OWNED_VERTICAL_SLUGS = [
 	"meio_working_capital_tco",
 	"multi_agent_enterprise_fabric",
 	"nhil_infrastructure_ops",
-	"pro_app_notes",
+	"sales_order_service_level_otif",
 	"supplier_risk_reshoring_decision",
 	"supply_chain",
 	"warehouse_automation_robotics_capex",
@@ -56,9 +56,8 @@ export const ORIGIN_BY_VERTICAL = {
 	"supplier_risk_reshoring_decision": "https://aichieve.net",
 	"supply_chain": "https://aichieve.net",
 	"warehouse_automation_robotics_capex": "https://aichieve.net",
-	"giniloh_product_guides": "https://giniloh.com",
-	"consumer_cost_per_use": "https://giniloh.com",
-	"personal_investing": "https://giniloh.com",
-	"personal_compute_hardware": "https://giniloh.com",
-	"pro_app_notes": "https://aichieve.net"
+	"concentrated_equity_portfolio_capital": "https://giniloh.com",
+	"consumer_asset_repair_replace_tco": "https://giniloh.com",
+	"sales_order_service_level_otif": "https://aichieve.net",
+	"property_loss_insurance_mitigation": "https://wellroost.com"
 };
