@@ -35,8 +35,29 @@ npm run verify                            # local container on :8899
 
 It checks that core routes and assets return 200, that moved paths 301 to the right target
 **without leaking an internal port or downgrading to http**, that this property's posts resolve
-while the sibling's 404, and that the canonical host is correct. The boundary check reads the slug
-lists straight out of `site-content.ts`, so it cannot drift out of sync with the code.
+while the sibling's 404, that the canonical host is correct, and that the crawl artifacts are
+served (see below). The boundary check imports the generated ownership manifest, so it cannot
+drift out of sync with the code.
+
+### Crawl artifacts
+
+`@astrojs/sitemap` writes `sitemap-index.xml` + `sitemap-0.xml`, neither of which is the name a
+crawler probes, and it writes no `robots.txt` at all. Two things close that gap:
+
+- `src/pages/robots.txt.ts` generates `/robots.txt` from `site` in `astro.config.mjs`, so the
+  origin cannot disagree with the canonical tags.
+- The `sitemapAlias` integration copies `sitemap-index.xml` to `/sitemap.xml` at
+  `astro:build:done`. The URL list lives only in the generated chunk — there is no second
+  hand-written sitemap to drift, and a missing index fails the build instead of shipping a 404.
+
+`npm run verify` asserts both, plus that every chunk the index points at is 200 with a non-zero
+URL count. Search Console and Bing probe `/sitemap.xml` verbatim; a 404 there reads as "this site
+has no sitemap" no matter what `sitemap-index.xml` holds.
+
+**Submitting to Google Search Console:** add a *Domain* property for `aichieve.net` (DNS TXT
+record — covers `www` and every subdomain without a build), then Sitemaps → add
+`https://aichieve.net/sitemap.xml`. No verification tag is needed for the DNS route; the
+`PUBLIC_GOOGLE_SITE_VERIFICATION` build arg exists only for the URL-prefix method.
 
 ## Environment
 
