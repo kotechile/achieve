@@ -1,0 +1,42 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { VibeAssetGrid } from '../../components/calculators/react/VibeAssetGrid';
+
+const pageTitle = "Enterprise Decision Assets — Interactive Micro-Applications | AIChieve";
+const pageDescription = "Embedded interactive acquisition engines for systemic AI risk, GPU cluster economics, and freight exception recovery.";
+---
+
+<BaseLayout title={pageTitle} description={pageDescription} surface="console">
+	<main class="mx-auto max-w-5xl px-4 pb-24 pt-12 sm:px-6 lg:px-8">
+		<header class="border-b border-white/10 pb-8 mb-12">
+			<p class="ai-label ai-label--signal">
+				Enterprise Acquisition & Operational Mechanics
+			</p>
+			<h1 class="ai-display mt-3 text-3xl sm:text-4xl lg:text-5xl">
+				Interactive Enterprise Assets
+			</h1>
+			<p class="ai-lede mt-4 max-w-3xl">
+				Modern technical buyers reject static whitepapers and marketing decks. These embedded 
+				micro-applications execute deterministic cost, risk, and cluster utilization models directly in your browser.
+			</p>
+		</header>
+
+		<!-- Enterprise Interactive Micro-Assets Grid -->
+		<section aria-labelledby="interactive-enterprise-assets-heading">
+			<h2 id="interactive-enterprise-assets-heading" class="sr-only">Interactive Enterprise Assets</h2>
+			<VibeAssetGrid client:load />
+		</section>
+
+		<footer class="mt-16 border-t border-white/10 pt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+			<p class="font-mono text-xs uppercase tracking-wider text-[var(--ai-ink-4)]">
+				AIChieve · Enterprise Command Center
+			</p>
+			<a
+				href="/tools/"
+				class="font-mono text-xs font-bold uppercase tracking-wider text-[var(--ai-signal)] hover:underline"
+			>
+				View Full Multivariable Engines &rarr;
+			</a>
+		</footer>
+	</main>
+</BaseLayout>

@@ -24,6 +24,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"ai-incident-clock-4-hours-not-15-days",
 	"ai-spend-27t-cost-visibility-mandate",
 	"air-freight-wont-price-a-year",
+	"answer-field-first-costs-38-points",
 	"automation-payback-splits-by-sku-geometry",
 	"aws-cannot-restore-bahrain",
 	"azure-control-plane-single-point-of-failure",
@@ -43,6 +44,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"flat-price-was-the-hedge",
 	"forecast-accuracy-is-not-shock-protection",
 	"forecast-value-added-lose-to-last-period",
+	"four-warehouses-halve-stock",
 	"freight-claim-dies-at-9-months",
 	"freight-scale-bet-vs-contract-duration",
 	"fuel-surcharge-peg-mpg-audit",
@@ -52,12 +54,14 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"holiday-forecasts-miss-what-shoppers-count",
 	"hour-14-recovery-wall",
 	"inventory-carrying-cost-rate",
+	"inventory-cut-bets-against-prices",
 	"kill-switch-misses-half-your-agents",
 	"kv-cache-is-the-concurrency-ceiling",
 	"last-mile-carbon-number-is-a-rate-table",
 	"local-ai-payback-cloud-gpu-spread",
 	"maskills-multi-agent-skills-optimization",
 	"mcp-skills-extension",
+	"model-retirement-breaks-audit-trail",
 	"multi-agent-orchestration-building-the-one-person-enterprise",
 	"nearshoring-doesnt-move-the-trade-case",
 	"nvidia-says-its-gpus-arent-sold-out-its-cfos-279-billion-memory-bet",
@@ -98,11 +102,15 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"warehouse-pick-error-tax-payback",
 	"why-importers-forfeit-duty-refunds",
 	"you-think-youre-governing-your-agents",
+	"your-30-exception-bill-is-wrong",
 	"your-32gb-card-gone",
+	"your-agent-obeyed-the-data-left",
 	"your-chip-stopped-deciding",
 	"your-cluster-hidden-clock",
 	"your-fleets-charger-gap",
+	"your-hidden-quantity-gap",
 	"your-mexico-hedge-renewal-risk",
+	"your-tool-surface-is-a-release-surface",
 	"zet-scale-ev-truck-residual-value-risk"
 ];
 export const FOREIGN_POST_SLUGS_GENERATED = [
@@ -168,4 +176,4 @@ export const FOREIGN_TARGETS = {
 	"zapier-notion-integration-calculate-your-tinkering-tax": "https://giniloh.com"
 };
 export const GENERATED_FOR = "aichieve.net";
-export const GENERATED_AT = "2026-10-18T19:30:40.649Z";
+export const GENERATED_AT = "2026-10-19T23:01:06.175Z";
