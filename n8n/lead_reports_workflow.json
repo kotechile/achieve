@@ -1,0 +1,322 @@
+{
+  "name": "Lead Reports — all properties",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 5
+            }
+          ]
+        }
+      },
+      "name": "Every 5 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -560,
+        200
+      ],
+      "id": "every-5-minutes",
+      "notes": "A failed send leaves the row pending, so the next tick retries it — no manual replay."
+    },
+    {
+      "parameters": {
+        "url": "https://ixfdkninqeqmwuxncpvh.supabase.co/rest/v1/vibe_lead_intents?select=*&status=eq.pending_n8n_sync&order=created_at.asc&limit=20",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Fetch Pending (giniloh + wellroost)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -300,
+        200
+      ],
+      "id": "fetch-pending-giniloh-wellroost-",
+      "notes": "Header Auth credential: apikey = service role key, Authorization = \"Bearer <service role key>\". Service role, not anon: this reads rows."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Links must point at the property the visitor used, not at the repo this file lives in.\nconst row = $json;\nconst metrics = row.calculated_metrics || {};\nconst vertical = String(row.vertical_slug || '');\nconst domain = metrics.domain\n  || (vertical.includes('aichieve') ? 'aichieve.net' : vertical.includes('wellroost') ? 'wellroost.com' : 'giniloh.com');\nreturn [{ json: { ...row, resolved_domain: domain, from_email: 'reports@' + domain } }];"
+      },
+      "name": "Resolve Domain (giniloh + wellroost)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -60,
+        200
+      ],
+      "id": "resolve-domain-giniloh-wellroost-"
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "name": "One at a Time (giniloh + wellroost)",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        180,
+        200
+      ],
+      "id": "one-at-a-time-giniloh-wellroost-",
+      "notes": "One email per item, so one bad address cannot block the rest."
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $json.from_email }}",
+        "toEmail": "={{ $json.email }}",
+        "subject": "=Your scenario report: {{ $json.asset_slug }}",
+        "html": "<div style=\"font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#191610;line-height:1.6;max-width:580px;margin:0 auto;border:1px solid #d8d3c4;padding:24px\">\n  <div style=\"font-family:monospace;font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:#5f5b52\">{{ $json.resolved_domain }} &middot; Scenario report</div>\n  <h1 style=\"font-size:22px;font-weight:800;margin:8px 0 16px\">Your model, as you built it</h1>\n  <p>You asked us to send the scenario you calculated for <strong>{{ $json.asset_slug }}</strong>.</p>\n  <p><a href=\"https://{{ $json.resolved_domain }}/calculators/\" style=\"color:#0f766e;font-weight:700\">Open the decision engine &rarr;</a></p>\n  <div style=\"background:#f4f1e8;border:1px solid #d8d3c4;padding:14px;margin:16px 0;font-family:monospace;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere\">{{ JSON.stringify($json.calculated_metrics) }}</div>\n  <p style=\"font-size:11px;color:#8c8c8c;border-top:1px solid #eee;padding-top:12px\">You received this because you asked for a scenario report. Reply to unsubscribe.</p>\n</div>",
+        "options": {}
+      },
+      "name": "Send Report (giniloh + wellroost)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        420,
+        200
+      ],
+      "id": "send-report-giniloh-wellroost-",
+      "notes": "Attach the SMTP credential here. Until it is attached this fails LOUDLY and the row stays pending — the honest failure mode, retried next tick."
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ \"https://ixfdkninqeqmwuxncpvh.supabase.co/rest/v1/vibe_lead_intents?id=eq.\" + $json.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ status: \"sent\", delivered_at: $now.toISO() }) }}",
+        "options": {}
+      },
+      "name": "Mark Sent (giniloh + wellroost)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        200
+      ],
+      "id": "mark-sent-giniloh-wellroost-",
+      "notes": "Runs only after the email succeeds — a failed send leaves the lead pending for the next tick."
+    },
+    {
+      "parameters": {
+        "url": "https://ixfdkninqeqmwuxncpvh.supabase.co/rest/v1/aichieve_lead_intents?select=*&status=eq.pending_n8n_sync&order=created_at.asc&limit=20",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Fetch Pending (aichieve)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        200
+      ],
+      "id": "fetch-pending-aichieve-",
+      "notes": "Header Auth credential: apikey = service role key, Authorization = \"Bearer <service role key>\". Service role, not anon: this reads rows."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Links must point at the property the visitor used, not at the repo this file lives in.\nconst row = $json;\nconst metrics = row.calculated_metrics || {};\nconst vertical = String(row.vertical_slug || '');\nconst domain = metrics.domain\n  || (vertical.includes('aichieve') ? 'aichieve.net' : vertical.includes('wellroost') ? 'wellroost.com' : 'aichieve.net');\nreturn [{ json: { ...row, resolved_domain: domain, from_email: 'reports@' + domain } }];"
+      },
+      "name": "Resolve Domain (aichieve)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        200
+      ],
+      "id": "resolve-domain-aichieve-"
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "name": "One at a Time (aichieve)",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1580,
+        200
+      ],
+      "id": "one-at-a-time-aichieve-",
+      "notes": "One email per item, so one bad address cannot block the rest."
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $json.from_email }}",
+        "toEmail": "={{ $json.email }}",
+        "subject": "=Your scenario report: {{ $json.asset_slug }}",
+        "html": "<div style=\"font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#191610;line-height:1.6;max-width:580px;margin:0 auto;border:1px solid #d8d3c4;padding:24px\">\n  <div style=\"font-family:monospace;font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:#5f5b52\">{{ $json.resolved_domain }} &middot; Scenario report</div>\n  <h1 style=\"font-size:22px;font-weight:800;margin:8px 0 16px\">Your model, as you built it</h1>\n  <p>You asked us to send the scenario you calculated for <strong>{{ $json.asset_slug }}</strong>.</p>\n  <p><a href=\"https://{{ $json.resolved_domain }}/calculators/\" style=\"color:#0f766e;font-weight:700\">Open the decision engine &rarr;</a></p>\n  <div style=\"background:#f4f1e8;border:1px solid #d8d3c4;padding:14px;margin:16px 0;font-family:monospace;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere\">{{ JSON.stringify($json.calculated_metrics) }}</div>\n  <p style=\"font-size:11px;color:#8c8c8c;border-top:1px solid #eee;padding-top:12px\">You received this because you asked for a scenario report. Reply to unsubscribe.</p>\n</div>",
+        "options": {}
+      },
+      "name": "Send Report (aichieve)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1820,
+        200
+      ],
+      "id": "send-report-aichieve-",
+      "notes": "Attach the SMTP credential here. Until it is attached this fails LOUDLY and the row stays pending — the honest failure mode, retried next tick."
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ \"https://ixfdkninqeqmwuxncpvh.supabase.co/rest/v1/aichieve_lead_intents?id=eq.\" + $json.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ status: \"sent\", delivered_at: $now.toISO() }) }}",
+        "options": {}
+      },
+      "name": "Mark Sent (aichieve)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2060,
+        200
+      ],
+      "id": "mark-sent-aichieve-",
+      "notes": "Runs only after the email succeeds — a failed send leaves the lead pending for the next tick."
+    }
+  ],
+  "connections": {
+    "Fetch Pending (giniloh + wellroost)": {
+      "main": [
+        [
+          {
+            "node": "Resolve Domain (giniloh + wellroost)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Domain (giniloh + wellroost)": {
+      "main": [
+        [
+          {
+            "node": "One at a Time (giniloh + wellroost)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "One at a Time (giniloh + wellroost)": {
+      "main": [
+        [
+          {
+            "node": "Send Report (giniloh + wellroost)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Report (giniloh + wellroost)": {
+      "main": [
+        [
+          {
+            "node": "Mark Sent (giniloh + wellroost)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Pending (aichieve)": {
+      "main": [
+        [
+          {
+            "node": "Resolve Domain (aichieve)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Domain (aichieve)": {
+      "main": [
+        [
+          {
+            "node": "One at a Time (aichieve)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "One at a Time (aichieve)": {
+      "main": [
+        [
+          {
+            "node": "Send Report (aichieve)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Report (aichieve)": {
+      "main": [
+        [
+          {
+            "node": "Mark Sent (aichieve)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Every 5 Minutes": {
+      "main": [
+        [
+          {
+            "node": "Fetch Pending (giniloh + wellroost)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Pending (aichieve)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
