@@ -1,0 +1,242 @@
+{
+  "name": "AIChieve & GiniLoh - Enterprise Telemetry & Lead Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "vibe-telemetry",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        300
+      ],
+      "id": "webhook-trigger",
+      "name": "Vibe Telemetry Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true,\n  \"message\": \"Telemetry event received\",\n  \"timestamp\": \"{{ $now.toISO() }}\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -240,
+        180
+      ],
+      "id": "respond-to-client",
+      "name": "Immediate 200 Response"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.type || $json.type }}",
+                    "rightValue": "lead_intent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "lead_intent"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.type || $json.type }}",
+                    "rightValue": "telemetry_event",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "telemetry_event"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -240,
+        420
+      ],
+      "id": "event-type-router",
+      "name": "Route by Event Type"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json.body || $json;\nconst lead = input.lead || {};\nconst metrics = lead.calculatedMetrics || {};\n\nconst origin = input.origin || (lead.verticalSlug ? 'giniloh.com' : 'aichieve.net');\nconst verticalOrDomain = lead.verticalSlug || lead.domainCategory || 'general';\nconst assetSlug = lead.assetSlug || 'unspecified-asset';\nconst email = lead.email || '';\nconst calculatedDelta = metrics.calculatedDelta || metrics.calculatedMetric || 'Calculated during session';\nconst paramValue = metrics.paramValue !== undefined ? metrics.paramValue : 'N/A';\n\nconst summaryText = `🎯 *New High-Intent Lead [${origin}]*\n• *Email:* ` + email + `\n• *Asset:* ` + assetSlug + ` (` + verticalOrDomain + `)\n• *Tested Input:* ` + paramValue + `\n• *Computed Delta:* ` + calculatedDelta + `\n• *Session ID:* ` + (lead.sessionId || 'N/A') + `\n• *Timestamp:* ` + new Date().toISOString();\n\nreturn {\n  origin,\n  email,\n  assetSlug,\n  verticalOrDomain,\n  paramValue,\n  calculatedDelta,\n  metrics,\n  summaryText,\n  sessionId: lead.sessionId\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        60,
+        340
+      ],
+      "id": "lead-normalizer",
+      "name": "Parse & Normalize Lead Data"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hooks.slack.com/services/REPLACE/WITH/YOUR_SLACK_WEBHOOK",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text",
+              "value": "={{ $json.summaryText }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        360,
+        240
+      ],
+      "id": "slack-alert",
+      "name": "Send Slack / Discord Alert",
+      "notes": "Replace URL with your Slack Incoming Webhook or Discord Webhook URL (/slack appended)"
+    },
+    {
+      "parameters": {
+        "fromEmail": "reports@aichieve.net",
+        "toEmail": "={{ $json.email }}",
+        "subject": "=Your Decision Model Dossier: {{ $json.assetSlug }}",
+        "html": "<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"utf-8\">\n  <style>\n    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #191610; line-height: 1.6; background-color: #fafafa; padding: 20px; }\n    .card { background: #ffffff; border: 1px solid #d8d3c4; padding: 24px; max-width: 580px; margin: 0 auto; }\n    .eyebrow { font-family: monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; color: #5f5b52; }\n    .headline { font-size: 22px; font-weight: 800; margin: 8px 0 16px 0; color: #191610; }\n    .metric-box { background: #f4f1e8; border: 1px solid #d8d3c4; padding: 16px; margin: 16px 0; text-align: center; }\n    .metric-val { font-size: 26px; font-weight: 900; color: #e8a33d; font-family: monospace; }\n    .metric-label { font-size: 11px; text-transform: uppercase; font-family: monospace; color: #5f5b52; margin-top: 4px; }\n    .footer { font-size: 11px; color: #8c8c8c; margin-top: 24px; border-top: 1px solid #eee; padding-top: 12px; font-family: monospace; }\n  </style>\n</head>\n<body>\n  <div class=\"card\">\n    <div class=\"eyebrow\">aichieve.net &middot; Precision Decision Dossier</div>\n    <h1 class=\"headline\">Your Calculated Scenario Model</h1>\n    <p>Here are the verified calculation outputs generated during your interactive session for <strong>{{ $json.assetSlug }}</strong>:</p>\n    <div class=\"metric-box\">\n      <div class=\"metric-val\">{{ $json.calculatedDelta }}</div>\n      <div class=\"metric-label\">Calculated Net Yield Delta (Evaluated Input: {{ $json.paramValue }})</div>\n    </div>\n    <p>This deterministic model accounts for statutory tax adjustments, friction costs, and loaded operational overhead. Run multi-variable sensitivity models anytime on our web terminal:</p>\n    <p><a href=\"https://aichieve.net/calculators/\" style=\"color: #475f73; font-weight: bold;\">Open Full Multivariable Engine &rarr;</a></p>\n    <div class=\"footer\">Session ID: {{ $json.sessionId }} &middot; aichieve.net Decision Intelligence</div>\n  </div>\n</body>\n</html>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        360,
+        440
+      ],
+      "id": "email-lead-report",
+      "name": "Send Scenario Report to Lead",
+      "notes": "Configure with your SMTP or replace with Resend/Postmark/SendGrid node"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ ($json.body && $json.body.event && $json.body.event.eventName) || $json.eventName || '' }}",
+              "rightValue": "card_impression",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        60,
+        560
+      ],
+      "id": "filter-impressions",
+      "name": "Filter High-Signal Telemetry",
+      "notes": "Filters out passive card impressions to keep active calculations and slider adjustments"
+    }
+  ],
+  "connections": {
+    "Vibe Telemetry Webhook": {
+      "main": [
+        [
+          {
+            "node": "Immediate 200 Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Route by Event Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Event Type": {
+      "main": [
+        [
+          {
+            "node": "Parse & Normalize Lead Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Filter High-Signal Telemetry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse & Normalize Lead Data": {
+      "main": [
+        [
+          {
+            "node": "Send Slack / Discord Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Scenario Report to Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
