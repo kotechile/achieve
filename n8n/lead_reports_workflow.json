@@ -78,21 +78,105 @@
     },
     {
       "parameters": {
-        "fromEmail": "={{ $json.from_email }}",
-        "toEmail": "={{ $json.email }}",
-        "subject": "=Your scenario report: {{ $json.asset_slug }}",
-        "html": "<div style=\"font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#191610;line-height:1.6;max-width:580px;margin:0 auto;border:1px solid #d8d3c4;padding:24px\">\n  <div style=\"font-family:monospace;font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:#5f5b52\">{{ $json.resolved_domain }} &middot; Scenario report</div>\n  <h1 style=\"font-size:22px;font-weight:800;margin:8px 0 16px\">Your model, as you built it</h1>\n  <p>You asked us to send the scenario you calculated for <strong>{{ $json.asset_slug }}</strong>.</p>\n  <p><a href=\"https://{{ $json.resolved_domain }}/calculators/\" style=\"color:#0f766e;font-weight:700\">Open the decision engine &rarr;</a></p>\n  <div style=\"background:#f4f1e8;border:1px solid #d8d3c4;padding:14px;margin:16px 0;font-family:monospace;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere\">{{ JSON.stringify($json.calculated_metrics) }}</div>\n  <p style=\"font-size:11px;color:#8c8c8c;border-top:1px solid #eee;padding-top:12px\">You received this because you asked for a scenario report. Reply to unsubscribe.</p>\n</div>",
-        "options": {}
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.resolved_domain }}",
+                    "rightValue": "wellroost.com",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "wellroost"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.resolved_domain }}",
+                    "rightValue": "giniloh.com",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "giniloh"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
       },
-      "name": "Send Report (giniloh + wellroost)",
-      "type": "n8n-nodes-base.emailSend",
-      "typeVersion": 2.1,
+      "name": "Route by Domain (giniloh + wellroost)",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
       "position": [
         420,
         200
       ],
-      "id": "send-report-giniloh-wellroost-",
-      "notes": "Attach the SMTP credential here. Until it is attached this fails LOUDLY and the row stays pending — the honest failure mode, retried next tick."
+      "id": "route-by-domain-giniloh-wellroost-",
+      "notes": "One send node per domain, because each SMTP account may only send as its own address."
+    },
+    {
+      "parameters": {
+        "fromEmail": "reports@wellroost.com",
+        "toEmail": "={{ $json.email }}",
+        "subject": "=Your scenario report: {{ $json.asset_slug }}",
+        "html": "=<div style=\"font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#191610;line-height:1.6;max-width:580px;margin:0 auto;border:1px solid #d8d3c4;padding:24px\">\n  <div style=\"font-family:monospace;font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:#5f5b52\">{{ $json.resolved_domain }} &middot; Scenario report</div>\n  <h1 style=\"font-size:22px;font-weight:800;margin:8px 0 16px\">Your model, as you built it</h1>\n  <p>You asked us to send the scenario you calculated for <strong>{{ $json.asset_slug }}</strong>.</p>\n  <p><a href=\"https://{{ $json.resolved_domain }}/calculators/\" style=\"color:#0f766e;font-weight:700\">Open the decision engine &rarr;</a></p>\n  <div style=\"background:#f4f1e8;border:1px solid #d8d3c4;padding:14px;margin:16px 0;font-family:monospace;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere\">{{ JSON.stringify($json.calculated_metrics) }}</div>\n  <p style=\"font-size:11px;color:#8c8c8c;border-top:1px solid #eee;padding-top:12px\">You received this because you asked for a scenario report. Reply to unsubscribe.</p>\n</div>",
+        "options": {}
+      },
+      "name": "Send Report (wellroost)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        660,
+        90
+      ],
+      "id": "send-report-wellroost-",
+      "notes": "Attach the SMTP credential for reports@wellroost.com. From is a literal: this branch is already domain-specific."
+    },
+    {
+      "parameters": {
+        "fromEmail": "reports@giniloh.com",
+        "toEmail": "={{ $json.email }}",
+        "subject": "=Your scenario report: {{ $json.asset_slug }}",
+        "html": "=<div style=\"font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#191610;line-height:1.6;max-width:580px;margin:0 auto;border:1px solid #d8d3c4;padding:24px\">\n  <div style=\"font-family:monospace;font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:#5f5b52\">{{ $json.resolved_domain }} &middot; Scenario report</div>\n  <h1 style=\"font-size:22px;font-weight:800;margin:8px 0 16px\">Your model, as you built it</h1>\n  <p>You asked us to send the scenario you calculated for <strong>{{ $json.asset_slug }}</strong>.</p>\n  <p><a href=\"https://{{ $json.resolved_domain }}/calculators/\" style=\"color:#0f766e;font-weight:700\">Open the decision engine &rarr;</a></p>\n  <div style=\"background:#f4f1e8;border:1px solid #d8d3c4;padding:14px;margin:16px 0;font-family:monospace;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere\">{{ JSON.stringify($json.calculated_metrics) }}</div>\n  <p style=\"font-size:11px;color:#8c8c8c;border-top:1px solid #eee;padding-top:12px\">You received this because you asked for a scenario report. Reply to unsubscribe.</p>\n</div>",
+        "options": {}
+      },
+      "name": "Send Report (giniloh)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        660,
+        310
+      ],
+      "id": "send-report-giniloh-",
+      "notes": "Attach the SMTP credential for reports@giniloh.com. From is a literal: this branch is already domain-specific."
     },
     {
       "parameters": {
@@ -109,7 +193,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        660,
+        900,
         200
       ],
       "id": "mark-sent-giniloh-wellroost-",
@@ -171,10 +255,10 @@
     },
     {
       "parameters": {
-        "fromEmail": "={{ $json.from_email }}",
+        "fromEmail": "reports@aichieve.net",
         "toEmail": "={{ $json.email }}",
         "subject": "=Your scenario report: {{ $json.asset_slug }}",
-        "html": "<div style=\"font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#191610;line-height:1.6;max-width:580px;margin:0 auto;border:1px solid #d8d3c4;padding:24px\">\n  <div style=\"font-family:monospace;font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:#5f5b52\">{{ $json.resolved_domain }} &middot; Scenario report</div>\n  <h1 style=\"font-size:22px;font-weight:800;margin:8px 0 16px\">Your model, as you built it</h1>\n  <p>You asked us to send the scenario you calculated for <strong>{{ $json.asset_slug }}</strong>.</p>\n  <p><a href=\"https://{{ $json.resolved_domain }}/calculators/\" style=\"color:#0f766e;font-weight:700\">Open the decision engine &rarr;</a></p>\n  <div style=\"background:#f4f1e8;border:1px solid #d8d3c4;padding:14px;margin:16px 0;font-family:monospace;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere\">{{ JSON.stringify($json.calculated_metrics) }}</div>\n  <p style=\"font-size:11px;color:#8c8c8c;border-top:1px solid #eee;padding-top:12px\">You received this because you asked for a scenario report. Reply to unsubscribe.</p>\n</div>",
+        "html": "=<div style=\"font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#191610;line-height:1.6;max-width:580px;margin:0 auto;border:1px solid #d8d3c4;padding:24px\">\n  <div style=\"font-family:monospace;font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:#5f5b52\">{{ $json.resolved_domain }} &middot; Scenario report</div>\n  <h1 style=\"font-size:22px;font-weight:800;margin:8px 0 16px\">Your model, as you built it</h1>\n  <p>You asked us to send the scenario you calculated for <strong>{{ $json.asset_slug }}</strong>.</p>\n  <p><a href=\"https://{{ $json.resolved_domain }}/calculators/\" style=\"color:#0f766e;font-weight:700\">Open the decision engine &rarr;</a></p>\n  <div style=\"background:#f4f1e8;border:1px solid #d8d3c4;padding:14px;margin:16px 0;font-family:monospace;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere\">{{ JSON.stringify($json.calculated_metrics) }}</div>\n  <p style=\"font-size:11px;color:#8c8c8c;border-top:1px solid #eee;padding-top:12px\">You received this because you asked for a scenario report. Reply to unsubscribe.</p>\n</div>",
         "options": {}
       },
       "name": "Send Report (aichieve)",
@@ -185,7 +269,7 @@
         200
       ],
       "id": "send-report-aichieve-",
-      "notes": "Attach the SMTP credential here. Until it is attached this fails LOUDLY and the row stays pending — the honest failure mode, retried next tick."
+      "notes": "Attach the SMTP credential for reports@aichieve.net. From is a literal: this branch is already domain-specific."
     },
     {
       "parameters": {
@@ -236,14 +320,50 @@
       "main": [
         [
           {
-            "node": "Send Report (giniloh + wellroost)",
+            "node": "Route by Domain (giniloh + wellroost)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Send Report (giniloh + wellroost)": {
+    "Route by Domain (giniloh + wellroost)": {
+      "main": [
+        [
+          {
+            "node": "Send Report (wellroost)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Report (giniloh)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Report (giniloh)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Report (wellroost)": {
+      "main": [
+        [
+          {
+            "node": "Mark Sent (giniloh + wellroost)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Report (giniloh)": {
       "main": [
         [
           {
