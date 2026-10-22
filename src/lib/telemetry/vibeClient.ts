@@ -9,6 +9,18 @@ const SUPABASE_URL = typeof import.meta !== 'undefined' && import.meta.env ? (im
 const SUPABASE_ANON_KEY = typeof import.meta !== 'undefined' && import.meta.env ? (import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '') : '';
 const N8N_WEBHOOK_URL = typeof import.meta !== 'undefined' && import.meta.env ? (import.meta.env.PUBLIC_N8N_WEBHOOK_URL || '') : '';
 
+/**
+ * The property a lead belongs to. `vibe_lead_intents.vertical_slug` and this column are the same
+ * fact with the same name, so a lead from any of the three sites can be queried without a column map.
+ *
+ * Not to be confused with `domain_category`, which is aichieve's own topic taxonomy
+ * ('agentic-ai', 'gpu-infrastructure'): one is who the lead belongs to, the other what it is about.
+ */
+const VERTICAL_SLUG = 'aichieve.net';
+
+/** Version of the consent wording on screen. Bump when the notice text changes. */
+export const CONSENT_TEXT_VERSION = '2026-10-22';
+
 function generateSessionId(): string {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID();
@@ -131,10 +143,15 @@ export async function captureAichieveLead(
         body: JSON.stringify({
           session_id: leadPayload.sessionId,
           asset_slug: leadPayload.assetSlug,
+          // Two different facts, both stored: which property collected the lead, and what the asset
+          // is about. Conflating them is what made these tables incompatible.
+          vertical_slug: VERTICAL_SLUG,
           domain_category: leadPayload.domainCategory,
           email: leadPayload.email,
           intent_type: leadPayload.intentType,
           calculated_metrics: leadPayload.calculatedMetrics,
+          // Which consent wording the address was given under, so the row can answer for itself.
+          consent_text_version: CONSENT_TEXT_VERSION,
           status: 'pending_n8n_sync'
         })
       });

@@ -220,6 +220,12 @@ export const VibeAssetCard: React.FC<AichieveAssetProps> = ({
               </button>
             </form>
 
+            {/* The address is used for one thing. Say so at the point of capture — a stored email
+                with no stated purpose is the part regulators actually object to. */}
+            <p className="text-[11px] leading-relaxed text-[#8496a9]">
+              We use this address only to send the dossier you just configured. No newsletter, no resale.
+            </p>
+
             <div className="flex items-center justify-between text-xs text-[#8496a9]">
               <span className="font-mono text-[10px] uppercase tracking-wider">
                 Session Active · Real-time Telemetry
