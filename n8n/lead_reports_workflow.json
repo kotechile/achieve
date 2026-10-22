@@ -181,7 +181,7 @@
     {
       "parameters": {
         "method": "PATCH",
-        "url": "={{ \"https://ixfdkninqeqmwuxncpvh.supabase.co/rest/v1/vibe_lead_intents?id=eq.\" + $json.id }}",
+        "url": "={{ \"https://ixfdkninqeqmwuxncpvh.supabase.co/rest/v1/vibe_lead_intents?id=eq.\" + $(\"Resolve Domain (giniloh + wellroost)\").item.json.id }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
@@ -274,7 +274,7 @@
     {
       "parameters": {
         "method": "PATCH",
-        "url": "={{ \"https://ixfdkninqeqmwuxncpvh.supabase.co/rest/v1/aichieve_lead_intents?id=eq.\" + $json.id }}",
+        "url": "={{ \"https://ixfdkninqeqmwuxncpvh.supabase.co/rest/v1/aichieve_lead_intents?id=eq.\" + $(\"Resolve Domain (aichieve)\").item.json.id }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
@@ -318,6 +318,7 @@
     },
     "One at a Time (giniloh + wellroost)": {
       "main": [
+        [],
         [
           {
             "node": "Route by Domain (giniloh + wellroost)",
@@ -374,6 +375,17 @@
         ]
       ]
     },
+    "Mark Sent (giniloh + wellroost)": {
+      "main": [
+        [
+          {
+            "node": "One at a Time (giniloh + wellroost)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Fetch Pending (aichieve)": {
       "main": [
         [
@@ -398,6 +410,7 @@
     },
     "One at a Time (aichieve)": {
       "main": [
+        [],
         [
           {
             "node": "Send Report (aichieve)",
@@ -412,6 +425,17 @@
         [
           {
             "node": "Mark Sent (aichieve)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Sent (aichieve)": {
+      "main": [
+        [
+          {
+            "node": "One at a Time (aichieve)",
             "type": "main",
             "index": 0
           }
