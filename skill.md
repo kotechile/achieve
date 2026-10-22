@@ -25,6 +25,17 @@ All UI components in `aichieve.net` must strictly follow `src/styles/aichieve.cs
 - **Accents & Signals**: Safety Amber `#e8a33d` (`--ai-signal`) for primary highlights, focus states, and signal tags. Positive delta uses Emerald `#10b981`. Alert delta uses Ruby `#ef4444`.
 - **Negative Constraints**: Zero drop-shadows (`shadow-*`). Zero rounded pill gimmicks. Chrome remains industrial and hair-lined.
 
+## Copy Contract (enforced at build)
+
+Every reader-facing string on aichieve.net is gated: `npm run copy:check` runs before every build
+(wired as `prebuild`), and a hard violation fails the build, so it cannot deploy.
+
+- Rules: `scripts/vibe/lexicon.json`; gate: `scripts/vibe/vibe-lint.mjs`; tone and structure:
+  `skill.md` in the vibe-marketing spec (`/root/vibe-marketing/skill.md`).
+- `error` = fix the copy. Never edit `scripts/vibe/baseline.json` to go green — that is a gate bypass.
+- `warning` = reported (marketing adjectives, sentence length); clear it on any page you touch.
+- These vendored files are copies, not forks: edit the spec, then re-vendor.
+
 ## Output Specifications
 - **Code**: Clean React 19 / TypeScript micro-applications styled via Tailwind CSS utility classes, embedded natively via Astro client islands (`client:load` or `client:idle`).
 - **Copy**: Crisp, data-backed value propositions anchored by an interactive parameter adjustment hook and immediate net yield feedback.

@@ -18,7 +18,9 @@
     "astro": "astro",
     "routing:sync": "node scripts/routing.mjs --sync",
     "routing:derive": "node scripts/routing.mjs",
-    "routing:check": "node scripts/routing.mjs --check"
+    "routing:check": "node scripts/routing.mjs --check",
+    "copy:check": "node scripts/vibe/verify-vendor.mjs && node scripts/vibe/vibe-lint.mjs --root src --baseline scripts/vibe/baseline.json",
+    "prebuild": "npm run copy:check"
   },
   "//": "Dependencies are pinned to EXACT versions, not ranges. They mirror the set giniloh.com runs in production. A fresh `^` range install resolved astro 6.4.8 -> vite 8 + rolldown, which @tailwindcss/vite@4.2.x cannot drive (build dies with `Missing field tsconfigPaths`). Keep these in lockstep with giniloh's package-lock and bump them deliberately, in both repos at once.",
   "dependencies": {
