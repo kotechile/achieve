@@ -1,46 +1,30 @@
-# Vibe Marketing Lexicon for AIChieve.net
+# AIChieve.net — brand vocabulary
 
-## Preferred Terminology (High-Signal Enterprise Vocabulary)
+Preferred terms for this front. Enforcement lives in one place: `npm run copy:check` runs
+`scripts/vibe/vibe-lint.mjs` against `scripts/vibe/lexicon.json` (vendored from the vibe-marketing
+spec) on every build, and a hard violation fails it. The banned list is not restated here — a second
+copy of it is how the two drift apart.
 
-### Core Architecture
-- **Interactive Asset**: Replaces "whitepaper", "lead magnet", "gated report", or "case study PDF".
-- **Net Yield / ROI Engine**: Replaces "cost calculator", "estimator", or "quote generator".
-- **Agentic Plumbing**: Replaces "backend automation", "middleware scripts", or "cron pipelines".
-- **Precision Mechanics**: Replaces "advanced features", "cutting-edge tools", or "sophisticated capabilities".
-- **Command Deck / Decision Engine**: Replaces "blog post", "thought leadership article", or "company news".
+## Core architecture
 
-### Enterprise Domain Vocabulary (AIChieve Pillars)
-- **Token Budget Overrun**: The unbounded compounding API bill caused by autonomous recursive agent loops without semantic termination guards.
-- **Retry Failure Amplifier**: The cascading effect where exponential backoff turns downstream micro-outages into systemic cluster failure.
-- **KV-Cache Concurrency Ceiling**: The physical GPU memory limit that restricts concurrent LLM inference streams regardless of compute throughput.
-- **Invoice Exception Leakage**: The recurring 15%–28% carrier overbilling that manual accounts payable workflows systematically fail to detect.
-- **Kill Switch Surface**: The percentage of autonomous agent tools and external API calls instrumented with immediate deterministic shutoffs.
-- **Prefill/Decode Disaggregation**: Splitting compute-heavy prompt encoding from memory-bound autoregressive token generation across cluster nodes.
-- **Loaded Headcount Rate**: Fully burdened enterprise engineering cost ($220–$280/hr) including benefits, compute tooling, and management overhead.
-- **Sunk-Cost Silicon**: Depreciating local accelerator hardware running under the hourly utilization breakeven threshold.
+- **Interactive Asset** — for "whitepaper", "lead magnet", "gated report", "case study PDF".
+- **Net Yield / ROI Engine** — positioning copy only. The search-facing word stays "calculator":
+  `/calculators/…`, H1s, nav labels and slugs are never renamed.
+- **Agentic Plumbing** — for "backend automation", "middleware scripts", "cron pipelines".
+- **Precision Mechanics** — for "advanced features", "cutting-edge tools", "sophisticated capabilities".
+- **Command Deck / Decision Engine** — for "blog post", "thought leadership article", "company news".
 
-## Prohibited Terms (Forbidden AI-isms & Enterprise Fluff)
+## Domain vocabulary (AIChieve pillars)
 
-### Banned Buzzwords
-- **delve** (e.g., "Let's delve into enterprise architecture...")
-- **harness** (e.g., "Harness the power of AI agents...")
-- **testament** (e.g., "A testament to enterprise resilience...")
-- **tapestry** (e.g., "A complex tapestry of microservices...")
-- **landscape** (e.g., "In today's fast-moving AI landscape...")
-- **beacon** (e.g., "A beacon of operational excellence...")
-- **unleash** (e.g., "Unleash agentic autonomy...")
-- **supercharge** (e.g., "Supercharge your supply chain...")
-- **game-changer** (e.g., "A game-changer for cloud infrastructure...")
-- **seamless** (e.g., "Seamless enterprise integration...")
-- **revolutionize** (e.g., "Revolutionizing logistics workflows...")
-- **holistic / synergy / paradigm shift / cutting-edge** (Banned corporate puffery)
+- **Token Budget Overrun** — compounding API spend from recursive agent loops with no termination guard.
+- **Retry Failure Amplifier** — exponential backoff turning a downstream micro-outage into cluster failure.
+- **KV-Cache Concurrency Ceiling** — the GPU memory limit on concurrent inference streams.
+- **Invoice Exception Leakage** — the 15%–28% carrier overbilling manual AP workflows fail to catch.
+- **Kill Switch Surface** — the share of agent tools and external calls with a deterministic shutoff.
+- **Prefill/Decode Disaggregation** — splitting prompt encoding from autoregressive token generation.
+- **Loaded Headcount Rate** — fully burdened enterprise engineering cost, $220–$280/hr.
+- **Sunk-Cost Silicon** — local accelerator hardware depreciating under the utilization breakeven.
 
-### Prohibited Introductory Phrases (Throat-Clearing)
-- *"In today's fast-paced enterprise landscape..."*
-- *"In an era where artificial intelligence is transforming industry..."*
-- *"It is critical for C-level executives to realize that..."*
-- *"Without further ado, let's explore..."*
-- *"Whether you are managing a small startup or a Fortune 500 company..."*
-- *"At the end of the day, enterprise success boils down to..."*
+## Structure
 
-*Rule: Start directly with the systemic failure mode, the capital leak, or the quantitative metric.*
+Start with the systemic failure mode, the capital leak, or the metric. No introductory paragraph.
