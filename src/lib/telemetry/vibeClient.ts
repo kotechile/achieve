@@ -16,7 +16,7 @@ const N8N_WEBHOOK_URL = typeof import.meta !== 'undefined' && import.meta.env ? 
  * Not to be confused with `domain_category`, which is aichieve's own topic taxonomy
  * ('agentic-ai', 'gpu-infrastructure'): one is who the lead belongs to, the other what it is about.
  */
-const VERTICAL_SLUG = 'aichieve.net';
+const VERTICAL_SLUG = 'aichieve';
 
 /** Version of the consent wording on screen. Bump when the notice text changes. */
 export const CONSENT_TEXT_VERSION = '2026-10-22';
