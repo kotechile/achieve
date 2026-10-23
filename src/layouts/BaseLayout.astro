@@ -30,6 +30,19 @@ const analyticsSrc = import.meta.env.PUBLIC_ANALYTICS_SRC || 'https://cloud.umam
 const analyticsWebsiteId = import.meta.env.PUBLIC_ANALYTICS_WEBSITE_ID || '';
 const analyticsDomains = import.meta.env.PUBLIC_ANALYTICS_DOMAINS || 'aichieve.net,www.aichieve.net';
 
+/**
+ * An empty id means this property ships with no analytics at all — which for weeks read from the
+ * outside as "no traffic" when it was really "no data". The tag is gated below because a script with
+ * an empty id records nothing and logs nothing; warn loudly rather than fail silently, and let
+ * `scripts/verify.mjs` assert the tag on the live origin.
+ */
+if (!analyticsWebsiteId) {
+	console.warn(
+		'\n[analytics] PUBLIC_ANALYTICS_WEBSITE_ID is not set — aichieve.net will ship UNMEASURED.\n' +
+			'            Add the Umami Cloud website id for this property to the BUILD environment.\n'
+	);
+}
+
 const is404 = disableAnalytics || Astro.url.pathname.includes('404');
 const shouldTrack = !is404 && Boolean(analyticsSrc && analyticsWebsiteId);
 
