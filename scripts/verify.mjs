@@ -22,6 +22,7 @@
  * container that has nothing but nginx and curl.
  */
 import { OWNED_POST_SLUGS_GENERATED, FOREIGN_POST_SLUGS_GENERATED, GENERATED_FOR } from '../src/data/ownership.generated.mjs';
+import { ANALYTICS } from '../src/data/analytics.mjs';
 
 const ORIGIN = (process.argv[2] || process.env.VERIFY_ORIGIN || 'http://localhost:8899').replace(/\/$/, '');
 const TIMEOUT_MS = 20000;
@@ -331,12 +332,46 @@ async function checkCanonicalHost() {
 	}
 }
 
+/**
+ * The property must measure itself, and against its own website id.
+ *
+ * This layout gated the tag on `PUBLIC_ANALYTICS_WEBSITE_ID`, every default of which was empty, so the
+ * site shipped with no analytics at all — indistinguishable from the outside from "no traffic", and it
+ * made every later fix unverifiable. Assert the served HTML, and assert the exact id: a sibling's
+ * copy-pasted id records visits against the wrong property and looks perfectly healthy from here.
+ */
+async function checkAnalyticsTag() {
+	console.log('\nAnalytics tag');
+	const home = await probe('/');
+	if (home.status !== 200) {
+		fail('/', '200', `${home.status}`);
+		return;
+	}
+	const id = home.body.match(/data-website-id="([^"]*)"/)?.[1];
+	if (!id) {
+		fail('analytics tag on /', 'a script with data-website-id', 'none in the served HTML — this property is unmeasured');
+		return;
+	}
+	if (id === ANALYTICS.websiteId) ok('analytics tag on /', id);
+	else fail('analytics website id', `${ANALYTICS.websiteId} (aichieve.net)`, `${id} — wrong property or a stale build`);
+
+	const src = home.body.match(/src="([^"]*)"[^>]*data-website-id/)?.[1] || '';
+	if (src && new URL(src).host === new URL(ANALYTICS.src).host) ok('tracker is the self-hosted Umami', src);
+	else fail('tracker host', new URL(ANALYTICS.src).host, src || '(not detected)');
+
+	const domains = home.body.match(/data-domains="([^"]*)"/)?.[1] || '';
+	const host = new URL(ORIGIN).hostname;
+	if (domains.split(',').map((d) => d.trim()).includes(host)) ok('analytics scoped to this host', domains);
+	else fail('analytics data-domains', `a list including ${host}`, domains || '(none)');
+}
+
 async function main() {
 	console.log(`\nVerifying deploy contract at ${ORIGIN}`);
 	try {
 		await checkCoreRoutes();
 		await checkAssets();
 		await checkCrawlHints();
+		await checkAnalyticsTag();
 		await checkRedirects();
 		await checkBoundary();
 		await checkCanonicalHost();

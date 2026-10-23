@@ -4,6 +4,7 @@ import SearchOverlay from '../components/SearchOverlay.astro';
 import SiteNav from '../components/SiteNav.astro';
 import ProductCTA from '../components/ProductCTA.astro';
 import type { ProductCta } from '../lib/product-cta';
+import { ANALYTICS } from '../data/analytics.mjs';
 import '../styles/aichieve.css';
 
 interface Props {
@@ -26,20 +27,21 @@ const {
 	surface = 'console'
 } = Astro.props;
 
-const analyticsSrc = import.meta.env.PUBLIC_ANALYTICS_SRC || 'https://cloud.umami.is/script.js';
-const analyticsWebsiteId = import.meta.env.PUBLIC_ANALYTICS_WEBSITE_ID || '';
-const analyticsDomains = import.meta.env.PUBLIC_ANALYTICS_DOMAINS || 'aichieve.net,www.aichieve.net';
-
 /**
- * An empty id means this property ships with no analytics at all — which for weeks read from the
- * outside as "no traffic" when it was really "no data". The tag is gated below because a script with
- * an empty id records nothing and logs nothing; warn loudly rather than fail silently, and let
- * `scripts/verify.mjs` assert the tag on the live origin.
+ * Analytics. Values live in `src/data/analytics.mjs` (committed), environment wins when set.
+ *
+ * Every build arg here defaulted to empty and the tag is gated on a non-empty id, so this property
+ * shipped with no analytics at all — which reads from the outside exactly like "no traffic" and made
+ * every later fix unverifiable. Empty is now a build failure, not a silent no-op.
  */
-if (!analyticsWebsiteId) {
-	console.warn(
-		'\n[analytics] PUBLIC_ANALYTICS_WEBSITE_ID is not set — aichieve.net will ship UNMEASURED.\n' +
-			'            Add the Umami Cloud website id for this property to the BUILD environment.\n'
+const analyticsSrc = import.meta.env.PUBLIC_ANALYTICS_SRC || ANALYTICS.src;
+const analyticsWebsiteId = import.meta.env.PUBLIC_ANALYTICS_WEBSITE_ID || ANALYTICS.websiteId;
+const analyticsDomains = import.meta.env.PUBLIC_ANALYTICS_DOMAINS || ANALYTICS.domains;
+
+if (!analyticsWebsiteId || !analyticsSrc) {
+	throw new Error(
+		'[analytics] no website id or tracker configured — refusing to build an unmeasured site. ' +
+			'Set it in src/data/analytics.mjs or PUBLIC_ANALYTICS_WEBSITE_ID.'
 	);
 }
 
