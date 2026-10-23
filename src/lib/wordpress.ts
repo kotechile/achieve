@@ -224,6 +224,7 @@ function normalizePost(post: WordPressPostResponse): WordPressPost {
 	}
 
 	htmlContent = normaliseLegacyAppHost(htmlContent);
+	htmlContent = formatArticleHook(htmlContent);
 
 	return {
 		id: post.id,
@@ -242,6 +243,63 @@ function normalizePost(post: WordPressPostResponse): WordPressPost {
 		categoryLabel: category?.name ? stripHtml(category.name).replace(/:\s*$/, '').trim() : null,
 		categorySlug: category?.slug ?? null
 	};
+}
+
+/**
+ * Wraps the opening hook paragraph(s) of an article in a dedicated `.article-hook` container.
+ *
+ * In the editorial architecture, each article opens with a narrative hook paragraph that delivers
+ * the core premise or key finding before the first structural heading (e.g. "The big picture:").
+ * This wraps that opening hook so it can be presented with a distinguished light-gray background,
+ * smaller font size, and italic styling ("cursiva").
+ */
+function formatArticleHook(html: string): string {
+	if (!html || html.includes('article-hook')) {
+		return html;
+	}
+
+	let prefix = '';
+	let rest = html;
+
+	// Preserve any leading injected section (e.g., key takeaways block)
+	const sectionMatch = rest.match(/^(\s*<section[\s\S]*?<\/section>\s*)/i);
+	if (sectionMatch) {
+		prefix = sectionMatch[1];
+		rest = rest.slice(prefix.length);
+	}
+
+	// Locate the first section heading (e.g. <h2>, <h3>, or bold paragraph heading like <p><strong>The big picture)
+	let headingPos = rest.length;
+	const hMatch = rest.match(/<h[1-6][^>]*>/i);
+	if (hMatch && hMatch.index !== undefined) {
+		headingPos = hMatch.index;
+	}
+	const strongHeadingMatch = rest.match(/<p[^>]*>\s*<strong>\s*The big picture/i);
+	if (strongHeadingMatch && strongHeadingMatch.index !== undefined && strongHeadingMatch.index < headingPos) {
+		headingPos = strongHeadingMatch.index;
+	}
+
+	const beforeHeading = rest.slice(0, headingPos);
+	const afterHeading = rest.slice(headingPos);
+
+	// Extract all <p>...</p> tags before the first heading
+	const paragraphMatches = [...beforeHeading.matchAll(/<p[^>]*>[\s\S]*?<\/p>/gi)];
+	if (paragraphMatches.length === 0) {
+		return html;
+	}
+
+	// If there are 1 or 2 paragraphs before the heading, wrap them as the hook.
+	// If there are 3 or more (or no heading), wrap only the leading paragraph.
+	if (paragraphMatches.length <= 2) {
+		const hookContent = beforeHeading.trim();
+		return `${prefix}<div class="article-hook">${hookContent}</div>\n${afterHeading}`;
+	} else {
+		const firstPara = paragraphMatches[0];
+		const hookEnd = (firstPara.index ?? 0) + firstPara[0].length;
+		const hookContent = beforeHeading.slice(0, hookEnd).trim();
+		const remainingBefore = beforeHeading.slice(hookEnd);
+		return `${prefix}<div class="article-hook">${hookContent}</div>\n${remainingBefore}${afterHeading}`;
+	}
 }
 
 /**

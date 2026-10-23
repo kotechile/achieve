@@ -24,7 +24,7 @@
     },
     {
       "parameters": {
-        "url": "https://ixfdkninqeqmwuxncpvh.supabase.co/rest/v1/vibe_lead_intents?select=*&status=eq.pending_n8n_sync&order=created_at.asc&limit=20",
+        "url": "https://ixfdkninqeqmwuxncpvh.supabase.co/rest/v1/vibe_lead_intents?select=*&status=eq.pending_n8n_sync&send_attempts=lt.5&order=created_at.asc&limit=20",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
@@ -50,7 +50,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Links must point at the property the visitor used, not at the repo this file lives in.\nconst row = $json;\nconst metrics = row.calculated_metrics || {};\nconst vertical = String(row.vertical_slug || '');\nconst domain = metrics.domain\n  || (vertical.includes('aichieve') ? 'aichieve.net' : vertical.includes('wellroost') ? 'wellroost.com' : 'giniloh.com');\nreturn [{ json: { ...row, resolved_domain: domain, from_email: 'reports@' + domain } }];"
+        "jsCode": "// Route the sending domain from the row's PROPERTY. `vertical_slug` is the property\n// (giniloh | wellroost | aichieve); `domain_category` is what the asset is about. Merging the two\n// is what sent wellroost leads out under a giniloh From with a giniloh link.\nconst rows = $input.all();\nconst PROPERTY_DOMAINS = {\"giniloh\":\"giniloh.com\",\"wellroost\":\"wellroost.com\",\"aichieve\":\"aichieve.net\"};\n// Only this branch's own domains: a row must never borrow another property's sender.\nconst allowed = [\"wellroost.com\",\"giniloh.com\"];\nconst normalise = (value) => String(value || '').trim().toLowerCase()\n  .replace(/^https?:\\/\\//, '').replace(/^www\\./, '').replace(/\\/$/, '');\nreturn rows.map((item) => {\n  const row = item.json;\n  const metrics = row.calculated_metrics || {};\n  const propertyKey = normalise(row.vertical_slug).replace(/\\.(com|net|org|io)$/, '');\n  const byProperty = PROPERTY_DOMAINS[propertyKey];\n  // `metrics.domain` is a CLIENT-supplied hint. Honoured only when this branch may send as it.\n  const declared = normalise(metrics.domain);\n  const domain = allowed.includes(byProperty)\n    ? byProperty\n    : allowed.includes(declared)\n      ? declared\n      : 'giniloh.com';\n  return {\n    json: {\n      ...row,\n      resolved_domain: domain,\n      from_email: 'reports@' + domain,\n      asset_title: metrics.assetTitle || row.asset_slug\n    }\n  };\n});"
       },
       "name": "Resolve Domain (giniloh + wellroost)",
       "type": "n8n-nodes-base.code",
@@ -146,8 +146,8 @@
       "parameters": {
         "fromEmail": "reports@wellroost.com",
         "toEmail": "={{ $json.email }}",
-        "subject": "=Your scenario report: {{ $json.asset_slug }}",
-        "html": "=<div style=\"font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#191610;line-height:1.6;max-width:580px;margin:0 auto;border:1px solid #d8d3c4;padding:24px\">\n  <div style=\"font-family:monospace;font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:#5f5b52\">{{ $json.resolved_domain }} &middot; Scenario report</div>\n  <h1 style=\"font-size:22px;font-weight:800;margin:8px 0 16px\">Your model, as you built it</h1>\n  <p>You asked us to send the scenario you calculated for <strong>{{ $json.asset_slug }}</strong>.</p>\n  <p><a href=\"https://{{ $json.resolved_domain }}/calculators/\" style=\"color:#0f766e;font-weight:700\">Open the decision engine &rarr;</a></p>\n  <div style=\"background:#f4f1e8;border:1px solid #d8d3c4;padding:14px;margin:16px 0;font-family:monospace;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere\">{{ JSON.stringify($json.calculated_metrics) }}</div>\n  <p style=\"font-size:11px;color:#8c8c8c;border-top:1px solid #eee;padding-top:12px\">You received this because you asked for a scenario report. Reply to unsubscribe.</p>\n</div>",
+        "subject": "=Your scenario report: {{ $json.asset_title || $json.asset_slug }}",
+        "html": "=<div style=\"font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#191610;line-height:1.6;max-width:580px;margin:0 auto;border:1px solid #d8d3c4;padding:24px\">\n  <div style=\"font-family:monospace;font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:#5f5b52\">{{ $json.resolved_domain }} &middot; Scenario report</div>\n  <h1 style=\"font-size:22px;font-weight:800;margin:8px 0 16px\">Your model, as you built it</h1>\n  <p>You asked us to send the scenario you calculated for <strong>{{ $json.asset_title || $json.asset_slug }}</strong>.</p>\n  <p><a href=\"https://{{ $json.resolved_domain }}/calculators/\" style=\"color:#0f766e;font-weight:700\">Open the decision engine &rarr;</a></p>\n  <div style=\"background:#f4f1e8;border:1px solid #d8d3c4;padding:14px;margin:16px 0;font-family:monospace;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere\">{{ JSON.stringify($json.calculated_metrics) }}</div>\n  <p style=\"font-size:11px;color:#8c8c8c;border-top:1px solid #eee;padding-top:12px\">You received this because you asked for a scenario report. Reply to unsubscribe.</p>\n</div>",
         "options": {}
       },
       "name": "Send Report (wellroost)",
@@ -158,14 +158,15 @@
         90
       ],
       "id": "send-report-wellroost-",
-      "notes": "Attach the SMTP credential for reports@wellroost.com. From is a literal: this branch is already domain-specific."
+      "notes": "Attach the SMTP credential for reports@wellroost.com. From is a literal: this branch is already domain-specific.",
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
         "fromEmail": "reports@giniloh.com",
         "toEmail": "={{ $json.email }}",
-        "subject": "=Your scenario report: {{ $json.asset_slug }}",
-        "html": "=<div style=\"font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#191610;line-height:1.6;max-width:580px;margin:0 auto;border:1px solid #d8d3c4;padding:24px\">\n  <div style=\"font-family:monospace;font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:#5f5b52\">{{ $json.resolved_domain }} &middot; Scenario report</div>\n  <h1 style=\"font-size:22px;font-weight:800;margin:8px 0 16px\">Your model, as you built it</h1>\n  <p>You asked us to send the scenario you calculated for <strong>{{ $json.asset_slug }}</strong>.</p>\n  <p><a href=\"https://{{ $json.resolved_domain }}/calculators/\" style=\"color:#0f766e;font-weight:700\">Open the decision engine &rarr;</a></p>\n  <div style=\"background:#f4f1e8;border:1px solid #d8d3c4;padding:14px;margin:16px 0;font-family:monospace;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere\">{{ JSON.stringify($json.calculated_metrics) }}</div>\n  <p style=\"font-size:11px;color:#8c8c8c;border-top:1px solid #eee;padding-top:12px\">You received this because you asked for a scenario report. Reply to unsubscribe.</p>\n</div>",
+        "subject": "=Your scenario report: {{ $json.asset_title || $json.asset_slug }}",
+        "html": "=<div style=\"font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#191610;line-height:1.6;max-width:580px;margin:0 auto;border:1px solid #d8d3c4;padding:24px\">\n  <div style=\"font-family:monospace;font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:#5f5b52\">{{ $json.resolved_domain }} &middot; Scenario report</div>\n  <h1 style=\"font-size:22px;font-weight:800;margin:8px 0 16px\">Your model, as you built it</h1>\n  <p>You asked us to send the scenario you calculated for <strong>{{ $json.asset_title || $json.asset_slug }}</strong>.</p>\n  <p><a href=\"https://{{ $json.resolved_domain }}/calculators/\" style=\"color:#0f766e;font-weight:700\">Open the decision engine &rarr;</a></p>\n  <div style=\"background:#f4f1e8;border:1px solid #d8d3c4;padding:14px;margin:16px 0;font-family:monospace;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere\">{{ JSON.stringify($json.calculated_metrics) }}</div>\n  <p style=\"font-size:11px;color:#8c8c8c;border-top:1px solid #eee;padding-top:12px\">You received this because you asked for a scenario report. Reply to unsubscribe.</p>\n</div>",
         "options": {}
       },
       "name": "Send Report (giniloh)",
@@ -176,7 +177,8 @@
         310
       ],
       "id": "send-report-giniloh-",
-      "notes": "Attach the SMTP credential for reports@giniloh.com. From is a literal: this branch is already domain-specific."
+      "notes": "Attach the SMTP credential for reports@giniloh.com. From is a literal: this branch is already domain-specific.",
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -201,7 +203,28 @@
     },
     {
       "parameters": {
-        "url": "https://ixfdkninqeqmwuxncpvh.supabase.co/rest/v1/aichieve_lead_intents?select=*&status=eq.pending_n8n_sync&order=created_at.asc&limit=20",
+        "method": "PATCH",
+        "url": "={{ \"https://ixfdkninqeqmwuxncpvh.supabase.co/rest/v1/vibe_lead_intents?id=eq.\" + $(\"Resolve Domain (giniloh + wellroost)\").item.json.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ send_attempts: ($(\"Resolve Domain (giniloh + wellroost)\").item.json.send_attempts || 0) + 1, last_attempt_at: $now.toISO(), status: (($(\"Resolve Domain (giniloh + wellroost)\").item.json.send_attempts || 0) + 1) >= 5 ? \"failed\" : \"pending_n8n_sync\" }) }}",
+        "options": {}
+      },
+      "name": "Record Attempt (giniloh + wellroost)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        900,
+        480
+      ],
+      "id": "record-attempt-giniloh-wellroost-",
+      "notes": "Runs only when the send fails. Five failures retires the row as `failed`; below that it stays pending for the next tick."
+    },
+    {
+      "parameters": {
+        "url": "https://ixfdkninqeqmwuxncpvh.supabase.co/rest/v1/aichieve_lead_intents?select=*&status=eq.pending_n8n_sync&send_attempts=lt.5&order=created_at.asc&limit=20",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
@@ -227,7 +250,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Links must point at the property the visitor used, not at the repo this file lives in.\nconst row = $json;\nconst metrics = row.calculated_metrics || {};\nconst vertical = String(row.vertical_slug || '');\nconst domain = metrics.domain\n  || (vertical.includes('aichieve') ? 'aichieve.net' : vertical.includes('wellroost') ? 'wellroost.com' : 'aichieve.net');\nreturn [{ json: { ...row, resolved_domain: domain, from_email: 'reports@' + domain } }];"
+        "jsCode": "// Route the sending domain from the row's PROPERTY. `vertical_slug` is the property\n// (giniloh | wellroost | aichieve); `domain_category` is what the asset is about. Merging the two\n// is what sent wellroost leads out under a giniloh From with a giniloh link.\nconst rows = $input.all();\nconst PROPERTY_DOMAINS = {\"giniloh\":\"giniloh.com\",\"wellroost\":\"wellroost.com\",\"aichieve\":\"aichieve.net\"};\n// Only this branch's own domains: a row must never borrow another property's sender.\nconst allowed = [\"aichieve.net\"];\nconst normalise = (value) => String(value || '').trim().toLowerCase()\n  .replace(/^https?:\\/\\//, '').replace(/^www\\./, '').replace(/\\/$/, '');\nreturn rows.map((item) => {\n  const row = item.json;\n  const metrics = row.calculated_metrics || {};\n  const propertyKey = normalise(row.vertical_slug).replace(/\\.(com|net|org|io)$/, '');\n  const byProperty = PROPERTY_DOMAINS[propertyKey];\n  // `metrics.domain` is a CLIENT-supplied hint. Honoured only when this branch may send as it.\n  const declared = normalise(metrics.domain);\n  const domain = allowed.includes(byProperty)\n    ? byProperty\n    : allowed.includes(declared)\n      ? declared\n      : 'aichieve.net';\n  return {\n    json: {\n      ...row,\n      resolved_domain: domain,\n      from_email: 'reports@' + domain,\n      asset_title: metrics.assetTitle || row.asset_slug\n    }\n  };\n});"
       },
       "name": "Resolve Domain (aichieve)",
       "type": "n8n-nodes-base.code",
@@ -257,8 +280,8 @@
       "parameters": {
         "fromEmail": "reports@aichieve.net",
         "toEmail": "={{ $json.email }}",
-        "subject": "=Your scenario report: {{ $json.asset_slug }}",
-        "html": "=<div style=\"font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#191610;line-height:1.6;max-width:580px;margin:0 auto;border:1px solid #d8d3c4;padding:24px\">\n  <div style=\"font-family:monospace;font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:#5f5b52\">{{ $json.resolved_domain }} &middot; Scenario report</div>\n  <h1 style=\"font-size:22px;font-weight:800;margin:8px 0 16px\">Your model, as you built it</h1>\n  <p>You asked us to send the scenario you calculated for <strong>{{ $json.asset_slug }}</strong>.</p>\n  <p><a href=\"https://{{ $json.resolved_domain }}/calculators/\" style=\"color:#0f766e;font-weight:700\">Open the decision engine &rarr;</a></p>\n  <div style=\"background:#f4f1e8;border:1px solid #d8d3c4;padding:14px;margin:16px 0;font-family:monospace;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere\">{{ JSON.stringify($json.calculated_metrics) }}</div>\n  <p style=\"font-size:11px;color:#8c8c8c;border-top:1px solid #eee;padding-top:12px\">You received this because you asked for a scenario report. Reply to unsubscribe.</p>\n</div>",
+        "subject": "=Your scenario report: {{ $json.asset_title || $json.asset_slug }}",
+        "html": "=<div style=\"font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#191610;line-height:1.6;max-width:580px;margin:0 auto;border:1px solid #d8d3c4;padding:24px\">\n  <div style=\"font-family:monospace;font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:#5f5b52\">{{ $json.resolved_domain }} &middot; Scenario report</div>\n  <h1 style=\"font-size:22px;font-weight:800;margin:8px 0 16px\">Your model, as you built it</h1>\n  <p>You asked us to send the scenario you calculated for <strong>{{ $json.asset_title || $json.asset_slug }}</strong>.</p>\n  <p><a href=\"https://{{ $json.resolved_domain }}/calculators/\" style=\"color:#0f766e;font-weight:700\">Open the decision engine &rarr;</a></p>\n  <div style=\"background:#f4f1e8;border:1px solid #d8d3c4;padding:14px;margin:16px 0;font-family:monospace;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere\">{{ JSON.stringify($json.calculated_metrics) }}</div>\n  <p style=\"font-size:11px;color:#8c8c8c;border-top:1px solid #eee;padding-top:12px\">You received this because you asked for a scenario report. Reply to unsubscribe.</p>\n</div>",
         "options": {}
       },
       "name": "Send Report (aichieve)",
@@ -269,7 +292,8 @@
         200
       ],
       "id": "send-report-aichieve-",
-      "notes": "Attach the SMTP credential for reports@aichieve.net. From is a literal: this branch is already domain-specific."
+      "notes": "Attach the SMTP credential for reports@aichieve.net. From is a literal: this branch is already domain-specific.",
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -291,6 +315,27 @@
       ],
       "id": "mark-sent-aichieve-",
       "notes": "Runs only after the email succeeds — a failed send leaves the lead pending for the next tick."
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ \"https://ixfdkninqeqmwuxncpvh.supabase.co/rest/v1/aichieve_lead_intents?id=eq.\" + $(\"Resolve Domain (aichieve)\").item.json.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ send_attempts: ($(\"Resolve Domain (aichieve)\").item.json.send_attempts || 0) + 1, last_attempt_at: $now.toISO(), status: (($(\"Resolve Domain (aichieve)\").item.json.send_attempts || 0) + 1) >= 5 ? \"failed\" : \"pending_n8n_sync\" }) }}",
+        "options": {}
+      },
+      "name": "Record Attempt (aichieve)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2060,
+        480
+      ],
+      "id": "record-attempt-aichieve-",
+      "notes": "Runs only when the send fails. Five failures retires the row as `failed`; below that it stays pending for the next tick."
     }
   ],
   "connections": {
@@ -361,6 +406,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Record Attempt (giniloh + wellroost)",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -372,10 +424,28 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Record Attempt (giniloh + wellroost)",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "Mark Sent (giniloh + wellroost)": {
+      "main": [
+        [
+          {
+            "node": "One at a Time (giniloh + wellroost)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record Attempt (giniloh + wellroost)": {
       "main": [
         [
           {
@@ -428,10 +498,28 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Record Attempt (aichieve)",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "Mark Sent (aichieve)": {
+      "main": [
+        [
+          {
+            "node": "One at a Time (aichieve)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record Attempt (aichieve)": {
       "main": [
         [
           {

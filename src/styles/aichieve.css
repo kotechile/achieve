@@ -810,5 +810,53 @@ img {
 	fill: #94a3b8;
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   7b · ARTICLE NARRATIVE HOOK
+   The opening thesis / lead-in block on white paper.
+   Visual treatment: light gray background (#f4f5f7), smaller font (~15px),
+   cursiva (italic), and subtle architectural left bar (#64748b / slate-500).
+   WCAG AA/AAA: Charcoal text (#27272a) on #f4f5f7 measures 11.5:1.
+   ───────────────────────────────────────────────────────────────────────────── */
+.article-hook {
+	background-color: #f4f5f7;
+	border: 1px solid var(--paper-line);
+	border-left: 3px solid #64748b;
+	border-radius: 0.75rem;
+	padding: 1rem 1.125rem;
+	margin-top: 0;
+	margin-bottom: 2rem;
+}
+
+@media (min-width: 640px) {
+	.article-hook {
+		padding: 1.25rem 1.5rem;
+		margin-bottom: 2.25rem;
+	}
+}
+
+.article-hook p {
+	font-size: 0.9375rem !important;
+	line-height: 1.68 !important;
+	font-style: italic !important;
+	color: #27272a !important;
+	margin-top: 0 !important;
+	margin-bottom: 0 !important;
+}
+
+.article-hook p + p {
+	margin-top: 0.85rem !important;
+}
+
+.article-hook a {
+	color: #46647a !important;
+	text-decoration: underline;
+	text-underline-offset: 2px;
+	font-style: normal;
+}
+
+.article-hook a:hover {
+	color: var(--paper-ink) !important;
+}
+
 /* Horizontal overflow safety at 320px (Hallmark gate 34). */
 html, body { overflow-x: clip; }
