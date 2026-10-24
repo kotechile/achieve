@@ -13,10 +13,8 @@
 export const TOOLS = {
 	'gpu-compute': {
 		slug: 'gpu-compute',
-		// Kokoro voices via `hyperframes tts` — the same voice set /brag uses. Bed from /brag's
-		// bundled library, vendored under assets/audio/music so the build is self-contained.
-		bed: 'happy-beats-business-moves-vol-10-by-ende-dot-app.mp3',
-		voice: 'bm_george',
+		// Voice and bed are cast per build (scripts/video/cast.mjs): shuffled pools, no repeat across
+		// tools, draw frozen into casting.json. Pin one only to override that draw deliberately.
 		eyebrow: 'Compute infrastructure',
 		title: 'GPU TCO Analyzer',
 		kicker: 'Own it or rent it',
@@ -40,8 +38,7 @@ export const TOOLS = {
 	},
 	'decision-intelligence': {
 		slug: 'decision-intelligence',
-		bed: 'happy-beats-business-moves-vol-12-by-ende-dot-app.mp3',
-		voice: 'am_michael',
+		// cast per build — see scripts/video/cast.mjs
 		eyebrow: 'Build vs. buy',
 		title: 'Master Asset & Software TCO Calculator',
 		kicker: 'Build it or buy it',

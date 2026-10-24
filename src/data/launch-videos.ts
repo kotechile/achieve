@@ -27,7 +27,7 @@ export const TOOL_VIDEOS: Record<string, ToolVideoEntry> = {
 		poster: '/media/tool-videos/gpu-compute-poster.jpg',
 		width: 1280,
 		height: 720,
-		durationSec: 24.04,
+		durationSec: 21.55,
 		captions: '/media/tool-videos/gpu-compute.vtt'
 	}
 };

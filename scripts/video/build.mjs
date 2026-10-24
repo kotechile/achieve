@@ -21,6 +21,7 @@ import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import { promisify } from 'node:util';
 import { TOOLS } from './tools.mjs';
+import { drawCast, newSeed, readCasting, writeCasting } from './cast.mjs';
 import { composeHtml } from './compose.mjs';
 import { renderFrames } from './render.mjs';
 
@@ -35,7 +36,7 @@ const TAIL_MS = 1600;
 
 const log = (...a) => console.log(...a);
 
-async function tts(text, voice, outWav) {
+async function tts(text, voice, outWav, speed = 0.95) {
 	if (process.env.TTS_CMD) {
 		await exec('bash', ['-lc', process.env.TTS_CMD], {
 			env: { ...process.env, TTS_TEXT: text, TTS_OUT: outWav }
@@ -50,7 +51,7 @@ async function tts(text, voice, outWav) {
 		env.PATH = `${homedir()}/.local/bin:${env.PATH || ''}`;
 		await exec(
 			'hyperframes',
-			['tts', '--voice', voice, '--speed', '0.95', '-o', outWav, text],
+			['tts', '--voice', voice, '--speed', String(speed), '-o', outWav, text],
 			{ env }
 		);
 	}
@@ -120,6 +121,8 @@ function stamp(sec) {
 async function buildOne(slug) {
 	const tool = TOOLS[slug];
 	if (!tool) throw new Error('unknown tool: ' + slug);
+	const cast = tool.__cast;
+	if (!cast) throw new Error(slug + ': no casting assigned');
 	const dir = join(WORK, slug);
 	await mkdir(dir, { recursive: true });
 	await mkdir(MEDIA, { recursive: true });
@@ -135,7 +138,13 @@ async function buildOne(slug) {
 
 	// 2. voice, measured
 	const audio = join(dir, 'take.wav');
-	const audioSec = await tts(tool.narration, tool.voice, audio);
+	let audioSec = await tts(tool.narration, cast.voice, audio, 0.95);
+	// Voices differ in pace by ~10%. If the take would push the video past the 25s ceiling, re-cut it
+	// slightly faster once rather than shipping a truncated sentence or an out-of-window video.
+	if (audioSec * 1000 + TAIL_MS > MAX_MS) {
+		audioSec = await tts(tool.narration, cast.voice, audio, 1.08);
+		log(`  narrate   re-cut at 1.08x (${audioSec.toFixed(2)}s) for the 25s ceiling`);
+	}
 	// Length follows the take: the voice sets the clock, not a hard-coded 14s.
 	const durationMs = Math.min(
 		MAX_MS,
@@ -145,7 +154,7 @@ async function buildOne(slug) {
 		throw new Error(`${slug}: narration ${audioSec.toFixed(2)}s exceeds the ${(durationMs / 1000 - 0.5).toFixed(1)}s budget`);
 	}
 	await writeFile(compPath, composeHtml(tool, durationMs), 'utf8');
-	log(`  narrate   ${audioSec.toFixed(2)}s → ${(durationMs / 1000).toFixed(1)}s video`);
+	log(`  narrate   ${audioSec.toFixed(2)}s → ${(durationMs / 1000).toFixed(1)}s video · ${cast.voice} · ${cast.bed.replace('happy-beats-business-moves-', '').replace('-by-ende-dot-app.mp3', '')}`);
 
 	// 3. frames
 	const framesDir = join(dir, 'frames');
@@ -154,7 +163,7 @@ async function buildOne(slug) {
 
 	// 4. mix + poster
 	// A missing bed is a hard failure, not a silent narration-only render.
-	const music = join(ROOT, 'assets/audio/music', tool.bed);
+	const music = join(ROOT, 'assets/audio/music', cast.bed);
 	if (!existsSync(music)) throw new Error(`${slug}: music bed not found at ${music}`);
 	const mp4 = join(MEDIA, `${slug}.mp4`);
 	await mux(framesDir, audio, music, durationMs / 1000, mp4);
@@ -234,11 +243,25 @@ export function getToolVideo(slug: string): ToolVideoEntry | null {
 	await writeFile(join(ROOT, 'src/data/launch-videos.ts'), ts, 'utf8');
 }
 
-const only = process.argv.slice(2);
+const only = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+const keep = process.argv.includes('--keep');
 const slugs = only.length ? only : Object.keys(TOOLS);
+
+// Casting: a fresh draw by default so no two builds share a voice or a bed; `--keep` replays the
+// frozen drawing so the same mp4 can be reproduced byte-for-byte after the fact.
+const seed = newSeed();
+log(keep ? 'casting   replaying frozen drawing (--keep)' : `casting   fresh draw (seed ${seed})`);
+const drawn = drawCast(slugs, seed);
+for (const cast of drawn) {
+	const frozen = keep ? await readCasting(WORK, cast.slug) : null;
+	const final = frozen && frozen.voice && frozen.bed ? { ...cast, voice: frozen.voice, bed: frozen.bed, seed: frozen.seed } : cast;
+	TOOLS[cast.slug].__cast = final;
+	if (!frozen) await writeCasting(WORK, final);
+}
+
 const built = [];
 for (const slug of slugs) {
-	log(`▸ ${slug}`);
+	log(`▸ ${slug} — ${TOOLS[slug].__cast.voice} over ${TOOLS[slug].__cast.bed.replace('happy-beats-business-moves-', '').replace('-by-ende-dot-app.mp3', '')}`);
 	built.push(await buildOne(slug));
 }
 
