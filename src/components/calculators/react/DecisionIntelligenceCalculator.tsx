@@ -181,6 +181,8 @@ function Field({
 	const describedBy = hint ? `${id}-hint` : undefined;
 	// Width is derived from the formatted figure so the plate does not jitter as the value moves.
 	const plateWidth = `${Math.max(3, (decimals ? value.toFixed(decimals) : String(Math.round(value))).length + 1)}ch`;
+	// The track fills to the value, so a slider reads as a quantity rather than a grey groove.
+	const fillPct = `${((clamp(value, min, max) - min) / (max - min || 1)) * 100}%`;
 
 	return (
 		<div className="di-field">
@@ -217,6 +219,7 @@ function Field({
 				max={max}
 				step={step}
 				value={clamp(value, min, max)}
+				style={{ '--di-pct': fillPct } as React.CSSProperties}
 				aria-label={`${label} slider`}
 				aria-describedby={describedBy}
 				onChange={(event) => onChange(Number(event.target.value))}
@@ -1031,7 +1034,7 @@ export default function DecisionIntelligenceCalculator() {
 			</div>
 
 			{/* Mobile: the verdict stays in view while the sliders move. */}
-			<div className="di-mobilebar">
+			<div className="di-mobilebar" data-tone={result.tossUp ? 'flat' : 'clear'}>
 				<span className="di-chip di-chip--small">{result.verdict}</span>
 				<span className="di-mobilebar__text">{result.verdictLabel}</span>
 				<span className="di-mobilebar__delta">

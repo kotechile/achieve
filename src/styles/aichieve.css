@@ -1978,10 +1978,243 @@ html, body { overflow-x: clip; }
 
 /* A grid item's automatic minimum is its min-content width, so the tabs and the rail sized
    themselves to their longest label (385px) and overhung a 354px column. Both levels get an
-   explicit minmax(0, …) so the column can shrink and the labels wrap instead. */
-.di { grid-template-columns: minmax(0, 1fr); }
-.di .di__grid { grid-template-columns: minmax(0, 1fr); }
+   explicit minmax(0, …) so the column can shrink and the labels wrap instead.
+   SCOPED TO THE SINGLE-COLUMN LAYOUT: written unconditionally this also overrode §6's
+   `min-width: 1024px` two-column grid (same specificity, later in the file) and dropped the
+   desktop rail to full width. */
+@media (max-width: 1023.98px) {
+	.di { grid-template-columns: minmax(0, 1fr); }
+	.di .di__grid { grid-template-columns: minmax(0, 1fr); }
+}
 
 .di .di__tab,
 .di .di__tabq,
 .di .di__tablabel { min-width: 0; }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   6d · DECISION INSTRUMENT — colour layer
+
+   §6 is deliberately austere: hairlines, mono labels, ink figures. That reads as precise but
+   also as inert, and an instrument nobody wants to touch does not get used. This layer adds
+   colour where it carries information rather than decoration:
+
+     · the two options get a fixed identity hue — teal for the thing you own or keep, amber for
+       the alternative — used on the ledger column, its bars, its total and its chart line, so
+       the comparison is followable by colour before it is read
+     · sliders fill from left, so a control reads as a quantity instead of a grey groove
+     · the verdict wash is keyed to the outcome: cool when the arithmetic gives a clear answer,
+       warm when the two options are inside the toss-up band
+     · section indices and the active tab carry the accent, which is the only place a reader
+       needs to look to know where they are
+
+   Every hue here is a fill, a rule or a large figure. Both identity hues clear AA as text on
+   white (teal 5.4:1, amber 7.0:1) and the washes sit behind ink, never under body copy at
+   small size.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.di {
+	--di-a-wash: #eef6f8;
+	--di-a-rule: #cfe3e9;
+	--di-a-fill: #e8f2f5;
+	--di-a-fill-2: #d3e7ee;
+	--di-b-wash: #fbf3ea;
+	--di-b-rule: #ecd9c4;
+	--di-b-fill: #f9f0e5;
+	--di-b-fill-2: #f0e0cb;
+}
+
+/* ── mode tabs: a lamp on the one you are in ───────────────────────────────── */
+
+.di .di__tab[aria-selected="true"] {
+	background: linear-gradient(180deg, var(--di-a-wash), #ffffff 92%);
+}
+
+.di .di__tab[aria-selected="true"] .di__tablabel::before {
+	content: "";
+	display: inline-block;
+	width: 5px;
+	height: 5px;
+	margin-right: 0.4rem;
+	vertical-align: 0.08em;
+	background: var(--di-a);
+}
+
+.di .di__tab:hover .di__tablabel { color: var(--di-ink-2); }
+
+/* ── rail: section indices, tinted hovers ──────────────────────────────────── */
+
+.di .di-fieldset > .di-legend {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.di .di-fieldset > .di-legend::before {
+	content: "";
+	width: 2px;
+	height: 0.7rem;
+	background: var(--di-a);
+	flex-shrink: 0;
+}
+
+.di .di-fieldset--premises > .di-legend::before { background: var(--di-b); }
+
+.di .di-preset:hover {
+	background: var(--di-a-wash);
+	border-color: var(--di-a-rule);
+	color: var(--di-a);
+}
+
+.di .di-premise:hover {
+	background: var(--di-a-wash);
+	border-color: var(--di-a-rule);
+}
+
+.di .di-premise:has(input:checked) {
+	background: var(--di-b-wash);
+	border-color: var(--di-b-rule);
+}
+
+/* ── sliders: the track fills to the value ────────────────────────────────── */
+
+.di input[type="range"]::-webkit-slider-runnable-track {
+	background: linear-gradient(
+		to right,
+		var(--di-a) 0 var(--di-pct, 0%),
+		var(--di-line) var(--di-pct, 0%) 100%
+	) !important;
+}
+
+.di input[type="range"]::-moz-range-track {
+	background: linear-gradient(
+		to right,
+		var(--di-a) 0 var(--di-pct, 0%),
+		var(--di-line) var(--di-pct, 0%) 100%
+	) !important;
+}
+
+/* ── readout: a cool wash so the two columns are distinguishable ───────────── */
+
+@media (min-width: 1024px) {
+	.di .di__readout { background: linear-gradient(180deg, #f6fafb 0, #ffffff 320px); }
+}
+
+/* ── verdict: wash keyed to the outcome ───────────────────────────────────── */
+
+.di .di-verdict {
+	background: linear-gradient(135deg, var(--di-a-wash) 0, #ffffff 70%);
+	border-color: var(--di-a-rule);
+}
+
+.di .di-verdict[data-tone="flat"] {
+	background: linear-gradient(135deg, var(--di-b-wash) 0, #ffffff 70%);
+	border-left-color: var(--di-b);
+	border-color: var(--di-b-rule);
+}
+
+.di .di-verdict .di-chip { background: var(--di-a); }
+
+.di .di-verdict[data-tone="flat"] .di-chip { background: var(--di-b); }
+
+/* ── figures: the hero number carries the accent ──────────────────────────── */
+
+.di .di-figures {
+	background: #fbfdfd;
+	border-color: var(--di-a-rule);
+}
+
+.di .di-figure { border-color: var(--di-a-wash); }
+
+/* The hero figure stays ink: teal already means "Option A" in the ledger on the same screen,
+   so colouring the difference with it would read as a side rather than as a magnitude. */
+
+/* ── ledger: one hue per option, followed all the way down ────────────────── */
+
+.di .di-ledger { border-color: var(--di-line); }
+
+.di .di-side--0 {
+	--side: var(--di-a);
+	--side-wash: var(--di-a-wash);
+	--side-fill: var(--di-a-fill);
+	--side-fill-2: var(--di-a-fill-2);
+	background: linear-gradient(180deg, var(--di-a-wash), #ffffff 120px);
+}
+
+.di .di-side--1 {
+	--side: var(--di-b);
+	--side-wash: var(--di-b-wash);
+	--side-fill: var(--di-b-fill);
+	--side-fill-2: var(--di-b-fill-2);
+	background: linear-gradient(180deg, var(--di-b-wash), #ffffff 120px);
+}
+
+.di .di-side__eyebrow {
+	color: var(--side) !important;
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+}
+
+.di .di-side__eyebrow::before {
+	content: "";
+	width: 10px;
+	height: 2px;
+	background: var(--side);
+	flex-shrink: 0;
+}
+
+.di .di-side__total { color: var(--side) !important; }
+
+.di .di-side--0 .di-row__fill { background: var(--di-a-fill); }
+.di .di-side--0 .di-row__fill--hidden { background: var(--di-a-fill-2); }
+.di .di-side--1 .di-row__fill { background: var(--di-b-fill); }
+.di .di-side--1 .di-row__fill--hidden { background: var(--di-b-fill-2); }
+
+.di .di-side .di-row__amount { color: var(--di-ink) !important; }
+
+/* ── chart legend and swatches follow the same identity ───────────────────── */
+
+.di .di-chart__legend li:nth-child(1) .di-chart__legendvalue { color: var(--di-a); }
+.di .di-chart__legend li:nth-child(2) .di-chart__legendvalue { color: var(--di-b); }
+
+.di .di-chart { border-color: var(--di-line); background: #fdfefe; }
+
+/* ── actions ──────────────────────────────────────────────────────────────── */
+
+.di .di-action {
+	background: var(--di-a);
+	border-color: var(--di-a);
+}
+
+.di .di-action:hover {
+	background: #0b5f77;
+	border-color: #0b5f77;
+}
+
+.di .di-action--ghost {
+	background: #ffffff;
+	border-color: var(--di-a-rule);
+	color: var(--di-a);
+}
+
+.di .di-action--ghost:hover {
+	background: var(--di-a-wash);
+	border-color: var(--di-a);
+	color: var(--di-a);
+}
+
+/* ── mobile bar ───────────────────────────────────────────────────────────── */
+
+.di .di-mobilebar { background: linear-gradient(180deg, #ffffff, var(--di-a-wash)); }
+.di .di-mobilebar .di-chip { background: var(--di-a); }
+.di .di-mobilebar[data-tone="flat"] .di-chip { background: var(--di-b); }
+.di .di-mobilebar__delta { color: var(--di-a); }
+
+/* Amber is Option B's identity hue in this same table, so the off-invoice marker cannot also be
+   amber — it would read as "belongs to the other column". The tag is neutral; the darker row
+   fill already carries the emphasis. */
+.di .di-row .di-row__mark {
+	color: var(--di-ink-2) !important;
+	border-color: var(--di-line);
+	background: #ffffff;
+}
