@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>GPU TCO Analyzer — brag</title>
+<style>
+  @font-face { font-family: "Inter"; src: url("assets/fonts/inter-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: block; }
+  @font-face { font-family: "Inter"; src: url("assets/fonts/inter-latin-500-normal.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: block; }
+  @font-face { font-family: "Inter"; src: url("assets/fonts/inter-latin-600-normal.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: block; }
+  @font-face { font-family: "Inter"; src: url("assets/fonts/inter-latin-700-normal.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: block; }
+  @font-face { font-family: "Inter"; src: url("assets/fonts/inter-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-style: normal; font-display: block; }
+  @font-face { font-family: "Inter"; src: url("assets/fonts/inter-latin-900-normal.woff2") format("woff2"); font-weight: 900; font-style: normal; font-display: block; }
+  @font-face { font-family: "JetBrains Mono"; src: url("assets/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: block; }
+  @font-face { font-family: "JetBrains Mono"; src: url("assets/fonts/jetbrains-mono-latin-500-normal.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: block; }
+  @font-face { font-family: "JetBrains Mono"; src: url("assets/fonts/jetbrains-mono-latin-700-normal.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: block; }
+
+  :root {
+    --void: #08090b;
+    --shell: #0e1116;
+    --panel: #141920;
+    --line: rgba(255, 255, 255, 0.11);
+    --line-soft: rgba(255, 255, 255, 0.055);
+    --grid: rgba(255, 255, 255, 0.028);
+    --ink: #e9eef4;
+    --ink-2: #b9c6d3;
+    --ink-3: #94a3b8;
+    --ink-4: #8496a9;
+    --signal: #e8a33d;
+    --paper: #f8fafc;
+    --paper-ink: #111114;
+    --paper-mute: #5a6270;
+    --owned: #34d399;
+    --rented: #22d3ee;
+    --lic: #6d28d9;
+    --capital: #b45309;
+    --resale: #047857;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: var(--void); }
+  body {
+    font-family: "Inter", sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: "JetBrains Mono", monospace; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  #root {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--void);
+  }
+
+  .bg-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(to right, var(--grid) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+  .bg-glow {
+    position: absolute; width: 1500px; height: 1100px; left: 210px; top: -520px;
+    background: radial-gradient(circle at 50% 50%, rgba(232, 163, 61, 0.17) 0%, rgba(232, 163, 61, 0.05) 40%, rgba(232, 163, 61, 0) 68%);
+    opacity: 0.7;
+  }
+
+  /* ── brand rail ─────────────────────────────────────────── */
+  .rail {
+    position: absolute; left: 96px; right: 96px; top: 46px;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .rail-brand { display: flex; align-items: center; gap: 14px; }
+  .rail-mark {
+    width: 36px; height: 36px;
+    border: 1px solid var(--signal);
+    color: var(--signal);
+    display: grid; place-items: center;
+    font-size: 13px; font-weight: 700; letter-spacing: 0.06em;
+  }
+  .rail-word { font-size: 17px; font-weight: 700; letter-spacing: 0.16em; color: var(--ink); }
+  .rail-sub { font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-4); margin-top: 3px; }
+  .rail-right { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-4); }
+
+  .clip { position: absolute; inset: 0; }
+
+  /* ── scene 1: odometer ──────────────────────────────────── */
+  .s1-rule { position: absolute; left: 96px; top: 336px; width: 3px; height: 214px; background: var(--signal); }
+  .s1-inner { position: absolute; left: 128px; top: 330px; width: 1440px; }
+  .s1-eyebrow {
+    font-size: 13px; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--signal); font-weight: 500;
+  }
+  .hook-num {
+    margin-top: 26px;
+    font-size: 182px; line-height: 0.92; font-weight: 800; letter-spacing: -0.045em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .hook-labels { position: relative; height: 28px; margin-top: 30px; }
+  .hook-label {
+    position: absolute; left: 0; top: 0;
+    font-size: 16px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 500;
+    white-space: nowrap;
+  }
+  .hl-a { color: var(--ink-3); }
+  .hl-b { color: var(--signal); opacity: 0; }
+
+  /* ── paper cards ───────────────────────────────────────── */
+  .sheet {
+    position: absolute; left: 96px; top: 140px; width: 1010px; height: 700px;
+    background: var(--paper);
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 32px 40px 28px;
+    display: flex; flex-direction: column;
+    color: var(--paper-ink);
+  }
+  .p-head { text-align: center; padding-bottom: 16px; border-bottom: 1px dashed #c3ccda; }
+  .p-title { font-size: 30px; font-weight: 800; letter-spacing: 0.11em; text-transform: uppercase; color: var(--paper-ink); }
+  .p-sub { margin-top: 8px; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--paper-mute); }
+  .p-cmp { margin-top: 10px; font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #0b6279; }
+  .p-meta { margin-top: 16px; font-size: 12px; letter-spacing: 0.06em; color: var(--paper-mute); }
+  .p-sect { margin-top: 20px; font-size: 14px; font-weight: 700; letter-spacing: 0.17em; text-transform: uppercase; color: var(--paper-mute); }
+  .p-rows { margin-top: 8px; }
+  .row {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(17, 17, 20, 0.07);
+  }
+  .row span { font-size: 19px; font-weight: 500; color: var(--paper-mute); }
+  .row b { font-size: 20px; font-weight: 700; color: var(--paper-ink); }
+  .row--lic {
+    margin: 0 -12px; padding: 10px 12px;
+    border-left: 3px solid var(--signal);
+    background: rgba(109, 40, 217, 0.055);
+    border-bottom-color: rgba(109, 40, 217, 0.16);
+  }
+  .row--lic span, .row--lic b { color: var(--lic); }
+  .row--cap span, .row--cap b { color: var(--capital); }
+  .row--res span, .row--res b { color: var(--resale); }
+
+  .p-total { margin-top: auto; padding-top: 16px; border-top: 1px solid rgba(17, 17, 20, 0.22); }
+  .p-total-row { display: flex; align-items: baseline; justify-content: space-between; }
+  .p-total-row span { font-size: 20px; font-weight: 800; color: var(--paper-ink); }
+  .p-total-row b { font-size: 46px; font-weight: 700; color: var(--resale); letter-spacing: -0.02em; }
+  .p-total-sub { display: flex; justify-content: space-between; margin-top: 8px; padding-left: 4px; }
+  .p-total-sub span { font-size: 13px; color: var(--paper-mute); }
+  .p-total-sub b { font-size: 15px; font-weight: 700; color: var(--resale); }
+
+  .cloud {
+    position: absolute; left: 1160px; top: 140px; width: 664px; height: 700px;
+    background: var(--paper);
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 32px 36px 28px;
+    display: flex; flex-direction: column;
+    color: var(--paper-ink);
+  }
+  .c-title { font-size: 13px; font-weight: 700; letter-spacing: 0.17em; text-transform: uppercase; color: var(--paper-mute); padding-bottom: 14px; border-bottom: 1px dashed #c3ccda; line-height: 1.5; }
+  .c-rows { margin-top: 6px; }
+  .c-note { margin-top: 34px; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--paper-mute); }
+  .c-note b { color: #0b6279; font-weight: 700; }
+
+  /* inputs column */
+  .inputs { position: absolute; left: 1160px; top: 140px; width: 664px; height: 700px; }
+  .i-label { font-size: 13px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--signal); font-weight: 500; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+  .i-row { padding: 20px 0 16px; border-bottom: 1px solid var(--line-soft); }
+  .i-head { display: flex; align-items: baseline; justify-content: space-between; }
+  .i-head span { font-size: 14px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); }
+  .i-head b { font-size: 30px; font-weight: 700; color: var(--ink); letter-spacing: -0.01em; }
+  .i-track { position: relative; height: 2px; margin-top: 16px; background: rgba(255, 255, 255, 0.09); }
+  .i-thumb { position: absolute; top: -5px; width: 2px; height: 12px; background: var(--signal); }
+  .i-usage {
+    margin-top: 26px; padding: 20px 24px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: var(--panel);
+    display: flex; align-items: baseline; justify-content: space-between;
+  }
+  .i-usage span { font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-3); }
+  .i-usage b { font-size: 32px; font-weight: 700; color: var(--ink); letter-spacing: -0.015em; }
+
+  .lic { position: absolute; left: 0; top: 420px; width: 664px; display: flex; align-items: flex-start; gap: 26px; }
+  .lic-bar { width: 3px; height: 124px; background: var(--signal); }
+  .lic-num { font-size: 116px; line-height: 0.86; font-weight: 800; letter-spacing: -0.04em; color: var(--signal); font-variant-numeric: tabular-nums; }
+  .lic-cap { margin-top: 16px; width: 460px; font-size: 16px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-2); line-height: 1.7; }
+
+  /* delta strip */
+  .delta {
+    position: absolute; left: 96px; top: 892px; width: 1728px; height: 78px;
+    background: var(--shell);
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px;
+  }
+  .delta-l { font-size: 14px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--ink-3); }
+  .delta-r { display: flex; align-items: baseline; gap: 18px; }
+  .delta-r b { font-size: 38px; font-weight: 700; color: var(--signal); letter-spacing: -0.01em; }
+  .delta-r span { font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-3); }
+
+  /* ── scene 4: chart + verdict ──────────────────────────── */
+  .v-eyebrow { position: absolute; left: 96px; top: 140px; font-size: 13px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--ink-3); }
+  .v-legend { position: absolute; right: 96px; top: 132px; display: flex; gap: 28px; }
+  .v-legend div { display: flex; align-items: center; gap: 9px; font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); }
+  .v-swatch { width: 26px; height: 2px; }
+  .v-note { position: absolute; right: 96px; top: 166px; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-4); }
+  .chart { position: absolute; left: 96px; top: 190px; width: 1728px; height: 570px; }
+  .v-amber { position: absolute; left: 96px; top: 792px; font-size: 22px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--signal); font-weight: 500; }
+  .v-line { position: absolute; left: 96px; top: 838px; font-size: 64px; font-weight: 600; letter-spacing: -0.03em; color: var(--ink); }
+
+  /* ── scene 5: outro ────────────────────────────────────── */
+  .o-inner { position: absolute; left: 128px; top: 344px; width: 1500px; }
+  .o-eyebrow { font-size: 13px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--signal); font-weight: 500; }
+  .o-line { margin-top: 24px; font-size: 96px; font-weight: 600; letter-spacing: -0.035em; color: var(--ink); }
+  .o-chip {
+    margin-top: 46px; display: inline-flex; align-items: center; gap: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 18px 24px;
+  }
+  .o-chip b { font-size: 26px; font-weight: 700; letter-spacing: 0.01em; color: var(--ink); }
+  .o-chip span { font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--signal); }
+  .o-meta { margin-top: 34px; font-size: 13px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-4); }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="gpu-tco-brag" data-start="0" data-width="1920" data-height="1080" data-duration="22.2">
+  <div class="bg-grid"></div>
+  <div class="bg-glow" id="glow"></div>
+
+  <div class="rail">
+    <div class="rail-brand">
+      <div class="rail-mark mono">AI</div>
+      <div>
+        <div class="rail-word">AIChieve</div>
+        <div class="rail-sub mono" data-layout-ignore>Enterprise Command Center</div>
+      </div>
+    </div>
+    <div class="rail-right mono">aichieve.net/tools/gpu-compute/</div>
+  </div>
+
+  <!-- scene 1 — odometer -->
+  <section class="clip" id="scene-hook" data-start="0" data-duration="3.6" data-track-index="0">
+    <div class="s1-rule" id="s1Rule"></div>
+    <div class="s1-inner">
+      <p class="s1-eyebrow mono" id="s1Eyebrow">GPU TCO Analyzer</p>
+      <div class="hook-num" id="hookNum">$16,000</div>
+      <div class="hook-labels">
+        <p class="hook-label mono hl-a" id="hlA">Street price · 1x RTX PRO 6000 Blackwell (96GB ECC)</p>
+        <p class="hook-label mono hl-b" id="hlB">True cost · 36 months · 108 hrs/mo</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- scenes 2 + 3 — the receipt, then the empty sheet -->
+  <section class="clip" id="scene-receipt" data-start="3.6" data-duration="10.3" data-track-index="1">
+    <article class="sheet" id="sheet">
+      <div class="p-head" id="pHead">
+        <p class="p-title">GPU TCO receipt</p>
+        <p class="p-sub mono" data-layout-ignore>Cost analysis breakdown</p>
+        <p class="p-cmp">Comparing local vs Hyperstack</p>
+      </div>
+      <p class="p-meta mono" data-layout-ignore>36 mo · 108 hrs/mo · $0.12/kWh · 5% capital · 20% resale</p>
+      <p class="p-sect mono" id="pSect">Local hardware (1x 96GB)</p>
+      <div class="p-rows">
+        <div class="row" data-row="0"><span>GPU cost</span><b class="mono num">$16,000</b></div>
+        <div class="row" data-row="1"><span>System components</span><b class="mono num">$1,000</b></div>
+        <div class="row" data-row="2"><span>Electricity (36 mo)</span><b class="mono num">$397</b></div>
+        <div class="row" data-row="3"><span>Maintenance (5%/yr)</span><b class="mono num">$2,550</b></div>
+        <div class="row row--lic" data-row="4"><span>NVAIE (1 seat × $4,500/yr)</span><b class="mono num">$13,500</b></div>
+        <div class="row row--cap" data-row="5"><span>Cost of capital (5%/yr)</span><b class="mono num">+$2,550</b></div>
+        <div class="row row--res" data-row="6"><span>Less 3-yr resale (20%)</span><b class="mono num">−$3,200</b></div>
+      </div>
+      <div class="p-total" id="pTotal">
+        <div class="p-total-row"><span>Net local TCO</span><b class="mono num" id="netLocal">$32,797</b></div>
+        <div class="p-total-sub mono num"><span>Cost per hour</span><b>$8.435/hr</b></div>
+      </div>
+    </article>
+
+    <aside class="inputs" id="inputs">
+      <p class="i-label mono">Inputs · this run</p>
+      <div class="i-row" data-i="0">
+        <div class="i-head"><span>Hours per day</span><b class="mono num">6</b></div>
+        <div class="i-track"><div class="i-thumb" style="left: 24%"></div></div>
+      </div>
+      <div class="i-row" data-i="1">
+        <div class="i-head"><span>Days per month</span><b class="mono num">30</b></div>
+        <div class="i-track"><div class="i-thumb" style="left: 100%"></div></div>
+      </div>
+      <div class="i-row" data-i="2">
+        <div class="i-head"><span>Evaluation horizon</span><b class="mono num">36 mo</b></div>
+        <div class="i-track"><div class="i-thumb" style="left: 43%"></div></div>
+      </div>
+      <div class="i-usage" id="iUsage">
+        <span class="mono">Monthly usage</span>
+        <b class="mono num">108 hours</b>
+      </div>
+      <div class="lic" id="lic">
+        <div class="lic-bar"></div>
+        <div>
+          <p class="lic-num">79%</p>
+          <p class="lic-cap mono">of hardware capex is the licence</p>
+        </div>
+      </div>
+    </aside>
+
+    <article class="cloud" id="cloud">
+      <p class="c-title mono">Hyperstack (1x NVIDIA RTX PRO 6000)</p>
+      <div class="c-rows">
+        <div class="row" data-crow="0"><span>Usage (1x @ $1.80/hr)</span><b class="mono num">$6,998</b></div>
+        <div class="row" data-crow="1"><span>Storage (36 mo)</span><b class="mono num">$360</b></div>
+      </div>
+      <p class="c-note mono" id="cNote">Per-minute billing · <b>zero egress fees</b></p>
+      <div class="p-total">
+        <div class="p-total-row"><span>Total cloud cost</span><b class="mono num">$7,358</b></div>
+        <div class="p-total-sub mono num"><span>Cost per hour</span><b style="color:#0b6279">$1.893/hr</b></div>
+      </div>
+    </article>
+
+    <div class="delta" id="delta">
+      <p class="delta-l mono">Delta at 36 months</p>
+      <div class="delta-r">
+        <b class="mono num">−$25,438</b>
+        <span class="mono">in favour of renting</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- scene 4 — never -->
+  <section class="clip" id="scene-never" data-start="13.9" data-duration="4.5" data-track-index="2">
+    <p class="v-eyebrow mono" id="vEyebrow">Renting vs owning · cumulative cost</p>
+    <div class="v-legend" id="vLegend">
+      <div><span class="v-swatch" style="background: #34d399"></span>Local owning net TCO</div>
+      <div><span class="v-swatch" style="background: #22d3ee"></span>Cloud renting</div>
+    </div>
+    <p class="v-note mono" id="vNote">Searched to 84 months · no intersection</p>
+    <svg class="chart" id="chart" viewBox="0 0 1728 570" xmlns="http://www.w3.org/2000/svg">
+      <g id="axis" stroke="#2b3340" stroke-width="1">
+        <line x1="60" y1="500" x2="1700" y2="500" />
+        <line x1="60" y1="40" x2="60" y2="500" />
+        <line x1="60" y1="385" x2="1700" y2="385" stroke-dasharray="3 7" />
+        <line x1="60" y1="270" x2="1700" y2="270" stroke-dasharray="3 7" />
+        <line x1="60" y1="155" x2="1700" y2="155" stroke-dasharray="3 7" />
+        <line x1="60" y1="40" x2="1700" y2="40" stroke-dasharray="3 7" />
+      </g>
+      <g font-family="JetBrains Mono" font-size="16" fill="#8496a9" text-anchor="end">
+        <text x="46" y="506">$0</text>
+        <text x="46" y="391">$10k</text>
+        <text x="46" y="276">$20k</text>
+        <text x="46" y="161">$30k</text>
+        <text x="46" y="46">$40k</text>
+      </g>
+      <g font-family="JetBrains Mono" font-size="16" fill="#8496a9" text-anchor="middle">
+        <text x="60" y="536">m0</text>
+        <text x="607" y="536">m12</text>
+        <text x="1153" y="536">m24</text>
+        <text x="1700" y="536">m36</text>
+      </g>
+      <path id="lineOwned" d="M60 500 L1700 122.8" fill="none" stroke="#34d399" stroke-width="4" stroke-linecap="round" />
+      <path id="lineRented" d="M60 500 L1700 415.4" fill="none" stroke="#22d3ee" stroke-width="4" stroke-linecap="round" />
+      <line id="gapBar" x1="1660" y1="122.8" x2="1660" y2="415.4" stroke="#e8a33d" stroke-width="1.5" stroke-dasharray="4 6" />
+      <circle id="dotOwned" cx="1700" cy="122.8" r="6" fill="#34d399" />
+      <circle id="dotRented" cx="1700" cy="415.4" r="6" fill="#22d3ee" />
+      <text id="gapLabel" x="1636" y="282" font-family="JetBrains Mono" font-size="28" font-weight="700" fill="#e8a33d" text-anchor="end">−$25,438</text>
+    </svg>
+    <p class="v-amber mono" id="vAmber">No break-even inside 84 months</p>
+    <p class="v-line" id="vLine">The hardware never repays itself.</p>
+  </section>
+
+  <!-- scene 5 — outro -->
+  <section class="clip" id="scene-outro" data-start="18.4" data-duration="3.8" data-track-index="3">
+    <div class="o-inner">
+      <p class="o-eyebrow mono" id="oEyebrow">GPU TCO Analyzer</p>
+      <p class="o-line" id="oLine">Bring your own numbers.</p>
+      <div class="o-chip" id="oChip">
+        <b class="mono">aichieve.net/tools/gpu-compute/</b>
+        <span class="mono">Runs in your browser</span>
+      </div>
+      <p class="o-meta mono" id="oMeta">Deterministic · nothing leaves the page</p>
+    </div>
+  </section>
+</div>
+
+<audio id="bed" data-start="0" data-duration="22.2" data-track-index="10" data-volume="0.20"
+  src="assets/music/happy-beats-business-moves-vol-12-by-ende-dot-app.mp3"></audio>
+<audio id="vo-1" data-start="0.05" data-duration="3.55" data-track-index="3" data-volume="1"
+  src="assets/voice/vo-1.wav"></audio>
+<audio id="vo-2" data-start="4.05" data-duration="6.00" data-track-index="4" data-volume="1"
+  src="assets/voice/vo-2.wav"></audio>
+<audio id="vo-3" data-start="10.55" data-duration="2.52" data-track-index="5" data-volume="1"
+  src="assets/voice/vo-3.wav"></audio>
+<audio id="vo-4" data-start="14.45" data-duration="2.24" data-track-index="6" data-volume="1"
+  src="assets/voice/vo-4.wav"></audio>
+<audio id="vo-5" data-start="18.85" data-duration="2.07" data-track-index="7" data-volume="1"
+  src="assets/voice/vo-5.wav"></audio>
+<audio id="sfx-hook" data-start="2.66" data-duration="0.15" data-track-index="11" data-volume="0.7"
+  src="assets/sfx/impact/impactSoft_medium_003.ogg"></audio>
+<audio id="sfx-sheet" data-start="3.80" data-duration="0.20" data-track-index="12" data-volume="0.55"
+  src="assets/sfx/interface/drop_003.ogg"></audio>
+<audio id="sfx-row1" data-start="4.38" data-duration="0.20" data-track-index="13" data-volume="0.4"
+  src="assets/sfx/interface/drop_002.ogg"></audio>
+<audio id="sfx-row4" data-start="6.00" data-duration="0.02" data-track-index="14" data-volume="0.45"
+  src="assets/sfx/interface/click_002.ogg"></audio>
+<audio id="sfx-lic" data-start="6.56" data-duration="0.06" data-track-index="15" data-volume="0.6"
+  src="assets/sfx/interface/select_008.ogg"></audio>
+<audio id="sfx-lic79" data-start="7.06" data-duration="0.62" data-track-index="16" data-volume="0.42"
+  src="assets/sfx/interface/switch_001.ogg"></audio>
+<audio id="sfx-total" data-start="8.74" data-duration="0.66" data-track-index="17" data-volume="0.5"
+  src="assets/sfx/impact/impactBell_heavy_003.ogg"></audio>
+<audio id="sfx-cloud" data-start="10.37" data-duration="0.12" data-track-index="18" data-volume="0.5"
+  src="assets/sfx/interface/drop_001.ogg"></audio>
+<audio id="sfx-cloudtotal" data-start="11.46" data-duration="0.24" data-track-index="19" data-volume="0.6"
+  src="assets/sfx/casino/chip-lay-2.ogg"></audio>
+<audio id="sfx-delta" data-start="12.02" data-duration="0.19" data-track-index="20" data-volume="0.62"
+  src="assets/sfx/impact/impactSoft_medium_001.ogg"></audio>
+<audio id="sfx-amber" data-start="15.84" data-duration="0.11" data-track-index="21" data-volume="0.42"
+  src="assets/sfx/interface/click_001.ogg"></audio>
+<audio id="sfx-verdict" data-start="17.47" data-duration="0.89" data-track-index="22" data-volume="0.5"
+  src="assets/sfx/casino/card-place-3.ogg"></audio>
+<audio id="sfx-outro" data-start="18.56" data-duration="0.20" data-track-index="23" data-volume="0.55"
+  src="assets/sfx/interface/drop_002.ogg"></audio>
+<audio id="sfx-chip" data-start="19.66" data-duration="0.07" data-track-index="24" data-volume="0.45"
+  src="assets/sfx/ui/mouseclick1.ogg"></audio>
+
+<script src="assets/js/gsap.min.js"></script>
+<script src="assets/js/bass.js"></script>
+<script>
+(function () {
+  var fmt = function (v) { return "$" + Math.round(v).toLocaleString("en-US"); };
+  var BY = function (sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); };
+
+  function build() {
+    var tl = gsap.timeline({ paused: true });
+
+    /* audio-reactive glow: pre-extracted bass, 15 Hz */
+    var bass = window.__BASS || [];
+    var glow = document.getElementById("glow");
+    for (var i = 0; i < bass.length; i++) {
+      (function (idx) {
+        tl.call(function () {
+          var v = bass[idx] || 0;
+          glow.style.opacity = (0.58 + v * 0.42).toFixed(3);
+          glow.style.transform = "scale(" + (1 + v * 0.055).toFixed(4) + ")";
+        }, [], idx / 15);
+      })(i);
+    }
+
+    /* ── scene 1 — odometer ─────────────────────────────── */
+    tl.fromTo("#s1Rule", { scaleY: 0, transformOrigin: "top center" }, { scaleY: 1, duration: 0.5, ease: "power3.out" }, 0.10);
+    tl.fromTo("#s1Eyebrow", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 0.24);
+    tl.fromTo("#hookNum", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 0.36);
+    tl.fromTo("#hlA", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 0.58);
+
+    /* the price changes on you — beat 2.73 */
+    var hookEl = document.getElementById("hookNum");
+    var tick = { v: 16000 };
+    tl.to(tick, {
+      v: 32797, duration: 0.86, ease: "power2.inOut", snap: { v: 1 },
+      onUpdate: function () { hookEl.textContent = fmt(tick.v); }
+    }, 1.92);
+    tl.to("#hlA", { opacity: 0, duration: 0.22, ease: "power1.in" }, 2.48);
+    tl.fromTo("#hlB", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.32, ease: "power2.out" }, 2.72);
+
+    /* ── scenes 2+3 — the receipt ───────────────────────── */
+    tl.fromTo("#sheet", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 3.80);
+    tl.fromTo("#pHead", { opacity: 0 }, { opacity: 1, duration: 0.32, ease: "power1.out" }, 3.90);
+    tl.fromTo("#pMeta", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 4.06);
+    tl.fromTo("#pSect", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 4.22);
+
+    /* line items print on consecutive beats 4.38 → 7.64 */
+    var rowTimes = [4.38, 4.90, 5.34, 6.00, 6.56, 7.10, 7.64];
+    BY("[data-row]").forEach(function (row, idx) {
+      tl.fromTo(row, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.30, ease: "power2.out" }, rowTimes[idx]);
+    });
+
+    /* the inputs that produced the receipt */
+    tl.fromTo(".i-label", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.34, ease: "power2.out" }, 4.10);
+    BY("[data-i]").forEach(function (row, idx) {
+      tl.fromTo(row, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.32, ease: "power2.out" }, 4.40 + idx * 0.36);
+    });
+    tl.fromTo("#iUsage", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.36, ease: "power2.out" }, 5.90);
+
+    /* the licence is the twist */
+    tl.fromTo("#lic", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.44, ease: "power3.out" }, 7.06);
+    tl.fromTo(".lic-bar", { scaleY: 0, transformOrigin: "top center" }, { scaleY: 1, duration: 0.4, ease: "power3.out" }, 7.06);
+
+    /* total — strong cue 8.74 */
+    tl.fromTo("#pTotal", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.30, ease: "power2.out" }, 8.30);
+    var netEl = document.getElementById("netLocal");
+    tl.fromTo(netEl, { scale: 0.86, transformOrigin: "right center" }, { scale: 1, duration: 0.44, ease: "back.out(1.6)" }, 8.74);
+
+    /* the empty sheet arrives — 10.37 */
+    tl.to("#inputs", { opacity: 0, duration: 0.28, ease: "power1.in" }, 10.16);
+    tl.fromTo("#cloud", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.46, ease: "power3.out" }, 10.37);
+    tl.fromTo(".c-title", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 10.44);
+    tl.fromTo("[data-crow='0']", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" }, 10.90);
+    tl.fromTo("[data-crow='1']", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" }, 11.44);
+    tl.fromTo("#cloud .p-total", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.34, ease: "power2.out" }, 11.86);
+    tl.fromTo("#cNote", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 11.50);
+
+    /* delta strip — 12.02 */
+    tl.fromTo("#delta", { opacity: 0, scaleX: 0.965, transformOrigin: "left center" }, { opacity: 1, scaleX: 1, duration: 0.42, ease: "power3.out" }, 12.02);
+    tl.fromTo(".delta-r b", { opacity: 0, x: -14 }, { opacity: 1, x: 0, duration: 0.34, ease: "power2.out" }, 12.14);
+    tl.fromTo(".delta-r span", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 12.30);
+
+    /* ── scene 4 — never ───────────────────────────────── */
+    tl.fromTo("#vEyebrow", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.34, ease: "power2.out" }, 14.02);
+    tl.fromTo("#vLegend", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.34, ease: "power2.out" }, 14.10);
+    tl.fromTo("#axis", { opacity: 0 }, { opacity: 1, duration: 0.36, ease: "power1.out" }, 14.20);
+    tl.fromTo("#lineOwned", { strokeDashoffset: 1683 }, { strokeDashoffset: 0, duration: 0.78, ease: "power2.inOut" }, 14.73);
+    tl.fromTo("#lineRented", { strokeDashoffset: 1663 }, { strokeDashoffset: 0, duration: 0.58, ease: "power2.inOut" }, 15.26);
+    tl.fromTo("#dotOwned", { scale: 0, transformOrigin: "center" }, { scale: 1, duration: 0.28, ease: "back.out(2)" }, 15.46);
+    tl.fromTo("#dotRented", { scale: 0, transformOrigin: "center" }, { scale: 1, duration: 0.28, ease: "back.out(2)" }, 15.74);
+    tl.fromTo("#gapBar", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 15.84);
+    tl.fromTo("#gapLabel", { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: 0.34, ease: "power2.out" }, 15.90);
+    tl.fromTo("#vAmber", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.34, ease: "power2.out" }, 16.16);
+    tl.fromTo("#vLine", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.42, ease: "power3.out" }, 16.62);
+
+    /* ── scene 5 — outro ───────────────────────────────── */
+    tl.fromTo("#oEyebrow", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.36, ease: "power2.out" }, 18.52);
+    tl.fromTo("#oLine", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.48, ease: "power3.out" }, 18.62);
+    tl.fromTo("#oChip", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.42, ease: "power3.out" }, 19.62);
+    tl.fromTo("#oMeta", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.38, ease: "power2.out" }, 20.60);
+    tl.to(".o-inner", { opacity: 0, duration: 0.42, ease: "power1.in" }, 21.78);
+
+    window.__timelines["gpu-tco-brag"] = tl;
+  }
+
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(build);
+  } else {
+    build();
+  }
+})();
+</script>
+</body>
+</html>
