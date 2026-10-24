@@ -20,7 +20,7 @@ const { id, poster, label, seconds, width = 1920, height = 1080 } = Astro.props;
 
 <button
 	type="button"
-	class="group relative mt-5 block w-full cursor-pointer overflow-hidden border border-[var(--ai-line)] bg-black text-left"
+	class="group relative block w-full cursor-pointer overflow-hidden border border-[var(--ai-line)] bg-black text-left"
 	data-yt-facade
 	data-yt-id={id}
 	data-w={width}
@@ -61,7 +61,7 @@ const { id, poster, label, seconds, width = 1920, height = 1080 } = Astro.props;
 			'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
 		frame.allowFullscreen = true;
 		frame.loading = 'lazy';
-		frame.className = 'mt-5 block w-full aspect-video bg-black';
+		frame.className = 'block w-full aspect-video bg-black';
 		// the width/height attributes are presentational hints; without this the 1080px height
 		// attribute wins over aspect-ratio and the player renders three times too tall
 		frame.style.height = 'auto';
