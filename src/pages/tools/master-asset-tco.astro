@@ -22,12 +22,12 @@ const faqItems = [
 	{
 		question: 'Why does the engine ask about sunk cost and key-person risk?',
 		answer:
-			'Those two biases are what make a build decision get re-affirmed after the arithmetic has already turned. Naming them in the model is the point — the number is only actionable if the argument around it is acknowledged.'
+			'Those two are what make a build decision get re-affirmed after the arithmetic has already turned. The premise check records them separately from the money, because neither is a number: it reports how many parts of the decision the arithmetic cannot settle.'
 	},
 	{
 		question: 'Does it cover per-use assets as well as software?',
 		answer:
-			'The same normalization applies to any asset whose cost splits into a sticker price, an operating cost and an upkeep cost — which is why the engine handles both a CIAM build-versus-buy call and a cost-per-use asset decision with one method.'
+			'The same ledger applies to anything whose cost splits into a sticker price, an operating cost and an upkeep cost. The repair mode also prices the replacement, so the verdict compares two annualised routes instead of a ratio against a fixed threshold.'
 	}
 ];
 
@@ -51,35 +51,51 @@ const post = await fetchPostBySlug('enterprisebuildvsbuy-the-250k-ai-upkeep-tax'
 			<p class="ai-label">Operator notes</p>
 			<h2 class="mt-3 text-xl font-bold tracking-tight">How to run it</h2>
 			<ol class="mt-5 grid gap-4 text-sm leading-7 text-[var(--ai-ink-2)]">
-				<li>1. Pick the mode that matches the decision — enterprise build-vs-buy, cost-per-use, repair-vs-replace, or the tinkering tax.</li>
-				<li>2. Load your own rate card: fully loaded engineer-year cost, compliance scope, maintenance headcount.</li>
-				<li>3. Read the visible-versus-invisible cost matrix, which is where the off-ledger costs appear.</li>
-				<li>4. Complete the bias check before circulating the result — a defensible number with an unexamined premise fails in review.</li>
+				<li>1. Pick the decision: build vs buy, cost per use, repair or replace, or the tinkering tax.</li>
+				<li>2. Fill in the cost basis. Loaded rate, build window and team size set the custom side.</li>
+				<li>3. Price the off-invoice line. Maintenance load, compliance and roadmap opportunity are what the first quote leaves out.</li>
+				<li>4. Read the crossover. The chart names the month one route overtakes the other, or says plainly that they never meet inside the horizon.</li>
+				<li>5. Record the premises before circulating the result. A defensible number with an unexamined premise fails in review.</li>
 			</ol>
 		</article>
 
 		<article slot="aside" class="ai-panel p-6">
 			<p class="ai-label">Formulas</p>
-			<div class="mt-5 grid gap-4 border border-[var(--ai-line)] bg-[var(--ai-void)] p-4 font-mono text-[0.7rem] leading-6 text-[var(--ai-ink-2)]">
+			<div
+				class="mt-5 grid gap-4 border border-[var(--ai-line)] bg-[var(--ai-void)] p-4 font-mono text-[0.7rem] leading-6 text-[var(--ai-ink-2)]"
+			>
 				<div>
-					<p class="font-bold text-[var(--ai-ink)]">Custom build TCO</p>
-					<p>build + 3×compliance + 36×maintenance + opportunity</p>
+					<p class="font-bold text-[var(--ai-ink)]">Custom build TCO, 36 months</p>
+					<p>build labour + maintenance + compliance + opportunity</p>
+				</div>
+				<div>
+					<p class="font-bold text-[var(--ai-ink)]">Managed platform TCO, 36 months</p>
+					<p>integration labour + (monthly tier × 36)</p>
+				</div>
+				<div>
+					<p class="font-bold text-[var(--ai-ink)]">Crossover month</p>
+					<p>first month where platform spend ≤ build spend</p>
 				</div>
 				<div>
 					<p class="font-bold text-[var(--ai-ink)]">Per-use asset TCO</p>
-					<p>sticker + operating + upkeep</p>
+					<p>sticker − resale + (uses × operating) + upkeep</p>
 				</div>
 				<div>
 					<p class="font-bold text-[var(--ai-ink)]">Asset tech-debt index</p>
 					<p>age × immediate repair cost</p>
 				</div>
 				<div>
-					<p class="font-bold text-[var(--ai-ink)]">Monthly tinkering tax</p>
+					<p class="font-bold text-[var(--ai-ink)]">Repair vs replace</p>
+					<p>quote ÷ years bought · replacement ÷ years it lasts</p>
+				</div>
+				<div>
+					<p class="font-bold text-[var(--ai-ink)]">Tinkering tax</p>
 					<p>troubleshoot hours × value of time</p>
 				</div>
 			</div>
 			<p class="mt-4 text-xs leading-6 text-[var(--ai-ink-2)]">
 				Every calculation runs client-side and can be bookmarked or saved locally on your device.
+				Copy the summary to paste the full breakdown, assumptions included, into a review.
 			</p>
 		</article>
 
@@ -95,6 +111,6 @@ const post = await fetchPostBySlug('enterprisebuildvsbuy-the-250k-ai-upkeep-tax'
 			</div>
 		</article>
 
-		{post && <RelatedArticleCard slot="aside" post={post} />}
+		{post && <RelatedArticleCard slot="aside-full" post={post} />}
 	</CalculatorShell>
 </BaseLayout>

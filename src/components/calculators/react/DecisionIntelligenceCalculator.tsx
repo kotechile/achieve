@@ -1,996 +1,1043 @@
-import React, { useState, useMemo, useEffect } from 'react';
+/**
+ * Master Asset & Software TCO Calculator — the instrument.
+ *
+ * WHY THIS IS ONE GENERIC RENDERER
+ * The old version had four hand-built layout branches and eight bespoke output blocks, which is
+ * how a "break-even" label ended up displayed next to a number that contradicted it. The engine
+ * now returns a decision record (two options, a breakdown each, a cumulative series, premises) and
+ * this file renders exactly that — one contract, four modes. If a figure appears on screen it was
+ * produced by `DecisionIntelligenceEngine`, never by JSX.
+ *
+ * STYLING
+ * Every class here is a `.di-*` rule declared in `aichieve.css` §6, not a utility soup. The bay
+ * is flattened by two `!important` policy layers (§4a light surfaces, §4b contrast re-pins);
+ * writing against named classes keeps the instrument out of that fight and stops another round of
+ * hex literals written without a `text-[…]` wrapper, which is how 20 dead classes got in.
+ */
+
+import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import {
 	DecisionIntelligenceEngine,
-	type DecisionIntelligenceInputs
+	defaultComplianceCost,
+	type DecisionIntelligenceInputs,
+	type DecisionMode,
+	type DecisionResult,
+	type OptionSide
 } from '../../../lib/calculators/decisionIntelligence';
-import { formatCurrency } from '../../../lib/calculators/format';
+
+const STORAGE_KEY = 'gini_master_tco_inputs_v2';
 
 const INITIAL_INPUTS: DecisionIntelligenceInputs = {
 	activeMode: 'enterprise_ciam',
 
-	// Enterprise CIAM inputs
-	mau: 25000,
+	// Enterprise
+	mau: 25_000,
 	devRate: 85,
-	buildTime: 3,
-	maintFte: 50,
+	buildMonths: 3,
+	buildTeam: 1.5,
+	maintFtePct: 50,
 	complianceLevel: 'soc2',
-	codebaseAge: 3,
-	remediationHours: 40,
+	complianceCostAnnual: 75_000,
+	opportunityCost3Yr: 150_000,
+	integrationHours: 8,
 	hasSunkCostFallacy: false,
 	hasKeyPersonRisk: false,
 	hasTinkeringTax: false,
 
-	// Personal CPU inputs (Espresso vs Cafe)
-	cpuStickerPrice: 3000,
+	// Per-use asset
+	cpuStickerPrice: 3_000,
 	cpuSecondaryCost: 1.5,
 	cpuOutsourceCost: 6,
 	cpuWeeklyUses: 5,
 	cpuLifespanYears: 5,
+	cpuResidualPct: 35,
 	cpuAspirationalCheck: false,
 
-	// Personal Repair inputs
+	// Repair or replace
 	repairAssetType: 'infrastructure',
 	repairAssetAge: 11,
 	repairCost: 600,
+	repairReplacementCost: 6_800,
+	repairExtraLifeYears: 3,
+	repairReplacementLifeYears: 12,
 
-	// Personal Tinkering inputs
+	// Tinkering tax
 	tinkerTroubleshootHours: 4,
 	tinkerTimeValue: 50,
 	tinkerSubscriptionCost: 15,
-	tinkerAspirationalCheck: false
+	tinkerHobbyOffset: false
 };
 
-const MODE_PRESETS = {
-	coffee: {
-		cpuStickerPrice: 3000,
-		cpuSecondaryCost: 1.5,
-		cpuOutsourceCost: 6,
-		cpuWeeklyUses: 5,
-		cpuLifespanYears: 5
+const MODES: { id: DecisionMode; label: string; question: string }[] = [
+	{ id: 'enterprise_ciam', label: 'Build vs buy', question: 'Own the auth stack or rent one' },
+	{ id: 'personal_cpu', label: 'Cost per use', question: 'Own the asset or pay each time' },
+	{ id: 'personal_repair', label: 'Repair or replace', question: 'Fix it or replace it' },
+	{ id: 'personal_tinkering', label: 'Tinkering tax', question: 'Free workaround or paid app' }
+];
+
+/** Presets for the per-use mode. Sticker, upkeep, outsource rate, uses a week, years, residual. */
+const PRESETS: { id: string; label: string; values: Partial<DecisionIntelligenceInputs> }[] = [
+	{
+		id: 'coffee',
+		label: 'Espresso machine',
+		values: {
+			cpuStickerPrice: 3_000,
+			cpuSecondaryCost: 1.5,
+			cpuOutsourceCost: 6,
+			cpuWeeklyUses: 5,
+			cpuLifespanYears: 5,
+			cpuResidualPct: 35
+		}
 	},
-	bike: {
-		cpuStickerPrice: 2500,
-		cpuSecondaryCost: 1.73,
-		cpuOutsourceCost: 15,
-		cpuWeeklyUses: 3,
-		cpuLifespanYears: 3
+	{
+		id: 'bike',
+		label: 'Road bike',
+		values: {
+			cpuStickerPrice: 2_500,
+			cpuSecondaryCost: 1.73,
+			cpuOutsourceCost: 15,
+			cpuWeeklyUses: 3,
+			cpuLifespanYears: 3,
+			cpuResidualPct: 45
+		}
 	},
-	gpu: {
-		cpuStickerPrice: 3500,
-		cpuSecondaryCost: 0.45, // electricity per run hour
-		cpuOutsourceCost: 1.80, // cloud GPU hourly rental
-		cpuWeeklyUses: 12, // active compute hours/week
-		cpuLifespanYears: 3
+	{
+		id: 'gpu',
+		label: 'Local GPU rig',
+		values: {
+			cpuStickerPrice: 3_500,
+			cpuSecondaryCost: 0.45,
+			cpuOutsourceCost: 1.8,
+			cpuWeeklyUses: 12,
+			cpuLifespanYears: 3,
+			cpuResidualPct: 40
+		}
 	}
+];
+
+/* ── helpers ───────────────────────────────────────────────────────────────── */
+
+const clamp = (value: number, min: number, max: number) =>
+	Math.min(Math.max(Number.isFinite(value) ? value : min, min), max);
+
+const money = (value: number) =>
+	new Intl.NumberFormat('en-US', {
+		style: 'currency',
+		currency: 'USD',
+		maximumFractionDigits: Math.abs(value) < 100 ? 2 : 0
+	}).format(Number.isFinite(value) ? value : 0);
+
+const int = (value: number) =>
+	new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(
+		Number.isFinite(value) ? value : 0
+	);
+
+const compactMoney = (value: number) => {
+	const abs = Math.abs(value);
+	if (abs >= 1_000_000) return `$${(value / 1_000_000).toFixed(abs >= 10_000_000 ? 0 : 1)}m`;
+	if (abs >= 1_000) return `$${(value / 1_000).toFixed(abs >= 10_000 ? 0 : 1)}k`;
+	return `$${Math.round(value)}`;
 };
+
+const niceMax = (value: number) => {
+	if (!Number.isFinite(value) || value <= 0) return 1;
+	const magnitude = Math.pow(10, Math.floor(Math.log10(value)));
+	for (const step of [1, 1.5, 2, 2.5, 3, 4, 5, 7.5, 10]) {
+		if (value <= step * magnitude) return step * magnitude;
+	}
+	return 10 * magnitude;
+};
+
+/* ── primitives ───────────────────────────────────────────────────────────── */
+
+interface FieldProps {
+	id: string;
+	label: string;
+	hint?: string;
+	value: number;
+	min: number;
+	max: number;
+	step: number;
+	onChange: (value: number) => void;
+	prefix?: string;
+	suffix?: string;
+	/** Digits shown in the plate; keeps the input from jumping width as the value changes. */
+	decimals?: number;
+}
+
+function Field({
+	id,
+	label,
+	hint,
+	value,
+	min,
+	max,
+	step,
+	onChange,
+	prefix,
+	suffix,
+	decimals = 0
+}: FieldProps) {
+	const describedBy = hint ? `${id}-hint` : undefined;
+	// Width is derived from the formatted figure so the plate does not jitter as the value moves.
+	const plateWidth = `${Math.max(3, (decimals ? value.toFixed(decimals) : String(Math.round(value))).length + 1)}ch`;
+
+	return (
+		<div className="di-field">
+			<div className="di-field__head">
+				<label className="di-field__label" htmlFor={id}>
+					{label}
+				</label>
+				<span className="di-plate">
+					{prefix ? <span className="di-plate__affix">{prefix}</span> : null}
+					<input
+						id={id}
+						className="di-plate__input"
+						type="number"
+						inputMode="decimal"
+						style={{ width: plateWidth }}
+						value={decimals ? Number(value.toFixed(decimals)) : Math.round(value)}
+						min={min}
+						max={max}
+						step={step}
+						aria-describedby={describedBy}
+						onChange={(event) => {
+							const next = Number(event.target.value);
+							if (event.target.value !== '' && Number.isFinite(next)) onChange(next);
+						}}
+						onBlur={(event) => onChange(clamp(Number(event.target.value), min, max))}
+					/>
+					{suffix ? <span className="di-plate__affix">{suffix}</span> : null}
+				</span>
+			</div>
+			<input
+				className="di-range"
+				type="range"
+				min={min}
+				max={max}
+				step={step}
+				value={clamp(value, min, max)}
+				aria-label={`${label} slider`}
+				aria-describedby={describedBy}
+				onChange={(event) => onChange(Number(event.target.value))}
+			/>
+			{hint ? (
+				<p className="di-field__hint" id={`${id}-hint`}>
+					{hint}
+				</p>
+			) : null}
+		</div>
+	);
+}
+
+function Stepper({
+	id,
+	label,
+	hint,
+	value,
+	min,
+	max,
+	step,
+	onChange,
+	suffix
+}: FieldProps) {
+	return (
+		<div className="di-field di-field--stepper">
+			<div className="di-field__head">
+				<label className="di-field__label" htmlFor={id}>
+					{label}
+				</label>
+			</div>
+			<div className="di-stepper">
+				<button
+					type="button"
+					className="di-stepper__btn"
+					aria-label={`Decrease ${label}`}
+					onClick={() => onChange(clamp(value - step, min, max))}
+				>
+					−
+				</button>
+				<input
+					id={id}
+					className="di-stepper__value"
+					type="number"
+					inputMode="decimal"
+					value={value}
+					min={min}
+					max={max}
+					step={step}
+					onChange={(event) => {
+						const next = Number(event.target.value);
+						if (Number.isFinite(next)) onChange(clamp(next, min, max));
+					}}
+				/>
+				<span className="di-stepper__suffix">{suffix}</span>
+				<button
+					type="button"
+					className="di-stepper__btn"
+					aria-label={`Increase ${label}`}
+					onClick={() => onChange(clamp(value + step, min, max))}
+				>
+					+
+				</button>
+			</div>
+			{hint ? <p className="di-field__hint">{hint}</p> : null}
+		</div>
+	);
+}
+
+interface SegmentedProps<T extends string> {
+	legend: string;
+	name: string;
+	value: T;
+	options: { value: T; label: string }[];
+	onChange: (value: T) => void;
+}
+
+function Segmented<T extends string>({ legend, name, value, options, onChange }: SegmentedProps<T>) {
+	return (
+		<fieldset className="di-segmented">
+			<legend className="di-legend">{legend}</legend>
+			<div className="di-segmented__row">
+				{options.map((option) => (
+					<label key={option.value} className="di-segmented__option">
+						<input
+							type="radio"
+							name={name}
+							value={option.value}
+							checked={value === option.value}
+							onChange={() => onChange(option.value)}
+						/>
+						<span>{option.label}</span>
+					</label>
+				))}
+			</div>
+		</fieldset>
+	);
+}
+
+/* ── the chart ────────────────────────────────────────────────────────────── */
+
+function SpendChart({ result }: { result: DecisionResult }) {
+	if (!result.series.length) return null;
+
+	const width = 660;
+	const height = 250;
+	const pad = { top: 16, right: 78, bottom: 26, left: 58 };
+	const plotW = width - pad.left - pad.right;
+	const plotH = height - pad.top - pad.bottom;
+
+	const count = result.series[0].points.length;
+	const peak = niceMax(Math.max(...result.series.flatMap((line) => line.points), 1));
+	const x = (index: number) => pad.left + (index / Math.max(count - 1, 1)) * plotW;
+	const y = (value: number) => pad.top + (1 - value / peak) * plotH;
+
+	const ticks = [0, peak / 2, peak];
+	const [first, second] = result.series;
+	// The leader is whichever option ends cheaper — never a hard-coded side, because "BUY" means
+	// the second option in the build-vs-buy mode and the first one in every other mode.
+	const leader = first.points[count - 1] <= second.points[count - 1] ? first : second;
+	const trailer = leader === first ? second : first;
+	// Roughly seven marks across the axis, whichever horizon is in play.
+	const labelEvery = Math.max(1, Math.ceil(count / 7));
+
+	const summary = `${leader.label} ends at ${compactMoney(
+		leader.points[count - 1]
+	)} against ${compactMoney(trailer.points[count - 1])}.${
+		result.crossoverMonth !== null
+			? ` The lines cross at month ${result.crossoverMonth}.`
+			: ' The lines do not cross inside the horizon.'
+	}`;
+
+	return (
+		<figure className="di-chart">
+			<figcaption className="di-chart__cap">
+				<span className="di-legend">Cumulative spend</span>
+				<span className="di-chart__note">{result.horizonLabel}</span>
+			</figcaption>
+			<svg
+				className="di-chart__svg"
+				viewBox={`0 0 ${width} ${height}`}
+				role="img"
+				aria-label={`Cumulative spend, two options. ${summary}`}
+			>
+				{ticks.map((tick) => (
+					<g key={tick}>
+						<line
+							x1={pad.left}
+							x2={width - pad.right}
+							y1={y(tick)}
+							y2={y(tick)}
+							className="di-chart__grid"
+						/>
+						<text x={pad.left - 10} y={y(tick) + 3} textAnchor="end" className="di-chart__tick">
+							{compactMoney(tick)}
+						</text>
+					</g>
+				))}
+
+				{result.seriesLabels.map((label, index) =>
+					label && (index === 0 || index === count - 1 || index % labelEvery === 0) ? (
+						<text
+							key={`${label}-${index}`}
+							x={x(index)}
+							y={height - 6}
+							textAnchor={index === 0 ? 'start' : index === count - 1 ? 'end' : 'middle'}
+							className="di-chart__tick"
+						>
+							{label}
+						</text>
+					) : null
+				)}
+
+				{result.crossoverMonth !== null ? (
+					<g>
+						<line
+							x1={x(result.crossoverMonth)}
+							x2={x(result.crossoverMonth)}
+							y1={pad.top}
+							y2={height - pad.bottom}
+							className="di-chart__cross"
+						/>
+						<text
+							x={x(result.crossoverMonth)}
+							y={pad.top - 4}
+							textAnchor="middle"
+							className="di-chart__crosslabel"
+						>
+							crosses m{result.crossoverMonth}
+						</text>
+					</g>
+				) : null}
+
+				{result.series.map((line, lineIndex) => {
+					const path = line.points
+						.map((point, index) => `${index === 0 ? 'M' : 'L'} ${x(index).toFixed(1)} ${y(point).toFixed(1)}`)
+						.join(' ');
+					const last = line.points[line.points.length - 1];
+					return (
+						<g key={line.key} className={`di-line di-line--${lineIndex}`}>
+							<path
+								d={path}
+								fill="none"
+								className="di-chart__stroke"
+								strokeDasharray={lineIndex === 1 ? '5 4' : undefined}
+							/>
+							<circle cx={x(line.points.length - 1)} cy={y(last)} r="3" className="di-chart__dot" />
+							<text
+								x={width - pad.right + 8}
+								y={y(last) + 4}
+								className="di-chart__endlabel"
+							>
+								{compactMoney(last)}
+							</text>
+						</g>
+					);
+				})}
+			</svg>
+
+			<ul className="di-chart__legend">
+				{result.series.map((line, index) => (
+					<li key={line.key}>
+						<span className={`di-swatch di-swatch--${index}`} aria-hidden="true" />
+						<span>{line.label}</span>
+						<span className="di-chart__legendvalue">
+							{money(line.points[line.points.length - 1])}
+						</span>
+					</li>
+				))}
+			</ul>
+		</figure>
+	);
+}
+
+/* ── the ledger ───────────────────────────────────────────────────────────── */
+
+function Side({ side, scale, index }: { side: OptionSide; scale: number; index: number }) {
+	return (
+		<div className={`di-side di-side--${index}`}>
+			<p className="di-side__eyebrow">{side.eyebrow}</p>
+			<h3 className="di-side__label">{side.label}</h3>
+			<p className="di-side__total">
+				{money(side.total)}
+				{side.totalLabel ? <span className="di-side__unit">{side.totalLabel}</span> : null}
+			</p>
+			<ul className="di-side__rows">
+				{side.rows.map((row) => {
+					const share = scale > 0 ? Math.min(Math.abs(row.amount) / scale, 1) : 0;
+					return (
+						<li key={row.label} className="di-row">
+							<span className="di-row__bar" aria-hidden="true">
+								<span
+									className={`di-row__fill${row.hidden ? ' di-row__fill--hidden' : ''}`}
+									style={{ width: `${Math.max(share * 100, row.amount ? 1.5 : 0)}%` }}
+								/>
+							</span>
+							<span className="di-row__label">
+								{row.label}
+								{row.hidden ? <span className="di-row__mark" title="Not on the first invoice">off invoice</span> : null}
+								{row.note ? <span className="di-row__note">{row.note}</span> : null}
+							</span>
+							<span className="di-row__amount">
+								{row.amount === 0 ? '—' : money(row.amount)}
+							</span>
+						</li>
+					);
+				})}
+			</ul>
+		</div>
+	);
+}
+
+/* ── the instrument ───────────────────────────────────────────────────────── */
 
 export default function DecisionIntelligenceCalculator() {
 	const [inputs, setInputs] = useState<DecisionIntelligenceInputs>(INITIAL_INPUTS);
 	const [isLoaded, setIsLoaded] = useState(false);
-	const [repairSunkCost, setRepairSunkCost] = useState(false);
-	const [tinkerHobbyOffset, setTinkerHobbyOffset] = useState(false);
+	const [copied, setCopied] = useState(false);
+	const uid = useId();
+	const tabsRef = useRef<Array<HTMLButtonElement | null>>([]);
 
-	// Hydration sync from localStorage
 	useEffect(() => {
-		const stored = localStorage.getItem('gini_decision_intelligence_inputs');
+		const stored = localStorage.getItem(STORAGE_KEY);
 		if (stored) {
 			try {
-				const data = JSON.parse(stored);
-				setInputs((current) => ({
-					...current,
-					...data
-				}));
-			} catch (e) {
-				console.error('Failed to restore decision intelligence inputs:', e);
+				const parsed = JSON.parse(stored) as Partial<DecisionIntelligenceInputs>;
+				setInputs((current) => ({ ...current, ...parsed }));
+			} catch {
+				// A corrupt payload is not worth a broken instrument: fall back to defaults silently.
+				localStorage.removeItem(STORAGE_KEY);
 			}
 		}
 		setIsLoaded(true);
 	}, []);
 
-	// Write back to localStorage on change
 	useEffect(() => {
-		if (isLoaded) {
-			localStorage.setItem('gini_decision_intelligence_inputs', JSON.stringify(inputs));
-		}
+		if (isLoaded) localStorage.setItem(STORAGE_KEY, JSON.stringify(inputs));
 	}, [inputs, isLoaded]);
+
+	useEffect(() => {
+		if (!copied) return;
+		const timer = window.setTimeout(() => setCopied(false), 2200);
+		return () => window.clearTimeout(timer);
+	}, [copied]);
 
 	const updateInput = <K extends keyof DecisionIntelligenceInputs>(
 		key: K,
 		value: DecisionIntelligenceInputs[K]
-	) => {
-		setInputs((current) => ({ ...current, [key]: value }));
+	) => setInputs((current) => ({ ...current, [key]: value }));
+
+	const result = useMemo(() => DecisionIntelligenceEngine.calculate(inputs), [inputs]);
+
+	const unresolved = result.premises.filter((premise) => premise.checked).length;
+	const scale = Math.max(...result.sides.map((side) => side.total), 1);
+	const delta = Math.abs(result.sides[0].total - result.sides[1].total);
+	const hasOffInvoice = result.sides.some((side) => side.rows.some((row) => row.hidden));
+
+	const onTabKey = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+		const index = MODES.findIndex((mode) => mode.id === inputs.activeMode);
+		let next: number | null = null;
+		if (event.key === 'ArrowRight') next = (index + 1) % MODES.length;
+		if (event.key === 'ArrowLeft') next = (index - 1 + MODES.length) % MODES.length;
+		if (event.key === 'Home') next = 0;
+		if (event.key === 'End') next = MODES.length - 1;
+		if (next === null) return;
+		event.preventDefault();
+		updateInput('activeMode', MODES[next].id);
+		tabsRef.current[next]?.focus();
 	};
 
-	// Calculate outputs in real-time
-	const outputs = useMemo(() => DecisionIntelligenceEngine.calculate(inputs), [inputs]);
+	const copySummary = async () => {
+		const lines = [
+			`${MODES.find((mode) => mode.id === inputs.activeMode)?.label} — ${result.horizonLabel}`,
+			`Verdict: ${result.verdictLabel}`,
+			result.headline,
+			''
+		];
+		result.sides.forEach((side) => {
+			lines.push(`${side.label}: ${money(side.total)}`);
+			side.rows.forEach((row) => {
+				lines.push(`  ${row.label}${row.hidden ? ' (off invoice)' : ''}: ${money(row.amount)}`);
+			});
+			lines.push('');
+		});
+		result.figures.forEach((figure) => lines.push(`${figure.label}: ${figure.value}`));
+		lines.push(`Unresolved premises: ${unresolved} of ${result.premises.length}`);
+		try {
+			await navigator.clipboard.writeText(lines.join('\n'));
+			setCopied(true);
+		} catch {
+			setCopied(false);
+		}
+	};
 
-	const remediationCost = useMemo(() => inputs.remediationHours * inputs.devRate, [inputs.remediationHours, inputs.devRate]);
-
-	const applyCpuPreset = (presetKey: keyof typeof MODE_PRESETS) => {
-		const preset = MODE_PRESETS[presetKey];
-		setInputs((current) => ({
-			...current,
-			...preset
-		}));
+	const reset = () => {
+		setInputs(INITIAL_INPUTS);
+		setCopied(false);
 	};
 
 	return (
-		<div className="decision-intelligence-calculator grid gap-8">
-			{/* MODE SWITCHER */}
-			<div className="grid grid-cols-2 lg:grid-cols-4 rounded-3xl bg-white/80 border border-gray-200/80 p-1">
-				{(
-					[
-						{ id: 'enterprise_ciam', label: '🏢 CIAM Auth' },
-						{ id: 'personal_cpu', label: '☕ Cost-Per-Use' },
-						{ id: 'personal_repair', label: '🛠️ Repair vs Replace' },
-						{ id: 'personal_tinkering', label: '⏱️ Tinkering Tax' }
-					] as const
-				).map((mode) => (
-					<button
-						key={mode.id}
-						type="button"
-						onClick={() => updateInput('activeMode', mode.id)}
-						className={`py-3 px-1 rounded-2xl text-center font-bold text-xs transition cursor-pointer tracking-wider ${
-							inputs.activeMode === mode.id
-								? 'bg-cyan-500/10 #5A7A8F border border-cyan-500/20 shadow-md'
-								: 'text-[#716F6F] hover:text-[#716F6F] border border-transparent'
-						}`}
-					>
-						{mode.label}
-					</button>
-				))}
+		<div className="di" data-mode={inputs.activeMode}>
+			{/* ── modes ─────────────────────────────────────────────────────── */}
+			<div className="di__tabs" role="tablist" aria-label="Decision mode">
+				{MODES.map((mode, index) => {
+					const active = mode.id === inputs.activeMode;
+					return (
+						<button
+							key={mode.id}
+							ref={(node) => {
+								tabsRef.current[index] = node;
+							}}
+							id={`${uid}-tab-${mode.id}`}
+							type="button"
+							role="tab"
+							aria-selected={active}
+							aria-controls={`${uid}-panel`}
+							tabIndex={active ? 0 : -1}
+							className="di__tab"
+							onClick={() => updateInput('activeMode', mode.id)}
+							onKeyDown={onTabKey}
+						>
+							<span className="di__tablabel">{mode.label}</span>
+							<span className="di__tabq">{mode.question}</span>
+						</button>
+					);
+				})}
 			</div>
 
-			{/* STEP 1: DYNAMIC VERDICT BANNER */}
-			<div
-				className={`overflow-hidden rounded-[2rem] border transition-[border-color,background-color,box-shadow,transform] duration-300 p-6 sm:p-8 ${
-					outputs.verdict === 'BUY' || outputs.verdict === 'REPAIR'
-						? 'border-emerald-500/30 bg-[linear-gradient(135deg,rgba(2,44,34,0.6),rgba(2,6,23,0.96)_65%,rgba(16,185,129,0.12))] shadow-[0_0_50px_rgba(16,185,129,0.1)]'
-						: outputs.verdict === 'PATCH' || outputs.verdict === 'WAIT'
-							? 'border-indigo-500/30 bg-[linear-gradient(135deg,rgba(30,27,75,0.6),rgba(2,6,23,0.96)_65%,rgba(99,102,241,0.12))] shadow-[0_0_50px_rgba(99,102,241,0.1)]'
-							: 'border-rose-500/30 bg-[linear-gradient(135deg,rgba(67,20,30,0.6),rgba(2,6,23,0.96)_65%,rgba(244,63,94,0.12))] shadow-[0_0_50px_rgba(244,63,94,0.1)]'
-				}`}
-			>
-				<div className="flex flex-col gap-4">
-					<div className="flex items-center justify-between">
-						<span className="font-mono text-xs uppercase tracking-[0.3em] text-[#716F6F]">
-							Decision Verdict
-						</span>
-						<span
-							className={`rounded-full border px-3 py-1 font-mono text-[0.68rem] uppercase tracking-[0.22em] ${
-								outputs.verdict === 'BUY' || outputs.verdict === 'REPAIR'
-									? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300'
-									: outputs.verdict === 'PATCH' || outputs.verdict === 'WAIT'
-										? 'border-indigo-500/20 bg-indigo-500/10 text-indigo-300'
-										: 'border-rose-500/20 bg-rose-500/10 text-[#B85C5C]'
-							}`}
-						>
-							{outputs.verdict}
-						</span>
-					</div>
-
-					<h2
-						className={`text-3xl font-extrabold tracking-tight sm:text-4xl uppercase ${
-							outputs.verdict === 'BUY' || outputs.verdict === 'REPAIR'
-								? '#1A1A1A'
-								: outputs.verdict === 'PATCH' || outputs.verdict === 'WAIT'
-									? 'text-indigo-400'
-									: 'text-[#B85C5C]'
-						}`}
-					>
-						Verdict: {outputs.verdict === 'BUY' ? 'BUY / UPGRADE' : outputs.verdict === 'REPAIR' ? 'REPAIR / PATCH' : outputs.verdict === 'REPLACE' ? 'REPLACE / BUY' : outputs.verdict === 'SKIP' ? 'SKIP / OUTSOURCE' : outputs.verdict}
-					</h2>
-
-					<p className="text-base leading-7 text-[#716F6F] font-medium">
-						{outputs.verdictRationale}
-					</p>
-
-					{/* Metric grid depending on mode */}
+			<div id={`${uid}-panel`} role="tabpanel" aria-labelledby={`${uid}-tab-${inputs.activeMode}`} className="di__grid">
+				{/* ── assumptions ─────────────────────────────────────────────── */}
+				<div className="di__rail">
 					{inputs.activeMode === 'enterprise_ciam' && (
-						<div className="mt-4 grid gap-4 grid-cols-2 sm:grid-cols-4 border-t border-gray-200/80 pt-6 animate-fadeIn">
-							<div>
-								<p className="font-mono text-[0.64rem] uppercase tracking-[0.2] text-[#8C8C8C]">3-Yr Custom TCO</p>
-								<p className="mt-1 text-lg font-bold text-[#716F6F]">{formatCurrency(outputs.custom3YrTco)}</p>
-							</div>
-							<div>
-								<p className="font-mono text-[0.64rem] uppercase tracking-[0.2] text-[#8C8C8C]">3-Yr SaaS TCO</p>
-								<p className="mt-1 text-lg font-bold #1A1A1A">{formatCurrency(outputs.saas3YrTco)}</p>
-							</div>
-							<div>
-								<p className="font-mono text-[0.64rem] uppercase tracking-[0.2] text-[#8C8C8C]">Break-Even</p>
-								<p className="mt-1 text-lg font-bold text-indigo-400">{outputs.breakEvenVerdict}</p>
-							</div>
-							<div>
-								<p className="font-mono text-[0.64rem] uppercase tracking-[0.2] text-[#8C8C8C]">SaaS CPU / Mo</p>
-								<p className="mt-1 text-lg font-bold text-[#716F6F]">${outputs.cpuSaaS}/MAU</p>
-							</div>
-						</div>
+						<>
+							<fieldset className="di-fieldset">
+								<legend className="di-legend">01 · Cost basis</legend>
+								<Field
+									id={`${uid}-mau`}
+									label="Monthly active users"
+									hint="Drives the managed platform's volume tier."
+									value={inputs.mau}
+									min={1_000}
+									max={500_000}
+									step={1_000}
+									onChange={(value) => updateInput('mau', value)}
+								/>
+								<Field
+									id={`${uid}-rate`}
+									label="Loaded engineer rate"
+									hint="Salary plus overhead, per hour. Both sides use it."
+									prefix="$"
+									suffix="/h"
+									value={inputs.devRate}
+									min={40}
+									max={250}
+									step={5}
+									onChange={(value) => updateInput('devRate', value)}
+								/>
+								<div className="di-pair">
+									<Stepper
+										id={`${uid}-months`}
+										label="Build window"
+										suffix="months"
+										value={inputs.buildMonths}
+										min={1}
+										max={24}
+										step={1}
+										onChange={(value) => updateInput('buildMonths', value)}
+									/>
+									<Stepper
+										id={`${uid}-team`}
+										label="Engineers"
+										suffix="FTE"
+										value={inputs.buildTeam}
+										min={0.5}
+										max={10}
+										step={0.5}
+										onChange={(value) => updateInput('buildTeam', value)}
+									/>
+								</div>
+							</fieldset>
+
+							<fieldset className="di-fieldset">
+								<legend className="di-legend">02 · Cost you do not see on the invoice</legend>
+								<Field
+									id={`${uid}-maint`}
+									label="Maintenance load"
+									hint="Share of one engineer held on the custom system, in perpetuity."
+									suffix="% FTE"
+									value={inputs.maintFtePct}
+									min={0}
+									max={100}
+									step={5}
+									onChange={(value) => updateInput('maintFtePct', value)}
+								/>
+								<Field
+									id={`${uid}-opp`}
+									label="Roadmap opportunity, 3 years"
+									hint="Value of the features the team does not ship while maintaining this."
+									prefix="$"
+									value={inputs.opportunityCost3Yr}
+									min={0}
+									max={900_000}
+									step={10_000}
+									onChange={(value) => updateInput('opportunityCost3Yr', value)}
+								/>
+								<Field
+									id={`${uid}-comp`}
+									label="Compliance cost per year"
+									hint="Audit, evidence collection and the controls that follow it. The vendor carries this if you buy."
+									prefix="$"
+									value={inputs.complianceCostAnnual}
+									min={0}
+									max={300_000}
+									step={5_000}
+									onChange={(value) => updateInput('complianceCostAnnual', value)}
+								/>
+								<Segmented
+									legend="Compliance target"
+									name={`${uid}-compliance`}
+									value={inputs.complianceLevel}
+									options={[
+										{ value: 'none', label: 'None' },
+										{ value: 'soc2', label: 'SOC 2 II' },
+										{ value: 'hipaa', label: 'HIPAA' }
+									]}
+									onChange={(level) => {
+										updateInput('complianceLevel', level);
+										updateInput('complianceCostAnnual', defaultComplianceCost(level));
+									}}
+								/>
+								<Field
+									id={`${uid}-integ`}
+									label="Integration effort"
+									hint="Hours to wire the managed platform in."
+									suffix="hours"
+									value={inputs.integrationHours}
+									min={0}
+									max={120}
+									step={2}
+									onChange={(value) => updateInput('integrationHours', value)}
+								/>
+							</fieldset>
+						</>
 					)}
 
 					{inputs.activeMode === 'personal_cpu' && (
-						<div className="mt-4 grid gap-4 grid-cols-2 sm:grid-cols-4 border-t border-gray-200/80 pt-6 animate-fadeIn">
-							<div>
-								<p className="font-mono text-[0.64rem] uppercase tracking-[0.2] text-[#8C8C8C]">Ownership TCO</p>
-								<p className="mt-1 text-lg font-bold text-[#716F6F]">{formatCurrency(outputs.personalCpuHomeTco)}</p>
-							</div>
-							<div>
-								<p className="font-mono text-[0.64rem] uppercase tracking-[0.2] text-[#8C8C8C]">Outsourced / Alternative TCO</p>
-								<p className="mt-1 text-lg font-bold text-[#716F6F]">{formatCurrency(outputs.personalCpuOutsourceTco)}</p>
-							</div>
-							<div>
-								<p className="font-mono text-[0.64rem] uppercase tracking-[0.2] text-[#8C8C8C]">Unit Cost/Use</p>
-								<p className={`mt-1 text-lg font-bold ${outputs.verdict === 'BUY' ? '#1A1A1A' : 'text-[#B85C5C]'}`}>
-									{formatCurrency(outputs.personalCpuHomePerUse)}
-								</p>
-							</div>
-							<div>
-								<p className="font-mono text-[0.64rem] uppercase tracking-[0.2] text-[#8C8C8C]">Break-Even</p>
-								<p className="mt-1 text-lg font-bold text-indigo-400">
-									{outputs.personalCpuBreakEvenMonths === Infinity ? 'Never' : `${outputs.personalCpuBreakEvenMonths} Mo`}
-								</p>
-							</div>
-						</div>
+						<>
+							<fieldset className="di-fieldset">
+								<legend className="di-legend">01 · Cost basis</legend>
+								<div className="di-presets">
+									{PRESETS.map((preset) => (
+										<button
+											key={preset.id}
+											type="button"
+											className="di-preset"
+											onClick={() => setInputs((current) => ({ ...current, ...preset.values }))}
+										>
+											{preset.label}
+										</button>
+									))}
+								</div>
+								<Field
+									id={`${uid}-sticker`}
+									label="Sticker price"
+									prefix="$"
+									value={inputs.cpuStickerPrice}
+									min={10}
+									max={20_000}
+									step={50}
+									onChange={(value) => updateInput('cpuStickerPrice', value)}
+								/>
+								<Field
+									id={`${uid}-uses`}
+									label="Uses per week"
+									hint="Be honest here — this is the number the verdict turns on."
+									suffix="/wk"
+									value={inputs.cpuWeeklyUses}
+									min={1}
+									max={100}
+									step={1}
+									onChange={(value) => updateInput('cpuWeeklyUses', value)}
+								/>
+								<Field
+									id={`${uid}-outsource`}
+									label="Outsourced cost per use"
+									hint="Café price, rideshare fare, or cloud rate for the same job."
+									prefix="$"
+									value={inputs.cpuOutsourceCost}
+									min={0.5}
+									max={200}
+									step={0.5}
+									decimals={2}
+									onChange={(value) => updateInput('cpuOutsourceCost', value)}
+								/>
+							</fieldset>
+
+							<fieldset className="di-fieldset">
+								<legend className="di-legend">02 · Cost you do not see on the invoice</legend>
+								<Field
+									id={`${uid}-secondary`}
+									label="Operating cost per use"
+									hint="Beans, charging, consumables, the parts that wear."
+									prefix="$"
+									value={inputs.cpuSecondaryCost}
+									min={0}
+									max={50}
+									step={0.1}
+									decimals={2}
+									onChange={(value) => updateInput('cpuSecondaryCost', value)}
+								/>
+								<Field
+									id={`${uid}-residual`}
+									label="Resale value at exit"
+									hint="Share of the sticker you get back when you sell it on."
+									suffix="%"
+									value={inputs.cpuResidualPct}
+									min={0}
+									max={90}
+									step={5}
+									onChange={(value) => updateInput('cpuResidualPct', value)}
+								/>
+								<Stepper
+									id={`${uid}-lifespan`}
+									label="Lifespan"
+									hint="Upkeep is reserved at 5% of the sticker per year."
+									suffix="years"
+									value={inputs.cpuLifespanYears}
+									min={1}
+									max={15}
+									step={1}
+									onChange={(value) => updateInput('cpuLifespanYears', value)}
+								/>
+							</fieldset>
+						</>
 					)}
 
 					{inputs.activeMode === 'personal_repair' && (
-						<div className="mt-4 grid gap-4 grid-cols-2 border-t border-gray-200/80 pt-6 animate-fadeIn">
-							<div>
-								<p className="font-mono text-[0.64rem] uppercase tracking-[0.2] text-[#8C8C8C]">Asset Tech Debt Index</p>
-								<p className={`mt-1 text-lg font-bold ${outputs.verdict === 'REPLACE' ? 'text-[#B85C5C]' : '#1A1A1A'}`}>
-									{outputs.personalRepairIndex.toLocaleString()}
-								</p>
-							</div>
-							<div>
-								<p className="font-mono text-[0.64rem] uppercase tracking-[0.2] text-[#8C8C8C]">Replace Threshold</p>
-								<p className="mt-1 text-lg font-bold text-[#716F6F]">
-									{outputs.personalRepairThreshold.toLocaleString()}
-								</p>
-							</div>
-						</div>
+						<>
+							<fieldset className="di-fieldset">
+								<legend className="di-legend">01 · The asset</legend>
+								<Segmented
+									legend="Asset class"
+									name={`${uid}-asset`}
+									value={inputs.repairAssetType}
+									options={[
+										{ value: 'infrastructure', label: 'Building systems' },
+										{ value: 'electronics', label: 'Electronics' }
+									]}
+									onChange={(value) => updateInput('repairAssetType', value)}
+								/>
+								<Field
+									id={`${uid}-age`}
+									label="Age"
+									hint="Index threshold is 5,000 for building systems, 1,500 for electronics."
+									suffix="years"
+									value={inputs.repairAssetAge}
+									min={0}
+									max={30}
+									step={1}
+									onChange={(value) => updateInput('repairAssetAge', value)}
+								/>
+								<Field
+									id={`${uid}-repair`}
+									label="Repair quote"
+									prefix="$"
+									value={inputs.repairCost}
+									min={50}
+									max={25_000}
+									step={50}
+									onChange={(value) => updateInput('repairCost', value)}
+								/>
+								<Field
+									id={`${uid}-replace-cost`}
+									label="Replacement price"
+									hint="Same specification, delivered and installed."
+									prefix="$"
+									value={inputs.repairReplacementCost}
+									min={100}
+									max={60_000}
+									step={100}
+									onChange={(value) => updateInput('repairReplacementCost', value)}
+								/>
+							</fieldset>
+
+							<fieldset className="di-fieldset">
+								<legend className="di-legend">02 · Life bought</legend>
+								<Stepper
+									id={`${uid}-extra-life`}
+									label="Years the repair buys"
+									suffix="years"
+									value={inputs.repairExtraLifeYears}
+									min={1}
+									max={10}
+									step={1}
+									onChange={(value) => updateInput('repairExtraLifeYears', value)}
+								/>
+								<Stepper
+									id={`${uid}-replace-life`}
+									label="Years a replacement lasts"
+									suffix="years"
+									value={inputs.repairReplacementLifeYears}
+									min={1}
+									max={30}
+									step={1}
+									onChange={(value) => updateInput('repairReplacementLifeYears', value)}
+								/>
+							</fieldset>
+						</>
 					)}
 
 					{inputs.activeMode === 'personal_tinkering' && (
-						<div className="mt-4 grid gap-4 grid-cols-2 sm:grid-cols-4 border-t border-gray-200/80 pt-6 animate-fadeIn">
-							<div>
-								<p className="font-mono text-[0.64rem] uppercase tracking-[0.2] text-[#8C8C8C]">Mo. Time Tax</p>
-								<p className="mt-1 text-lg font-bold text-[#B85C5C]">{formatCurrency(outputs.personalTinkerMonthlyTimeCost)}/mo</p>
-							</div>
-							<div>
-								<p className="font-mono text-[0.64rem] uppercase tracking-[0.2] text-[#8C8C8C]">3-Yr Time Drag</p>
-								<p className="mt-1 text-lg font-bold text-[#716F6F]">{formatCurrency(outputs.personalTinker3YrTimeCost)}</p>
-							</div>
-							<div>
-								<p className="font-mono text-[0.64rem] uppercase tracking-[0.2] text-[#8C8C8C]">3-Yr App cost</p>
-								<p className="mt-1 text-lg font-bold text-[#716F6F]">{formatCurrency(outputs.personalTinker3YrSubCost)}</p>
-							</div>
-							<div>
-								<p className="font-mono text-[0.64rem] uppercase tracking-[0.2] text-[#8C8C8C]">Net Reclaimed Value</p>
-								<p className="mt-1 text-lg font-bold #1A1A1A">
-									{outputs.personalTinkerNetSavings > 0 ? formatCurrency(outputs.personalTinkerNetSavings) : '$0'}
-								</p>
-							</div>
-						</div>
-					)}
-				</div>
-			</div>
-
-			{/* STEP 2: ROI SLIDERS & PARAMETERS */}
-			<div className="rounded-[2rem] border border-gray-200 bg-white/20 p-6 sm:p-8">
-				<div className="flex items-center justify-between mb-6">
-					<h3 className="text-xl font-bold tracking-tight text-[#1A1A1A]">⚙️ Input parameters</h3>
-					<span className="font-mono text-[0.64rem] uppercase tracking-[0.2em] text-[#8C8C8C]">
-						Step 2 of 4
-					</span>
-				</div>
-
-				{/* -------------------- ENTERPRISE CIAM INPUTS -------------------- */}
-				{inputs.activeMode === 'enterprise_ciam' && (
-					<div className="grid gap-6 md:grid-cols-2 animate-fadeIn">
-						<div className="grid gap-3 rounded-[1.5rem] border border-gray-200/80 bg-white p-4">
-							<div className="flex items-center justify-between gap-4">
-								<div>
-									<span className="mt-1 block text-sm font-semibold tracking-wide text-[#1A1A1A]">Monthly Active Users (MAUs)</span>
-								</div>
-								<span className="rounded-full border border-cyan-500/15 bg-cyan-500/10 px-3 py-1 font-mono text-[0.7rem] font-semibold #5A7A8F">
-									{inputs.mau.toLocaleString()}
-								</span>
-							</div>
-							<div className="mt-3">
-								<input
-									type="range"
-									min="1000"
-									max="500000"
-									step="1000"
-									value={inputs.mau}
-									onChange={(e) => updateInput('mau', Number(e.target.value))}
-									className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-cyan-400"
-								/>
-							</div>
-						</div>
-
-						<div className="grid gap-3 rounded-[1.5rem] border border-gray-200/80 bg-white p-4">
-							<div className="flex items-center justify-between gap-4">
-								<div>
-									<span className="mt-1 block text-sm font-semibold tracking-wide text-[#1A1A1A]">Developer Loaded Rate ($/hr)</span>
-								</div>
-								<span className="rounded-full border border-cyan-500/15 bg-cyan-500/10 px-3 py-1 font-mono text-[0.7rem] font-semibold #5A7A8F">
-									${inputs.devRate}/hr
-								</span>
-							</div>
-							<div className="mt-3">
-								<input
-									type="range"
-									min="40"
-									max="250"
-									step="5"
-									value={inputs.devRate}
-									onChange={(e) => updateInput('devRate', Number(e.target.value))}
-									className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-cyan-400"
-								/>
-							</div>
-						</div>
-
-						<div className="grid gap-3 rounded-[1.5rem] border border-gray-200/80 bg-white p-4">
-							<span className="block text-sm font-semibold tracking-wide text-[#1A1A1A]">Initial Build Time (Months)</span>
-							<div className="flex items-center justify-between border border-slate-700/60 rounded-xl bg-white/60 p-1.5 mt-2">
-								<button type="button" onClick={() => updateInput('buildTime', Math.max(1, inputs.buildTime - 1))} className="h-10 w-10 text-[#716F6F] hover:bg-gray-200 rounded-lg font-bold">−</button>
-								<span className="font-semibold text-[#1A1A1A]">{inputs.buildTime} months</span>
-								<button type="button" onClick={() => updateInput('buildTime', Math.min(12, inputs.buildTime + 1))} className="h-10 w-10 text-[#716F6F] hover:bg-gray-200 rounded-lg font-bold">+</button>
-							</div>
-						</div>
-
-						<div className="grid gap-3 rounded-[1.5rem] border border-gray-200/80 bg-white p-4">
-							<span className="block text-sm font-semibold tracking-wide text-[#1A1A1A]">Maintenance Overhead FTE</span>
-							<div className="flex items-center justify-between border border-slate-700/60 rounded-xl bg-white/60 p-1.5 mt-2">
-								<button type="button" onClick={() => updateInput('maintFte', Math.max(10, inputs.maintFte - 10))} className="h-10 w-10 text-[#716F6F] hover:bg-gray-200 rounded-lg font-bold">−</button>
-								<span className="font-semibold text-[#1A1A1A]">{inputs.maintFte}% FTE</span>
-								<button type="button" onClick={() => updateInput('maintFte', Math.min(100, inputs.maintFte + 10))} className="h-10 w-10 text-[#716F6F] hover:bg-gray-200 rounded-lg font-bold">+</button>
-							</div>
-						</div>
-					</div>
-				)}
-
-				{/* -------------------- PERSONAL CPU INPUTS -------------------- */}
-				{inputs.activeMode === 'personal_cpu' && (
-					<div className="grid gap-6 md:grid-cols-2 animate-fadeIn">
-						{/* Presets bar */}
-						<div className="md:col-span-2 flex flex-wrap gap-2 items-center mb-2 border-b border-gray-200 pb-4">
-							<span className="text-xs font-mono text-[#8C8C8C] uppercase mr-2">🎯 Apply Preset:</span>
-							<button type="button" onClick={() => applyCpuPreset('coffee')} className="px-3 py-1.5 bg-slate-900 border border-gray-200 hover:border-cyan-500/40 text-xs rounded-xl font-bold text-[#716F6F]">☕ Espresso Machine</button>
-							<button type="button" onClick={() => applyCpuPreset('bike')} className="px-3 py-1.5 bg-slate-900 border border-gray-200 hover:border-cyan-500/40 text-xs rounded-xl font-bold text-[#716F6F]">🚲 Road Bike</button>
-							<button type="button" onClick={() => applyCpuPreset('gpu')} className="px-3 py-1.5 bg-slate-900 border border-gray-200 hover:border-cyan-500/40 text-xs rounded-xl font-bold text-[#716F6F]">💻 Local GPU Rig</button>
-						</div>
-
-						{/* Sticker Price */}
-						<div className="grid gap-3 rounded-[1.5rem] border border-gray-200/80 bg-white p-4">
-							<div className="flex items-center justify-between gap-4">
-								<span className="block text-sm font-semibold tracking-wide text-[#1A1A1A]">Sticker Price (Upfront Cost)</span>
-								<div className="flex items-center gap-1 bg-white/60 rounded-lg px-2 py-1 border border-gray-200 focus-within:border-cyan-500/50">
-									<span className="text-xs text-[#716F6F]">$</span>
-									<input
-										type="number"
-										value={inputs.cpuStickerPrice}
-										onChange={(e) => updateInput('cpuStickerPrice', Number(e.target.value))}
-										className="w-16 bg-transparent text-right font-mono text-xs font-semibold #5A7A8F focus:outline-none border-none p-0"
-									/>
-								</div>
-							</div>
-							<div className="mt-3">
-								<input
-									type="range"
-									min="10"
-									max="20000"
-									step="50"
-									value={inputs.cpuStickerPrice}
-									onChange={(e) => updateInput('cpuStickerPrice', Number(e.target.value))}
-									className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-cyan-400"
-								/>
-							</div>
-						</div>
-
-						{/* Usage Frequency */}
-						<div className="grid gap-3 rounded-[1.5rem] border border-gray-200/80 bg-white p-4">
-							<div className="flex items-center justify-between gap-4">
-								<span className="block text-sm font-semibold tracking-wide text-[#1A1A1A]">Weekly Usage Frequency</span>
-								<div className="flex items-center gap-1 bg-white/60 rounded-lg px-2 py-1 border border-gray-200 focus-within:border-cyan-500/50">
-									<input
-										type="number"
-										value={inputs.cpuWeeklyUses}
-										onChange={(e) => updateInput('cpuWeeklyUses', Number(e.target.value))}
-										className="w-10 bg-transparent text-right font-mono text-xs font-semibold #5A7A8F focus:outline-none border-none p-0"
-									/>
-									<span className="text-[10px] font-mono text-[#716F6F]">/ wk</span>
-								</div>
-							</div>
-							<div className="mt-3">
-								<input
-									type="range"
-									min="1"
-									max="100"
-									step="1"
-									value={inputs.cpuWeeklyUses}
-									onChange={(e) => updateInput('cpuWeeklyUses', Number(e.target.value))}
-									className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-cyan-400"
-								/>
-							</div>
-						</div>
-
-						{/* Outsource Price */}
-						<div className="grid gap-3 rounded-[1.5rem] border border-gray-200/80 bg-white p-4">
-							<div className="flex items-center justify-between gap-4">
-								<div>
-									<span className="block text-sm font-semibold tracking-wide text-[#1A1A1A]">Outsourced / Alternative Cost</span>
-									<span className="text-[10px] text-[#716F6F] block mt-0.5">e.g. Café price, rideshare rate, or cloud rent per use</span>
-								</div>
-								<div className="flex items-center gap-1 bg-white/60 rounded-lg px-2 py-1 border border-gray-200 focus-within:border-cyan-500/50">
-									<span className="text-xs text-[#716F6F]">$</span>
-									<input
-										type="number"
-										step="0.01"
-										value={inputs.cpuOutsourceCost}
-										onChange={(e) => updateInput('cpuOutsourceCost', Number(e.target.value))}
-										className="w-12 bg-transparent text-right font-mono text-xs font-semibold #5A7A8F focus:outline-none border-none p-0"
-									/>
-								</div>
-							</div>
-							<div className="mt-3">
-								<input
-									type="range"
-									min="0.50"
-									max="200.00"
-									step="0.50"
-									value={inputs.cpuOutsourceCost}
-									onChange={(e) => updateInput('cpuOutsourceCost', Number(e.target.value))}
-									className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-cyan-400"
-								/>
-							</div>
-						</div>
-
-						{/* Secondary Cost */}
-						<div className="grid gap-3 rounded-[1.5rem] border border-gray-200/80 bg-white p-4">
-							<div className="flex items-center justify-between gap-4">
-								<div>
-									<span className="block text-sm font-semibold tracking-wide text-[#1A1A1A]">Upkeep / Internal Cost (Per Use)</span>
-									<span className="text-[10px] text-[#716F6F] block mt-0.5">e.g. Coffee beans/milk, charging, tune-up reserve</span>
-								</div>
-								<div className="flex items-center gap-1 bg-white/60 rounded-lg px-2 py-1 border border-gray-200 focus-within:border-cyan-500/50">
-									<span className="text-xs text-[#716F6F]">$</span>
-									<input
-										type="number"
-										step="0.01"
-										value={inputs.cpuSecondaryCost}
-										onChange={(e) => updateInput('cpuSecondaryCost', Number(e.target.value))}
-										className="w-12 bg-transparent text-right font-mono text-xs font-semibold #5A7A8F focus:outline-none border-none p-0"
-									/>
-								</div>
-							</div>
-							<div className="mt-3">
-								<input
-									type="range"
-									min="0.00"
-									max="50.00"
-									step="0.10"
-									value={inputs.cpuSecondaryCost}
-									onChange={(e) => updateInput('cpuSecondaryCost', Number(e.target.value))}
-									className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-cyan-400"
-								/>
-							</div>
-						</div>
-
-						{/* Lifespan */}
-						<div className="grid gap-3 rounded-[1.5rem] border border-gray-200/80 bg-white p-4 md:col-span-2">
-							<span className="block text-sm font-semibold tracking-wide text-[#1A1A1A]">Target Lifespan Horizon (Years)</span>
-							<div className="flex items-center justify-between border border-slate-700/60 rounded-xl bg-white/60 p-1.5 mt-2">
-								<button type="button" onClick={() => updateInput('cpuLifespanYears', Math.max(1, inputs.cpuLifespanYears - 1))} className="h-10 w-10 text-[#716F6F] hover:bg-gray-200 rounded-lg font-bold">−</button>
-								<span className="font-semibold text-[#1A1A1A]">{inputs.cpuLifespanYears} years</span>
-								<button type="button" onClick={() => updateInput('cpuLifespanYears', Math.min(10, inputs.cpuLifespanYears + 1))} className="h-10 w-10 text-[#716F6F] hover:bg-gray-200 rounded-lg font-bold">+</button>
-							</div>
-						</div>
-					</div>
-				)}
-
-				{/* -------------------- PERSONAL REPAIR INPUTS -------------------- */}
-				{inputs.activeMode === 'personal_repair' && (
-					<div className="grid gap-6 md:grid-cols-2 animate-fadeIn">
-						{/* Asset Type Selector */}
-						<div className="md:col-span-2">
-							<p className="font-mono text-[0.64rem] uppercase tracking-[0.24em] text-[#8C8C8C] mb-3">Asset Classification</p>
-							<div className="grid grid-cols-2 rounded-2xl bg-white/85 border border-gray-200 p-1">
-								<button
-									type="button"
-									onClick={() => updateInput('repairAssetType', 'infrastructure')}
-									className={`py-3 px-2 rounded-xl text-center font-semibold text-xs transition cursor-pointer ${
-										inputs.repairAssetType === 'infrastructure'
-											? 'bg-cyan-500/10 #5A7A8F border border-cyan-500/20'
-											: 'text-[#716F6F] hover:text-[#716F6F]'
-									}`}
-								>
-									🏠 Major Infrastructure (HVAC, Roof, Cars)
-								</button>
-								<button
-									type="button"
-									onClick={() => updateInput('repairAssetType', 'electronics')}
-									className={`py-3 px-2 rounded-xl text-center font-semibold text-xs transition cursor-pointer ${
-										inputs.repairAssetType === 'electronics'
-											? 'bg-cyan-500/10 #5A7A8F border border-cyan-500/20'
-											: 'text-[#716F6F] hover:text-[#716F6F]'
-									}`}
-								>
-									💻 Consumer Electronics (Phones, Laptops)
-								</button>
-							</div>
-						</div>
-
-						{/* Asset Age */}
-						<div className="grid gap-3 rounded-[1.5rem] border border-gray-200/80 bg-white p-4">
-							<div className="flex items-center justify-between gap-4">
-								<span className="block text-sm font-semibold tracking-wide text-[#1A1A1A]">Asset Age (Years)</span>
-								<span className="rounded-full border border-cyan-500/15 bg-cyan-500/10 px-3 py-1 font-mono text-[0.7rem] font-semibold #5A7A8F">
-									{inputs.repairAssetAge} Years Old
-								</span>
-							</div>
-							<div className="mt-3">
-								<input
-									type="range"
-									min="0"
-									max="20"
-									step="1"
-									value={inputs.repairAssetAge}
-									onChange={(e) => updateInput('repairAssetAge', Number(e.target.value))}
-									className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-cyan-400"
-								/>
-							</div>
-						</div>
-
-						{/* Repair Cost */}
-						<div className="grid gap-3 rounded-[1.5rem] border border-gray-200/80 bg-white p-4">
-							<div className="flex items-center justify-between gap-4">
-								<span className="block text-sm font-semibold tracking-wide text-[#1A1A1A]">Immediate Repair Quote</span>
-								<span className="rounded-full border border-cyan-500/15 bg-cyan-500/10 px-3 py-1 font-mono text-[0.7rem] font-semibold #5A7A8F">
-									{formatCurrency(inputs.repairCost)}
-								</span>
-							</div>
-							<div className="mt-3">
-								<input
-									type="range"
-									min="50"
-									max="5000"
-									step="50"
-									value={inputs.repairCost}
-									onChange={(e) => updateInput('repairCost', Number(e.target.value))}
-									className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-cyan-400"
-								/>
-							</div>
-						</div>
-					</div>
-				)}
-
-				{/* -------------------- PERSONAL TINKERING INPUTS -------------------- */}
-				{inputs.activeMode === 'personal_tinkering' && (
-					<div className="grid gap-6 md:grid-cols-2 animate-fadeIn">
-						{/* Troubleshooting hours */}
-						<div className="grid gap-3 rounded-[1.5rem] border border-gray-200/80 bg-white p-4">
-							<div className="flex items-center justify-between gap-4">
-								<span className="block text-sm font-semibold tracking-wide text-[#1A1A1A]">Tinkering Hours / Month</span>
-								<span className="rounded-full border border-cyan-500/15 bg-cyan-500/10 px-3 py-1 font-mono text-[0.7rem] font-semibold #5A7A8F">
-									{inputs.tinkerTroubleshootHours} hrs / mo
-								</span>
-							</div>
-							<div className="mt-3">
-								<input
-									type="range"
-									min="0.5"
-									max="20"
-									step="0.5"
+						<>
+							<fieldset className="di-fieldset">
+								<legend className="di-legend">01 · The workaround</legend>
+								<Field
+									id={`${uid}-hours`}
+									label="Tinkering hours per month"
+									hint="Debugging the stack, fixing syncs, re-authenticating things."
+									suffix="h/mo"
 									value={inputs.tinkerTroubleshootHours}
-									onChange={(e) => updateInput('tinkerTroubleshootHours', Number(e.target.value))}
-									className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+									min={0.5}
+									max={40}
+									step={0.5}
+									decimals={1}
+									onChange={(value) => updateInput('tinkerTroubleshootHours', value)}
 								/>
-							</div>
-						</div>
-
-						{/* Hourly Time Value */}
-						<div className="grid gap-3 rounded-[1.5rem] border border-gray-200/80 bg-white p-4">
-							<div className="flex items-center justify-between gap-4">
-								<span className="block text-sm font-semibold tracking-wide text-[#1A1A1A]">Opportunity Value of Time ($/hr)</span>
-								<span className="rounded-full border border-cyan-500/15 bg-cyan-500/10 px-3 py-1 font-mono text-[0.7rem] font-semibold #5A7A8F">
-									${inputs.tinkerTimeValue} / hr
-								</span>
-							</div>
-							<div className="mt-3">
-								<input
-									type="range"
-									min="10"
-									max="200"
-									step="5"
+								<Field
+									id={`${uid}-timevalue`}
+									label="Value of an hour"
+									hint="What that hour would be worth spent on the work you are paid for."
+									prefix="$"
+									suffix="/h"
 									value={inputs.tinkerTimeValue}
-									onChange={(e) => updateInput('tinkerTimeValue', Number(e.target.value))}
-									className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+									min={10}
+									max={250}
+									step={5}
+									onChange={(value) => updateInput('tinkerTimeValue', value)}
 								/>
-							</div>
-						</div>
-
-						{/* Paid Subscription Cost */}
-						<div className="grid gap-3 rounded-[1.5rem] border border-gray-200/80 bg-white p-4 md:col-span-2">
-							<div className="flex items-center justify-between gap-4">
-								<span className="block text-sm font-semibold tracking-wide text-[#1A1A1A]">Paid App Subscription Cost ($/month)</span>
-								<span className="rounded-full border border-cyan-500/15 bg-cyan-500/10 px-3 py-1 font-mono text-[0.7rem] font-semibold #5A7A8F">
-									{formatCurrency(inputs.tinkerSubscriptionCost)} / mo
-								</span>
-							</div>
-							<div className="mt-3">
-								<input
-									type="range"
-									min="2"
-									max="100"
-									step="1"
+							</fieldset>
+							<fieldset className="di-fieldset">
+								<legend className="di-legend">02 · The paid alternative</legend>
+								<Field
+									id={`${uid}-sub`}
+									label="Subscription"
+									suffix="/mo"
+									prefix="$"
 									value={inputs.tinkerSubscriptionCost}
-									onChange={(e) => updateInput('tinkerSubscriptionCost', Number(e.target.value))}
-									className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+									min={2}
+									max={500}
+									step={1}
+									onChange={(value) => updateInput('tinkerSubscriptionCost', value)}
 								/>
-							</div>
-						</div>
-					</div>
-				)}
+							</fieldset>
+						</>
+					)}
 
-				{/* Compliance target for enterprise */}
-				{inputs.activeMode === 'enterprise_ciam' && (
-					<div className="mt-6">
-						<p className="font-mono text-[0.64rem] uppercase tracking-[0.24em] text-[#8C8C8C] mb-3">Compliance target level</p>
-						<div className="grid grid-cols-3 rounded-2xl bg-white/80 border border-gray-200/80 p-1">
-							{(['none', 'soc2', 'hipaa'] as const).map((level) => (
-								<button
-									key={level}
-									type="button"
-									onClick={() => updateInput('complianceLevel', level)}
-									className={`py-3 px-2 rounded-xl text-center font-semibold text-xs transition cursor-pointer uppercase tracking-wider ${
-										inputs.complianceLevel === level
-											? 'bg-cyan-500/10 #5A7A8F border border-cyan-500/20 shadow-md'
-											: 'text-[#716F6F] hover:text-[#716F6F] border border-transparent'
-									}`}
-								>
-									{level === 'none' ? 'None' : level === 'soc2' ? 'SOC 2 Type II' : 'HIPAA BAA'}
-								</button>
+					<fieldset className="di-fieldset di-fieldset--premises">
+						<legend className="di-legend">03 · Premise check</legend>
+						<p className="di-note">
+							These do not move the arithmetic. They mark the parts of the decision the arithmetic cannot
+							settle, which is what a reviewer will ask about.
+						</p>
+						{result.premises.map((premise) => (
+							<label key={premise.label} className="di-premise">
+								<input
+									type="checkbox"
+									checked={premise.checked}
+									onChange={(event) => {
+										const flag =
+											inputs.activeMode === 'enterprise_ciam'
+												? premise.label === 'Sunk-cost pull'
+													? 'hasSunkCostFallacy'
+													: premise.label === 'Single-maintainer risk'
+														? 'hasKeyPersonRisk'
+														: 'hasTinkeringTax'
+												: inputs.activeMode === 'personal_cpu'
+													? 'cpuAspirationalCheck'
+													: 'tinkerHobbyOffset';
+										updateInput(flag, event.target.checked);
+									}}
+								/>
+								<span className="di-premise__body">
+									<span className="di-premise__label">{premise.label}</span>
+									<span className="di-premise__statement">{premise.statement}</span>
+								</span>
+							</label>
+						))}
+						<p className="di-premise__status" data-state={unresolved ? 'warn' : 'ok'}>
+							{unresolved
+								? `${unresolved} of ${result.premises.length} unresolved — the number stands, the premise does not.`
+								: 'No unresolved premises logged.'}
+						</p>
+					</fieldset>
+				</div>
+
+				{/* ── readout ─────────────────────────────────────────────────── */}
+				<div className="di__readout">
+					<div className="di-verdict" data-tone={result.tossUp ? 'flat' : 'clear'} aria-live="polite">
+						<div className="di-verdict__top">
+							<span className="di-legend">Verdict</span>
+							<span className="di-chip">{result.verdict}</span>
+						</div>
+						<p className="di-verdict__call">{result.verdictLabel}</p>
+						<p className="di-verdict__headline">{result.headline}</p>
+						<p className="di-verdict__horizon">{result.horizonLabel}</p>
+					</div>
+
+					<dl className="di-figures">
+						{result.figures.map((figure) => (
+							<div key={figure.label} className="di-figure">
+								<dt className="di-figure__label">{figure.label}</dt>
+								<dd className="di-figure__value">{figure.value}</dd>
+								{figure.note ? <dd className="di-figure__note">{figure.note}</dd> : null}
+							</div>
+						))}
+					</dl>
+
+					<SpendChart result={result} />
+
+					<div className="di-ledger">
+						<div className="di-ledger__head">
+							<span className="di-legend">Ledger</span>
+							<span className="di-chart__note">{result.horizonLabel}</span>
+						</div>
+						<div className="di-ledger__sides">
+							{result.sides.map((side, index) => (
+								<Side key={side.key} side={side} scale={scale} index={index} />
 							))}
 						</div>
+						<p className="di-ledger__foot">
+							{money(delta)}
+							{result.sides[0].totalLabel ?? ''} apart.
+							{hasOffInvoice ? (
+								<>
+									{' '}
+									Rows marked <span className="di-row__mark">off invoice</span> are the costs that do not
+									appear on the first quote.
+								</>
+							) : null}
+						</p>
 					</div>
-				)}
+
+					<div className="di-actions">
+						<button type="button" className="di-action" onClick={copySummary}>
+							{copied ? 'Copied' : 'Copy the summary'}
+						</button>
+						<button type="button" className="di-action di-action--ghost" onClick={reset}>
+							Reset to defaults
+						</button>
+					</div>
+				</div>
 			</div>
 
-			{/* STEP 3: ICEBERG COST MATRIX (VISIBLE VS INVISIBLE) */}
-			<div className="grid gap-6 lg:grid-cols-2">
-				{/* -------------------- ENTERPRISE MATRIX -------------------- */}
-				{inputs.activeMode === 'enterprise_ciam' && (
-					<>
-						<div className="panel-soft flex flex-col rounded-[1.8rem] border border-cyan-500/25 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(8,47,73,0.85)_80%,rgba(34,211,238,0.12))] p-6 shadow-[0_0_35px_rgba(6,182,212,0.06)] hover:border-cyan-500/40 transition-[border-color,background-color,box-shadow,transform] duration-300">
-							<p className="font-mono text-xs uppercase tracking-[0.28em] #5A7A8F/85">SaaS Managed Platform</p>
-							<h4 className="mt-4 text-sm font-mono uppercase tracking-wider text-[#716F6F]">3-Year SaaS Cumulative TCO</h4>
-							<p className="mt-1 text-4xl font-extrabold tracking-tight text-[#1A1A1A]">{formatCurrency(outputs.saas3YrTco)}</p>
-							<div className="mt-6 flex-1 grid gap-4">
-								<div className="rounded-[1.2rem] border border-gray-200 bg-white/65 p-4">
-									<span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#8C8C8C] block">Visible setup & integration</span>
-									<div className="flex justify-between mt-1"><span className="text-sm font-semibold text-[#716F6F]">SDK Setup Labor</span><span className="text-sm font-bold text-[#1A1A1A]">{formatCurrency(outputs.saasIntegrateCost)}</span></div>
-								</div>
-								<div className="rounded-[1.2rem] border border-gray-200 bg-white/65 p-4">
-									<span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#8C8C8C] block">Subscription overage</span>
-									<div className="flex justify-between mt-1"><span className="text-sm font-semibold text-[#716F6F]">Monthly License Fee</span><span className="text-sm font-bold text-[#5A7A8F]">{formatCurrency(outputs.saasMaintCostMonthly)} / mo</span></div>
-								</div>
-							</div>
-						</div>
-
-						<div className="panel-soft flex flex-col rounded-[1.8rem] border border-rose-500/20 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(67,20,30,0.85)_80%,rgba(244,63,94,0.12))] p-6 shadow-[0_0_35px_rgba(244,63,94,0.06)] hover:border-rose-500/35 transition-[border-color,background-color,box-shadow,transform] duration-300">
-							<p className="font-mono text-xs uppercase tracking-[0.28em] text-[#B85C5C]/85">In-House Custom Build</p>
-							<h4 className="mt-4 text-sm font-mono uppercase tracking-wider text-[#716F6F]">3-Year Custom Cumulative TCO</h4>
-							<p className="mt-1 text-4xl font-extrabold tracking-tight text-[#1A1A1A]">{formatCurrency(outputs.custom3YrTco)}</p>
-							<div className="mt-6 flex-1 grid gap-4">
-								<div className="rounded-[1.2rem] border border-gray-200 bg-white/65 p-4">
-									<span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#8C8C8C] block">Upfront CapEx (Visible)</span>
-									<div className="flex justify-between mt-1"><span className="text-sm font-semibold text-[#716F6F]">Initial Build Labor</span><span className="text-sm font-bold text-[#1A1A1A]">{formatCurrency(outputs.customBuildCost)}</span></div>
-								</div>
-								<div className="rounded-[1.2rem] border border-gray-200 bg-white/65 p-4">
-									<span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#B85C5C] block">Hidden OpEx Drag (Invisible)</span>
-									<div className="grid gap-1.5 mt-2 text-xs text-[#716F6F]">
-										<div className="flex justify-between"><span>3-Yr Upkeep:</span><span>{formatCurrency(outputs.customMaintCost3Yr)}</span></div>
-										{inputs.complianceLevel !== 'none' && <div className="flex justify-between"><span>3-Yr Compliance:</span><span>{formatCurrency(outputs.customComplianceCost3Yr)}</span></div>}
-										<div className="flex justify-between"><span>Opportunity Cost:</span><span>{formatCurrency(outputs.customOpportunityCost3Yr)}</span></div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</>
-				)}
-
-				{/* -------------------- PERSONAL CPU MATRIX -------------------- */}
-				{inputs.activeMode === 'personal_cpu' && (
-					<>
-						<div className="panel-soft flex flex-col rounded-[1.8rem] border border-cyan-500/25 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(8,47,73,0.85)_80%,rgba(34,211,238,0.12))] p-6 shadow-[0_0_35px_rgba(6,182,212,0.06)] transition-[border-color,background-color,box-shadow,transform] duration-300">
-							<p className="font-mono text-xs uppercase tracking-[0.28em] #5A7A8F/85">Convenience Outsourcing</p>
-							<h4 className="mt-4 text-sm font-mono uppercase tracking-wider text-[#716F6F]">Lifespan Outsource Total</h4>
-							<p className="mt-1 text-4xl font-extrabold tracking-tight text-[#1A1A1A]">{formatCurrency(outputs.personalCpuOutsourceTco)}</p>
-							<div className="mt-6 flex-1 grid gap-4 animate-fadeIn">
-								<div className="rounded-[1.2rem] border border-gray-200 bg-white/65 p-4">
-									<span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#8C8C8C] block">Outsource Rate</span>
-									<div className="flex justify-between mt-1"><span className="text-sm font-semibold text-[#716F6F]">Price per Outsource Use</span><span className="text-sm font-bold text-[#1A1A1A]">{formatCurrency(outputs.personalCpuOutsourcePerUse)}</span></div>
-								</div>
-								<div className="rounded-[1.2rem] border border-gray-200 bg-white/65 p-4">
-									<span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#8C8C8C] block">Lifestyle Volume</span>
-									<div className="flex justify-between mt-1"><span className="text-sm font-semibold text-[#716F6F]">Total Uses ({inputs.cpuLifespanYears} yrs)</span><span className="text-sm font-bold text-[#5A7A8F]">{outputs.personalCpuTotalUses.toLocaleString()} uses</span></div>
-								</div>
-							</div>
-						</div>
-
-						<div className="panel-soft flex flex-col rounded-[1.8rem] border border-rose-500/20 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(67,20,30,0.85)_80%,rgba(244,63,94,0.12))] p-6 shadow-[0_0_35px_rgba(244,63,94,0.06)] transition-[border-color,background-color,box-shadow,transform] duration-300">
-							<p className="font-mono text-xs uppercase tracking-[0.28em] text-[#B85C5C]/85">Home Asset Ownership</p>
-							<h4 className="mt-4 text-sm font-mono uppercase tracking-wider text-[#716F6F]">Lifespan Home Ownership TCO</h4>
-							<p className="mt-1 text-4xl font-extrabold tracking-tight text-[#1A1A1A]">{formatCurrency(outputs.personalCpuHomeTco)}</p>
-							<div className="mt-6 flex-1 grid gap-4 animate-fadeIn">
-								<div className="rounded-[1.2rem] border border-gray-200 bg-white/65 p-4">
-									<span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#8C8C8C] block">Sticker price (Visible)</span>
-									<div className="flex justify-between mt-1"><span className="text-sm font-semibold text-[#716F6F]">Upfront Sticker Cost</span><span className="text-sm font-bold text-[#1A1A1A]">{formatCurrency(inputs.cpuStickerPrice)}</span></div>
-								</div>
-								<div className="rounded-[1.2rem] border border-gray-200 bg-white/65 p-4">
-									<span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#B85C5C] block">Hidden operating & upkeep (Invisible)</span>
-									<div className="grid gap-1.5 mt-2 text-xs text-[#716F6F]">
-										<div className="flex justify-between"><span>Secondary ingredients/parts:</span><span>{formatCurrency(outputs.personalCpuTotalUses * inputs.cpuSecondaryCost)}</span></div>
-										<div className="flex justify-between"><span>Upkeep & Descaling budget:</span><span>{formatCurrency(outputs.personalCpuMaintenance)}</span></div>
-										<div className="flex justify-between"><span>Asset Depreciation (35% loss):</span><span>{formatCurrency(outputs.personalCpuDepreciation)}</span></div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</>
-				)}
-
-				{/* -------------------- PERSONAL REPAIR MATRIX -------------------- */}
-				{inputs.activeMode === 'personal_repair' && (
-					<>
-						<div className="panel-soft flex flex-col rounded-[1.8rem] border border-cyan-500/25 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(8,47,73,0.85)_80%,rgba(34,211,238,0.12))] p-6 shadow-[0_0_35px_rgba(6,182,212,0.06)] transition-[border-color,background-color,box-shadow,transform] duration-300">
-							<p className="font-mono text-xs uppercase tracking-[0.28em] #5A7A8F/85">Repair and Keep</p>
-							<h4 className="mt-4 text-sm font-mono uppercase tracking-wider text-[#716F6F]">Immediate Repair Quote</h4>
-							<p className="mt-1 text-4xl font-extrabold tracking-tight text-[#1A1A1A]">{formatCurrency(inputs.repairCost)}</p>
-							<div className="mt-6 flex-1 grid gap-4 animate-fadeIn">
-								<div className="rounded-[1.2rem] border border-gray-200 bg-white/65 p-4">
-									<span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#8C8C8C] block">Asset Age Factor</span>
-									<div className="flex justify-between mt-1"><span className="text-sm font-semibold text-[#716F6F]">Structural Age</span><span className="text-sm font-bold text-[#1A1A1A]">{inputs.repairAssetAge} Years</span></div>
-								</div>
-								<div className="rounded-[1.2rem] border border-gray-200 bg-white/65 p-4">
-									<span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#8C8C8C] block">Index Score</span>
-									<div className="flex justify-between mt-1"><span className="text-sm font-semibold text-[#716F6F]">Asset Debt Index</span><span className="text-sm font-bold text-[#5A7A8F]">{outputs.personalRepairIndex.toLocaleString()}</span></div>
-								</div>
-							</div>
-						</div>
-
-						<div className="panel-soft flex flex-col rounded-[1.8rem] border border-rose-500/20 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(67,20,30,0.85)_80%,rgba(244,63,94,0.12))] p-6 shadow-[0_0_35px_rgba(244,63,94,0.06)] transition-[border-color,background-color,box-shadow,transform] duration-300">
-							<p className="font-mono text-xs uppercase tracking-[0.28em] text-[#B85C5C]/85">Replace with New</p>
-							<h4 className="mt-4 text-sm font-mono uppercase tracking-wider text-[#716F6F]">Threshold Warning</h4>
-							<p className="mt-1 text-4xl font-extrabold tracking-tight text-[#1A1A1A]">{outputs.personalRepairThreshold.toLocaleString()}</p>
-							<div className="mt-6 flex-1 grid gap-4 animate-fadeIn">
-								<div className="rounded-[1.2rem] border border-gray-200 bg-white/65 p-4">
-									<span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#8C8C8C] block">Replacement Verdict</span>
-									<div className="flex justify-between mt-1"><span className="text-sm font-semibold text-[#716F6F]">Recommendation</span><span className="text-sm font-bold text-[#1A1A1A]">{outputs.verdict === 'REPLACE' ? 'REPLACE / BUY NEW' : 'KEEP / PATCH IT'}</span></div>
-								</div>
-								<div className="rounded-[1.2rem] border border-gray-200 bg-white/65 p-4">
-									<span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#B85C5C] block">Future Savings</span>
-									<p className="text-xs leading-5 text-[#716F6F] mt-1">Replacing early resets depreciation, guarantees a fresh warranty lifespan, and stops the repair money pit.</p>
-								</div>
-							</div>
-						</div>
-					</>
-				)}
-
-				{/* -------------------- PERSONAL TINKERING MATRIX -------------------- */}
-				{inputs.activeMode === 'personal_tinkering' && (
-					<>
-						<div className="panel-soft flex flex-col rounded-[1.8rem] border border-cyan-500/25 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(8,47,73,0.85)_80%,rgba(34,211,238,0.12))] p-6 shadow-[0_0_35px_rgba(6,182,212,0.06)] transition-[border-color,background-color,box-shadow,transform] duration-300">
-							<p className="font-mono text-xs uppercase tracking-[0.28em] #5A7A8F/85">Paid Subscription Tool</p>
-							<h4 className="mt-4 text-sm font-mono uppercase tracking-wider text-[#716F6F]">3-Year App Subscription</h4>
-							<p className="mt-1 text-4xl font-extrabold tracking-tight text-[#1A1A1A]">{formatCurrency(outputs.personalTinker3YrSubCost)}</p>
-							<div className="mt-6 flex-1 grid gap-4 animate-fadeIn">
-								<div className="rounded-[1.2rem] border border-gray-200 bg-white/65 p-4">
-									<span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#8C8C8C] block">Subscription Price</span>
-									<div className="flex justify-between mt-1"><span className="text-sm font-semibold text-[#716F6F]">Monthly Paid App fee</span><span className="text-sm font-bold text-[#1A1A1A]">{formatCurrency(inputs.tinkerSubscriptionCost)}/mo</span></div>
-								</div>
-							</div>
-						</div>
-
-						<div className="panel-soft flex flex-col rounded-[1.8rem] border border-rose-500/20 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(67,20,30,0.85)_80%,rgba(244,63,94,0.12))] p-6 shadow-[0_0_35px_rgba(244,63,94,0.06)] transition-[border-color,background-color,box-shadow,transform] duration-300">
-							<p className="font-mono text-xs uppercase tracking-[0.28em] text-[#B85C5C]/85">Fragile Workaround Stack</p>
-							<h4 className="mt-4 text-sm font-mono uppercase tracking-wider text-[#716F6F]">3-Year Invisible Time Tax</h4>
-							<p className="mt-1 text-4xl font-extrabold tracking-tight text-[#1A1A1A]">{formatCurrency(outputs.personalTinker3YrTimeCost)}</p>
-							<div className="mt-6 flex-1 grid gap-4 animate-fadeIn">
-								<div className="rounded-[1.2rem] border border-gray-200 bg-white/65 p-4">
-									<span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#8C8C8C] block">Monthly Time Value Cost</span>
-									<div className="flex justify-between mt-1"><span className="text-sm font-semibold text-[#716F6F]">Lost Time Value</span><span className="text-sm font-bold text-[#B85C5C]">{formatCurrency(outputs.personalTinkerMonthlyTimeCost)}/mo</span></div>
-								</div>
-							</div>
-						</div>
-					</>
-				)}
-			</div>
-
-			{/* STEP 4: BIAS CORRECTION & CHECKLIST */}
-			<div className="rounded-[2rem] border border-gray-200 bg-white/20 p-6 sm:p-8">
-				<div className="flex items-center justify-between mb-6">
-					<div>
-						<h3 className="text-xl font-bold tracking-tight text-[#1A1A1A]">⚠️ Strategic risk assessment</h3>
-						<p className="text-xs text-[#716F6F] mt-1">Select the behavioral checkboxes to analyze risk biases:</p>
-					</div>
-					<span className="font-mono text-[0.64rem] uppercase tracking-[0.2em] text-[#8C8C8C]">
-						Step 4 of 4
-					</span>
-				</div>
-
-				{/* -------------------- ENTERPRISE CHECKLIST -------------------- */}
-				{inputs.activeMode === 'enterprise_ciam' && (
-					<div className="grid gap-4 animate-fadeIn">
-						<label className="flex items-start gap-4 rounded-2xl border border-gray-200/80 bg-white p-4 transition hover:bg-slate-900/30 cursor-pointer select-none">
-							<input
-								type="checkbox"
-								checked={inputs.hasSunkCostFallacy}
-								onChange={(e) => updateInput('hasSunkCostFallacy', e.target.checked)}
-								className="mt-1 h-4 w-4 rounded border-slate-700 bg-white text-cyan-500 focus:ring-cyan-500 focus:ring-offset-slate-950"
-							/>
-							<div>
-								<span className="block text-sm font-semibold text-[#716F6F]">Sunk Cost Bias</span>
-								<span className="mt-1 block text-xs leading-5 text-[#716F6F]">"We have already spent substantial resources and developer hours patching our custom auth logic, so we must keep maintaining it."</span>
-							</div>
-						</label>
-
-						<label className="flex items-start gap-4 rounded-2xl border border-gray-200/80 bg-white p-4 transition hover:bg-slate-900/30 cursor-pointer select-none">
-							<input
-								type="checkbox"
-								checked={inputs.hasKeyPersonRisk}
-								onChange={(e) => updateInput('hasKeyPersonRisk', e.target.checked)}
-								className="mt-1 h-4 w-4 rounded border-slate-700 bg-white text-cyan-500 focus:ring-cyan-500 focus:ring-offset-slate-950"
-							/>
-							<div>
-								<span className="block text-sm font-semibold text-[#716F6F]">Key-Person Turn-Over Risk</span>
-								<span className="mt-1 block text-xs leading-5 text-[#716F6F]">"Our custom auth middleware, OAuth flow, and token session validation were built and are maintained by a single senior engineer."</span>
-							</div>
-						</label>
-
-						<label className="flex items-start gap-4 rounded-2xl border border-gray-200/80 bg-white p-4 transition hover:bg-slate-900/30 cursor-pointer select-none">
-							<input
-								type="checkbox"
-								checked={inputs.hasTinkeringTax}
-								onChange={(e) => updateInput('hasTinkeringTax', e.target.checked)}
-								className="mt-1 h-4 w-4 rounded border-slate-700 bg-white text-cyan-500 focus:ring-cyan-500 focus:ring-offset-slate-950"
-							/>
-							<div>
-								<span className="block text-sm font-semibold text-[#716F6F]">Brittle Integration Tax</span>
-								<span className="mt-1 block text-xs leading-5 text-[#716F6F]">"We stitch multiple no-code visual tables and external databases (e.g. Notion, Zapier, Softr) to sync user sessions."</span>
-							</div>
-						</label>
-					</div>
-				)}
-
-				{/* -------------------- PERSONAL CPU CHECKLIST -------------------- */}
-				{inputs.activeMode === 'personal_cpu' && (
-					<div className="grid gap-4 animate-fadeIn">
-						<label className="flex items-start gap-4 rounded-2xl border border-gray-200/80 bg-white p-4 transition hover:bg-slate-900/30 cursor-pointer select-none">
-							<input
-								type="checkbox"
-								checked={inputs.cpuAspirationalCheck}
-								onChange={(e) => updateInput('cpuAspirationalCheck', e.target.checked)}
-								className="mt-1 h-4 w-4 rounded border-slate-700 bg-white text-cyan-500 focus:ring-cyan-500 focus:ring-offset-slate-950"
-							/>
-							<div>
-								<span className="block text-sm font-semibold text-[#716F6F]">Commitment Pledge (Aspirational Check)</span>
-								<span className="mt-1 block text-xs leading-5 text-[#716F6F]">"I pledge that I will actually maintain this usage frequency ({inputs.cpuWeeklyUses} times/week) consistently over the next {inputs.cpuLifespanYears} years."</span>
-							</div>
-						</label>
-					</div>
-				)}
-
-				{/* -------------------- PERSONAL REPAIR CHECKLIST -------------------- */}
-				{inputs.activeMode === 'personal_repair' && (
-					<div className="grid gap-4 animate-fadeIn">
-						<label className="flex items-start gap-4 rounded-2xl border border-gray-200/80 bg-white p-4 transition hover:bg-slate-900/30 cursor-pointer select-none">
-							<input
-								type="checkbox"
-								checked={repairSunkCost}
-								onChange={(e) => setRepairSunkCost(e.target.checked)}
-								className="mt-1 h-4 w-4 rounded border-slate-700 bg-white text-cyan-500 focus:ring-cyan-500 focus:ring-offset-slate-950"
-							/>
-							<div>
-								<span className="block text-sm font-semibold text-[#716F6F]">History of Repeated Failure</span>
-								<span className="mt-1 block text-xs leading-5 text-[#716F6F]">"This asset has broken down multiple times in the past 12 months, and I have already spent considerable money fixing it."</span>
-							</div>
-						</label>
-					</div>
-				)}
-
-				{/* -------------------- PERSONAL TINKERING CHECKLIST -------------------- */}
-				{inputs.activeMode === 'personal_tinkering' && (
-					<div className="grid gap-4 animate-fadeIn">
-						<label className="flex items-start gap-4 rounded-2xl border border-gray-200/80 bg-white p-4 transition hover:bg-slate-900/30 cursor-pointer select-none">
-							<input
-								type="checkbox"
-								checked={tinkerHobbyOffset}
-								onChange={(e) => setTinkerHobbyOffset(e.target.checked)}
-								className="mt-1 h-4 w-4 rounded border-slate-700 bg-white text-cyan-500 focus:ring-cyan-500 focus:ring-offset-slate-950"
-							/>
-							<div>
-								<span className="block text-sm font-semibold text-[#716F6F]">Recreational Hobby Offset</span>
-								<span className="mt-1 block text-xs leading-5 text-[#716F6F]">"I genuinely enjoy debugging, manual scripting, or smart home tweaking as a fun leisure hobby rather than seeing it as a chore."</span>
-							</div>
-						</label>
-					</div>
-				)}
-
-				{/* Dynamic Risk Warnings Panel */}
-				<div className="mt-6 grid gap-4">
-					{/* Enterprise warnings */}
-					{inputs.activeMode === 'enterprise_ciam' && inputs.hasSunkCostFallacy && (
-						<div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-4 flex gap-3 animate-fadeIn">
-							<span className="text-xl">⚠️</span>
-							<div>
-								<h4 className="text-xs font-mono uppercase tracking-wider text-[#B85C5C] font-bold">Active Exposure: Sunk Cost Fallacy Triggered</h4>
-								<p className="text-xs leading-5 text-[#716F6F] mt-1">Continuing to patch this legacy custom build simply because of prior investment drains engineering focus that could be spent building core product features. Your codebase tech debt index is <span className="font-semibold text-[#1A1A1A]">{outputs.softwareIndex.toLocaleString()}</span> {outputs.isSoftwareIndexHigh ? '(Threshold exceeded: 5,000)' : '(Threshold: 5,000)'}.</p>
-							</div>
-						</div>
-					)}
-					{inputs.activeMode === 'enterprise_ciam' && inputs.hasKeyPersonRisk && (
-						<div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-4 flex gap-3 animate-fadeIn">
-							<span className="text-xl">🛑</span>
-							<div>
-								<h4 className="text-xs font-mono uppercase tracking-wider text-[#B85C5C] font-bold">Key-Person Risk: High Knowledge Loss Liability</h4>
-								<p className="text-xs leading-5 text-[#716F6F] mt-1">Turnover will leave your core session pipeline completely unmaintained. If this engineer leaves, the loaded cost to onboarding a replacement developer and resolving immediate patches is estimated at <span className="font-semibold text-[#1A1A1A]">{formatCurrency(remediationCost)}</span> ({inputs.remediationHours} hours of remediation).</p>
-							</div>
-						</div>
-					)}
-					{inputs.activeMode === 'enterprise_ciam' && inputs.hasTinkeringTax && (
-						<div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-4 flex gap-3 animate-fadeIn">
-							<span className="text-xl">⚡</span>
-							<div>
-								<h4 className="text-xs font-mono uppercase tracking-wider text-[#B85C5C] font-bold">Brittle Integration: Tinkering Tax Alert</h4>
-								<p className="text-xs leading-5 text-[#716F6F] mt-1">No-code integrations are highly sensitive to database schema renames and vendor API deprecations. Security session management through third-party automation tools introduces severe compliance and data leakage risks.</p>
-							</div>
-						</div>
-					)}
-
-					{/* Personal CPU warnings */}
-					{inputs.activeMode === 'personal_cpu' && !inputs.cpuAspirationalCheck && (
-						<div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-4 flex gap-3 animate-fadeIn">
-							<span className="text-xl">⚠️</span>
-							<div>
-								<h4 className="text-xs font-mono uppercase tracking-wider text-[#B85C5C] font-bold">Aspirational check Warning: Shelf-Sitting Risk</h4>
-								<p className="text-xs leading-5 text-[#716F6F] mt-1">Consumer products frequently end up unused in closets or garages. Be realistic about the setup friction, mandatory cleanup cycles, and lifestyle alignment before spending upfront CapEx.</p>
-							</div>
-						</div>
-					)}
-					{inputs.activeMode === 'personal_cpu' && outputs.personalCpuAspirationalWarning && (
-						<div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-4 flex gap-3 animate-fadeIn">
-							<span className="text-xl">⚡</span>
-							<div>
-								<h4 className="text-xs font-mono uppercase tracking-wider text-[#B85C5C] font-bold">Optimistic Frequency warning</h4>
-								<p className="text-xs leading-5 text-[#716F6F] mt-1">{outputs.personalCpuAspirationalWarning}</p>
-							</div>
-						</div>
-					)}
-
-					{/* Personal Repair warnings */}
-					{inputs.activeMode === 'personal_repair' && repairSunkCost && (
-						<div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-4 flex gap-3 animate-fadeIn">
-							<span className="text-xl">⚠️</span>
-							<div>
-								<h4 className="text-xs font-mono uppercase tracking-wider text-[#B85C5C] font-bold">Sunk Cost Bias Warning: Money Pit alert</h4>
-								<p className="text-xs leading-5 text-[#716F6F] mt-1">Continuing to repair an old, deteriorating asset that repeatedly fails will quickly exceed the cost of buying a replacement. Consider replacing the asset to prevent compounding financial loss.</p>
-							</div>
-						</div>
-					)}
-
-					{/* Personal Tinkering warnings */}
-					{inputs.activeMode === 'personal_tinkering' && tinkerHobbyOffset && (
-						<div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 flex gap-3 animate-fadeIn">
-							<span className="text-xl">💡</span>
-							<div>
-								<h4 className="text-xs font-mono uppercase tracking-wider #1A1A1A font-bold">Leisure offset active</h4>
-								<p className="text-xs leading-5 text-[#716F6F] mt-1">Since you classify this troubleshooting as an enjoyable personal hobby, your hourly time value loss is offset by recreational satisfaction. Staying with the free workaround stack is highly justified.</p>
-							</div>
-						</div>
-					)}
-				</div>
+			{/* Mobile: the verdict stays in view while the sliders move. */}
+			<div className="di-mobilebar">
+				<span className="di-chip di-chip--small">{result.verdict}</span>
+				<span className="di-mobilebar__text">{result.verdictLabel}</span>
+				<span className="di-mobilebar__delta">
+					{money(delta)}
+					{result.sides[0].totalLabel ?? ''}
+				</span>
 			</div>
 		</div>
 	);

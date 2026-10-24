@@ -1,381 +1,632 @@
-export interface DecisionIntelligenceInputs {
-	activeMode: 'enterprise_ciam' | 'personal_cpu' | 'personal_repair' | 'personal_tinkering';
+/**
+ * The decision engine behind the Master Asset & Software TCO Calculator.
+ *
+ * WHY THE SHAPE CHANGED (2026-10 redesign)
+ * The old engine returned ~35 flat fields, one third of which only ever fed a single line of
+ * JSX, and the component hard-coded eight separate layouts against them. Two problems came out
+ * of that: the presentation logic drifted from the arithmetic (the "break-even" number was
+ * computed on the wrong side of its own comparison), and every new mode meant another bespoke
+ * block of markup.
+ *
+ * This engine instead returns a **decision record**: two options, each with a total and an
+ * itemised breakdown, plus the figures, the premise flags and — where it means something — a
+ * cumulative spend series. The React island renders one contract for all four modes, so a
+ * verdict can no longer disagree with the numbers that produced it.
+ *
+ * Rules this file keeps:
+ *   · Every number the UI shows is produced here. No arithmetic in JSX.
+ *   · Every assumption the reader can argue with is an input, not a constant.
+ *   · Premise flags never touch the arithmetic — they are not numbers. They downgrade the
+ *     verdict's standing, which is a separate, honestly-labelled thing.
+ */
 
-	// Enterprise CIAM inputs
+export type DecisionMode =
+	| 'enterprise_ciam'
+	| 'personal_cpu'
+	| 'personal_repair'
+	| 'personal_tinkering';
+
+export interface DecisionIntelligenceInputs {
+	activeMode: DecisionMode;
+
+	/* ── Enterprise: build the system or buy the platform ─────────────────── */
 	mau: number;
 	devRate: number;
-	buildTime: number; // in months
-	maintFte: number; // as percentage, e.g. 50%
+	buildMonths: number;
+	buildTeam: number;
+	maintFtePct: number;
 	complianceLevel: 'none' | 'soc2' | 'hipaa';
-	codebaseAge: number; // in years
-	remediationHours: number; // in hours
+	complianceCostAnnual: number;
+	opportunityCost3Yr: number;
+	integrationHours: number;
 	hasSunkCostFallacy: boolean;
 	hasKeyPersonRisk: boolean;
 	hasTinkeringTax: boolean;
 
-	// Personal CPU inputs (Espresso vs Cafe)
+	/* ── Per-use asset: own it or pay per use ─────────────────────────────── */
 	cpuStickerPrice: number;
-	cpuSecondaryCost: number; // e.g. beans per shot
-	cpuOutsourceCost: number; // e.g. cafe price
+	cpuSecondaryCost: number;
+	cpuOutsourceCost: number;
 	cpuWeeklyUses: number;
 	cpuLifespanYears: number;
+	cpuResidualPct: number;
 	cpuAspirationalCheck: boolean;
 
-	// Personal Repair inputs
+	/* ── Repair or replace ────────────────────────────────────────────────── */
 	repairAssetType: 'infrastructure' | 'electronics';
-	repairAssetAge: number; // in years
+	repairAssetAge: number;
 	repairCost: number;
+	repairReplacementCost: number;
+	repairExtraLifeYears: number;
+	repairReplacementLifeYears: number;
 
-	// Personal Tinkering inputs
-	tinkerTroubleshootHours: number; // hours per month
-	tinkerTimeValue: number; // hourly rate
-	tinkerSubscriptionCost: number; // monthly fee
-	tinkerAspirationalCheck: boolean;
+	/* ── Tinkering tax: free workaround or paid app ───────────────────────── */
+	tinkerTroubleshootHours: number;
+	tinkerTimeValue: number;
+	tinkerSubscriptionCost: number;
+	tinkerHobbyOffset: boolean;
 }
 
-export interface DecisionIntelligenceOutputs {
-	verdict: 'BUY' | 'PATCH' | 'WAIT' | 'REPLACE' | 'REPAIR' | 'SKIP';
-	verdictRationale: string;
-
-	// Enterprise outputs
-	custom3YrTco: number;
-	saas3YrTco: number;
-	customBuildCost: number;
-	customMaintCostMonthly: number;
-	customMaintCost3Yr: number;
-	customComplianceCostAnnual: number;
-	customComplianceCost3Yr: number;
-	customOpportunityCost3Yr: number;
-	saasIntegrateCost: number;
-	saasMaintCostMonthly: number;
-	saasSubCost3Yr: number;
-	cpuCustom: number;
-	cpuSaaS: number;
-	breakEvenMonths: number;
-	breakEvenVerdict: string;
-	softwareIndex: number;
-	isSoftwareIndexHigh: boolean;
-
-	// Personal CPU outputs
-	personalCpuHomeTco: number;
-	personalCpuOutsourceTco: number;
-	personalCpuHomePerUse: number;
-	personalCpuOutsourcePerUse: number;
-	personalCpuNetSavings: number;
-	personalCpuTotalUses: number;
-	personalCpuBreakEvenUses: number;
-	personalCpuBreakEvenMonths: number;
-	personalCpuDepreciation: number;
-	personalCpuMaintenance: number;
-	personalCpuAspirationalWarning: string;
-
-	// Personal Repair outputs
-	personalRepairIndex: number;
-	personalRepairThreshold: number;
-
-	// Personal Tinkering outputs
-	personalTinkerMonthlyTimeCost: number;
-	personalTinker3YrTimeCost: number;
-	personalTinker3YrSubCost: number;
-	personalTinkerNetSavings: number;
+/** One line of a cost breakdown. `hidden` marks the off-ledger costs. */
+export interface LedgerRow {
+	label: string;
+	amount: number;
+	/** Cost that does not appear on the invoice the reader is first shown. */
+	hidden?: boolean;
+	note?: string;
 }
 
-// Volume-tiered overage subscription calculator for SaaS (Clerk-like B2C pricing model)
-export function calculateSaaSMonthlySubscription(mau: number): number {
-	if (mau <= 10000) {
-		return 0;
-	}
-	if (mau <= 50000) {
-		return 25 + (mau - 10000) * 0.02;
-	}
-	if (mau <= 100000) {
-		return 825 + (mau - 50000) * 0.015;
-	}
-	return 1575 + (mau - 100000) * 0.01;
+/** One side of the comparison. Always exactly two per decision. */
+export interface OptionSide {
+	key: string;
+	eyebrow: string;
+	label: string;
+	total: number;
+	/** Unit suffix for the total, when the sides are rates rather than sums ("/yr"). */
+	totalLabel?: string;
+	rows: LedgerRow[];
 }
 
-// Cost-Per-Use (CPU) Reality Check helper
-export function calculateSafeCPU(tco3Year: number, mau: number, lifespanYears: number = 3): number {
-	const safeMAU = Math.max(mau, 1);
-	const safeMonths = Math.max(lifespanYears * 12, 1);
-	const rawCPU = tco3Year / (safeMAU * safeMonths);
-	return parseFloat(rawCPU.toFixed(4));
+/** A single figure quoted next to the verdict. */
+export interface DecisionFigure {
+	label: string;
+	value: string;
+	note?: string;
 }
 
-// Break-even horizon calculation
-export function calculateTrueBreakEven(
-	customBuild: number,
-	customMaintAnnual: number,
-	saasIntegrate: number,
-	saasMaintAnnual: number
-): { months: number; verdict: string } {
-	const annualSavings = customMaintAnnual - saasMaintAnnual;
-	const upfrontPremium = customBuild - saasIntegrate;
+/** A premise the arithmetic cannot decide. Checking one weakens the verdict. */
+export interface Premise {
+	label: string;
+	statement: string;
+	checked: boolean;
+}
 
-	if (annualSavings <= 0) {
-		return {
-			months: Infinity,
-			verdict: 'Never: Custom maintenance is cheaper than SaaS volume overage.'
-		};
+/** Cumulative spend, one value per month from month 0. */
+export interface SpendSeries {
+	key: string;
+	label: string;
+	points: number[];
+}
+
+export interface DecisionResult {
+	mode: DecisionMode;
+	/** Short slug for the verdict chip: BUY, BUILD, TOSS-UP, SKIP, REPAIR, WAIT. */
+	verdict: string;
+	/** What to actually do, in the imperative. */
+	verdictLabel: string;
+	/** One sentence: the conclusion, with the figure in it. */
+	headline: string;
+	/** True when the two options are within 2% of each other — no real answer. */
+	tossUp: boolean;
+	figures: DecisionFigure[];
+	sides: [OptionSide, OptionSide];
+	/** Month labels for `series`, index-aligned. Empty when there is no series. */
+	seriesLabels: string[];
+	series: SpendSeries[];
+	/** First month where the favourite overtakes the other option, or null. */
+	crossoverMonth: number | null;
+	premises: Premise[];
+	/** Ledger caption: what the two columns actually cover. */
+	horizonLabel: string;
+}
+
+/* ── formatting ────────────────────────────────────────────────────────────── */
+
+const usd = (value: number, decimals = 0) =>
+	new Intl.NumberFormat('en-US', {
+		style: 'currency',
+		currency: 'USD',
+		minimumFractionDigits: decimals,
+		maximumFractionDigits: decimals
+	}).format(Number.isFinite(value) ? value : 0);
+
+const money = (value: number) => usd(value, Math.abs(value) < 100 ? 2 : 0);
+const int = (value: number) =>
+	new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(
+		Number.isFinite(value) ? value : 0
+	);
+const months = (value: number) => `${int(value)} mo`;
+
+/** Sum a breakdown. Every total in this file comes through here. */
+const totalOf = (rows: LedgerRow[]) => rows.reduce((sum, row) => sum + row.amount, 0);
+
+/**
+ * Volume-tiered subscription for a managed auth platform.
+ * Tiers are the published Clerk-style shape: free to 10k MAU, then per-MAU overage.
+ */
+export function saasMonthlySubscription(mau: number): number {
+	if (mau <= 10_000) return 0;
+	if (mau <= 50_000) return 25 + (mau - 10_000) * 0.02;
+	if (mau <= 100_000) return 825 + (mau - 50_000) * 0.015;
+	return 1_575 + (mau - 100_000) * 0.01;
+}
+
+/** Compliance certification carried by the org that owns the code. */
+export function defaultComplianceCost(level: DecisionIntelligenceInputs['complianceLevel']): number {
+	if (level === 'soc2') return 75_000;
+	if (level === 'hipaa') return 150_000;
+	return 0;
+}
+
+/**
+ * Cumulative spend for both sides, month by month.
+ *
+ * Returns the index of the first month where `left` becomes cheaper than `right` — that is the
+ * real crossover, and the number the old "break-even" panel was reaching for. `null` means the
+ * lines never meet inside the horizon, which is a result, not a failure: it says the decision is
+ * not a timing question at all.
+ */
+function crossoverIndex(left: number[], right: number[]): number | null {
+	for (let i = 0; i < left.length; i += 1) {
+		if (i === 0) continue;
+		const before = left[i - 1] - right[i - 1];
+		const after = left[i] - right[i];
+		if (before > 0 && after <= 0) return i;
+	}
+	return null;
+}
+
+const tossUpBand = 0.02;
+
+/* ── enterprise ───────────────────────────────────────────────────────────── */
+
+function enterprise(inputs: DecisionIntelligenceInputs): DecisionResult {
+	const hoursPerMonth = 160;
+	const buildMonths = Math.max(1, inputs.buildMonths);
+
+	// Build labour is team-months at a loaded rate. `buildTeam` used to be a bare 1.5.
+	const buildLabour = buildMonths * hoursPerMonth * inputs.buildTeam * inputs.devRate;
+	const maintMonthly = (inputs.maintFtePct / 100) * hoursPerMonth * inputs.devRate;
+	const maintenance3Yr = maintMonthly * 36;
+	const compliance3Yr = inputs.complianceCostAnnual * 3;
+	const opportunity = inputs.opportunityCost3Yr;
+
+	const buildRows: LedgerRow[] = [
+		{ label: 'Build labour', amount: buildLabour, note: `${buildMonths} mo × ${inputs.buildTeam} eng` },
+		{ label: 'Maintenance', amount: maintenance3Yr, hidden: true, note: `${inputs.maintFtePct}% of one engineer` },
+		{
+			label: 'Compliance certification',
+			amount: compliance3Yr,
+			hidden: inputs.complianceLevel !== 'none',
+			note: inputs.complianceLevel === 'none' ? 'Not in scope' : `${usd(inputs.complianceCostAnnual)}/yr`
+		},
+		{ label: 'Roadmap opportunity', amount: opportunity, hidden: true, note: 'Capacity spent maintaining' }
+	];
+
+	const saasMonthly = saasMonthlySubscription(inputs.mau);
+	const integration = inputs.integrationHours * inputs.devRate;
+	const subscription3Yr = saasMonthly * 36;
+
+	const buyRows: LedgerRow[] = [
+		{ label: 'Integration labour', amount: integration, note: `${inputs.integrationHours} h at ${usd(inputs.devRate)}/h` },
+		{ label: 'Subscription', amount: subscription3Yr, note: `${usd(saasMonthly)}/mo, tiered` },
+		{ label: 'Compliance certification', amount: 0, note: 'Carried by the vendor' },
+		{ label: 'Roadmap opportunity', amount: 0, note: 'No in-house surface to maintain' }
+	];
+
+	const buildTotal = totalOf(buildRows);
+	const buyTotal = totalOf(buyRows);
+	const delta = buildTotal - buyTotal;
+	const cheaperToBuy = delta > 0;
+	const tossUp = Math.abs(delta) <= buildTotal * tossUpBand;
+
+	// Month-by-month cumulative spend. Build labour, compliance and opportunity land across the
+	// build window; maintenance runs from month one. The buy side is a step then a slope.
+	const seriesLabels: string[] = [];
+	const buildPoints: number[] = [];
+	const buyPoints: number[] = [];
+	for (let m = 0; m <= 36; m += 1) {
+		seriesLabels.push(m === 0 ? 'now' : m % 6 === 0 ? `m${m}` : '');
+		const buildShare = Math.min(m / buildMonths, 1);
+		buildPoints.push(
+			buildLabour * buildShare +
+				maintenance3Yr * (m / 36) +
+				compliance3Yr * (m / 36) +
+				opportunity * (m / 36)
+		);
+		buyPoints.push(m === 0 ? 0 : integration + saasMonthly * m);
 	}
 
-	const breakEvenMonths = (upfrontPremium / annualSavings) * 12;
-	const safeMonths = Math.max(0, parseFloat(breakEvenMonths.toFixed(1)));
+	const crossoverMonth = crossoverIndex(buildPoints, buyPoints);
+	const perMau = (value: number) => usd(value / Math.max(inputs.mau, 1) / 36, 4);
+
+	const figures: DecisionFigure[] = [
+		{
+			label: '36-month difference',
+			value: usd(Math.abs(delta)),
+			note: cheaperToBuy ? 'Buying is cheaper' : 'Building is cheaper'
+		},
+		{ label: 'Cost per MAU / month', value: `${perMau(buyTotal)} vs ${perMau(buildTotal)}`, note: 'Buy vs build' },
+		{
+			label: 'Off-ledger drag',
+			value: usd(maintenance3Yr + compliance3Yr + opportunity),
+			note: 'Maintenance, compliance, opportunity'
+		},
+		{
+			label: 'Hidden share of build',
+			value: `${int(((maintenance3Yr + compliance3Yr + opportunity) / buildTotal) * 100)}%`,
+			note: 'Not on the build invoice'
+		}
+	];
+
+	const premises: Premise[] = [
+		{
+			label: 'Sunk-cost pull',
+			statement: 'We have already spent real hours on the current auth code, so it feels wrong to walk away.',
+			checked: inputs.hasSunkCostFallacy
+		},
+		{
+			label: 'Single-maintainer risk',
+			statement: 'One senior engineer holds the OAuth flow and token validation.',
+			checked: inputs.hasKeyPersonRisk
+		},
+		{
+			label: 'Brittle integration',
+			statement: 'Sessions depend on stitched-together external tables and automation.',
+			checked: inputs.hasTinkeringTax
+		}
+	];
+
+	const verdict = tossUp ? 'TOSS-UP' : cheaperToBuy ? 'BUY' : 'BUILD';
+	const verdictLabel = tossUp
+		? 'The two are within 2%. Argue it on maintenance risk.'
+		: cheaperToBuy
+			? 'Buy the platform and cancel the build'
+			: 'Build it in-house';
+
+	const headline = tossUp
+		? `Both routes land within ${usd(buildTotal * tossUpBand)} of each other over 36 months (${usd(buildTotal)} build, ${usd(buyTotal)} buy).`
+		: cheaperToBuy
+			? `Buying is ${usd(delta)} cheaper over 36 months: ${usd(buyTotal)} against ${usd(buildTotal)} to own it.`
+			: `Building is ${usd(-delta)} cheaper over 36 months: ${usd(buildTotal)} against ${usd(buyTotal)} to subscribe.`;
+
 	return {
-		months: safeMonths,
-		verdict: breakEvenMonths <= 0 ? 'Immediate ROI' : `${safeMonths} Months`
+		mode: 'enterprise_ciam',
+		verdict,
+		verdictLabel,
+		headline,
+		tossUp,
+		figures,
+		sides: [
+			{ key: 'build', eyebrow: 'Option A', label: 'In-house build', total: buildTotal, rows: buildRows },
+			{ key: 'buy', eyebrow: 'Option B', label: 'Managed platform', total: buyTotal, rows: buyRows }
+		],
+		seriesLabels,
+		series: [
+			{ key: 'build', label: 'In-house build', points: buildPoints },
+			{ key: 'buy', label: 'Managed platform', points: buyPoints }
+		],
+		crossoverMonth,
+		premises,
+		horizonLabel: '36 months, fully loaded'
 	};
 }
 
-export class DecisionIntelligenceEngine {
-	public static calculate(inputs: DecisionIntelligenceInputs): DecisionIntelligenceOutputs {
-		// Initialize all outputs with defaults
-		const outputs: DecisionIntelligenceOutputs = {
-			verdict: 'BUY',
-			verdictRationale: '',
-			custom3YrTco: 0,
-			saas3YrTco: 0,
-			customBuildCost: 0,
-			customMaintCostMonthly: 0,
-			customMaintCost3Yr: 0,
-			customComplianceCostAnnual: 0,
-			customComplianceCost3Yr: 0,
-			customOpportunityCost3Yr: 0,
-			saasIntegrateCost: 0,
-			saasMaintCostMonthly: 0,
-			saasSubCost3Yr: 0,
-			cpuCustom: 0,
-			cpuSaaS: 0,
-			breakEvenMonths: 0,
-			breakEvenVerdict: '',
-			softwareIndex: 0,
-			isSoftwareIndexHigh: false,
-			personalCpuHomeTco: 0,
-			personalCpuOutsourceTco: 0,
-			personalCpuHomePerUse: 0,
-			personalCpuOutsourcePerUse: 0,
-			personalCpuNetSavings: 0,
-			personalCpuTotalUses: 0,
-			personalCpuBreakEvenUses: 0,
-			personalCpuBreakEvenMonths: 0,
-			personalCpuDepreciation: 0,
-			personalCpuMaintenance: 0,
-			personalCpuAspirationalWarning: '',
-			personalRepairIndex: 0,
-			personalRepairThreshold: 0,
-			personalTinkerMonthlyTimeCost: 0,
-			personalTinker3YrTimeCost: 0,
-			personalTinker3YrSubCost: 0,
-			personalTinkerNetSavings: 0
-		};
+/* ── per-use asset ────────────────────────────────────────────────────────── */
 
-		if (inputs.activeMode === 'enterprise_ciam') {
-			// 1. Initial Custom Build Cost
-			const customBuildCost = inputs.buildTime * 160 * 1.5 * inputs.devRate;
+function costPerUse(inputs: DecisionIntelligenceInputs): DecisionResult {
+	const weeklyUses = Math.max(0, inputs.cpuWeeklyUses);
+	const lifespan = Math.max(1, inputs.cpuLifespanYears);
+	const monthsTotal = lifespan * 12;
+	const totalUses = weeklyUses * 52 * lifespan;
 
-			// 2. Custom Maintenance Cost
-			const customMaintCostMonthly = (inputs.maintFte / 100) * 160 * inputs.devRate;
-			const customMaintCost3Yr = customMaintCostMonthly * 36;
+	const residual = inputs.cpuStickerPrice * (inputs.cpuResidualPct / 100);
+	const upkeep = inputs.cpuStickerPrice * 0.05 * lifespan; // 5% of sticker per year, reserve
+	const operating = totalUses * inputs.cpuSecondaryCost;
 
-			// 3. Custom Compliance Cost
-			let customComplianceCostAnnual = 0;
-			if (inputs.complianceLevel === 'soc2') {
-				customComplianceCostAnnual = 75000;
-			} else if (inputs.complianceLevel === 'hipaa') {
-				customComplianceCostAnnual = 150000;
-			}
-			const customComplianceCost3Yr = customComplianceCostAnnual * 3;
+	const ownRows: LedgerRow[] = [
+		{ label: 'Sticker price', amount: inputs.cpuStickerPrice },
+		{ label: 'Resale recovered', amount: -residual, note: `${inputs.cpuResidualPct}% at exit` },
+		{ label: 'Operating cost', amount: operating, hidden: true, note: `${usd(inputs.cpuSecondaryCost)} per use` },
+		{ label: 'Upkeep reserve', amount: upkeep, hidden: true, note: '5% of sticker per year' }
+	];
+	const ownTotal = totalOf(ownRows);
 
-			// 4. Custom Opportunity Cost (Fixed $150,000)
-			const customOpportunityCost3Yr = 150000;
+	const outsourcePerUse = inputs.cpuOutsourceCost;
+	const outsourceTotal = totalUses * outsourcePerUse;
+	const outsourceRows: LedgerRow[] = [
+		{
+			label: 'Per-use spend',
+			amount: outsourceTotal,
+			note: `${usd(outsourcePerUse)} × ${int(totalUses)} uses`
+		},
+		{ label: 'Asset at the end', amount: 0, note: 'Nothing to resell' }
+	];
 
-			// 5. Total Custom 3-Year TCO
-			const custom3YrTco = customBuildCost + customMaintCost3Yr + customComplianceCost3Yr + customOpportunityCost3Yr;
+	const ownPerUse = totalUses > 0 ? ownTotal / totalUses : 0;
+	const cheaperToOwn = ownPerUse < outsourcePerUse;
+	const tossUp = Math.abs(ownPerUse - outsourcePerUse) <= outsourcePerUse * tossUpBand;
 
-			// 6. SaaS Integration Cost
-			const saasIntegrateCost = 8 * inputs.devRate;
+	const fixedCost = inputs.cpuStickerPrice - residual + upkeep;
+	const perUseGap = outsourcePerUse - inputs.cpuSecondaryCost;
+	const breakEvenUses = perUseGap > 0 ? fixedCost / perUseGap : Infinity;
+	const usesPerMonth = (weeklyUses * 52) / 12;
+	const breakEvenMonth = usesPerMonth > 0 ? breakEvenUses / usesPerMonth : Infinity;
 
-			// 7. SaaS Monthly Subscription Cost
-			const saasMaintCostMonthly = calculateSaaSMonthlySubscription(inputs.mau);
-			const saasSubCost3Yr = saasMaintCostMonthly * 36;
-
-			// 8. Total SaaS 3-Year TCO
-			const saas3YrTco = saasIntegrateCost + saasSubCost3Yr;
-
-			// 9. Cost-Per-Use (CPU) calculation
-			const cpuCustom = calculateSafeCPU(custom3YrTco, inputs.mau);
-			const cpuSaaS = calculateSafeCPU(saas3YrTco, inputs.mau);
-
-			// 10. Break-Even Horizon
-			const customMaintAnnual = customMaintCostMonthly * 12 + customComplianceCostAnnual;
-			const saasMaintAnnual = saasMaintCostMonthly * 12;
-			const breakEven = calculateTrueBreakEven(customBuildCost, customMaintAnnual, saasIntegrateCost, saasMaintAnnual);
-
-			// 11. Adapted Software Index
-			const remediationCost = inputs.remediationHours * inputs.devRate;
-			const softwareIndex = inputs.codebaseAge * remediationCost;
-			const isSoftwareIndexHigh = softwareIndex >= 5000;
-
-			// 12. Determine Verdict
-			let verdict: 'BUY' | 'PATCH' | 'WAIT' = 'BUY';
-			let verdictRationale = '';
-
-			if (custom3YrTco <= saas3YrTco && inputs.complianceLevel === 'none' && inputs.maintFte < 20) {
-				if (inputs.mau < 1000) {
-					verdict = 'WAIT';
-					verdictRationale = 'Minimal operational scale. Keep session management basic until market validation is achieved.';
-				} else {
-					verdict = 'PATCH';
-					verdictRationale = 'Small scale, low compliance needs, and minimal maintenance overhead make a custom patch viable.';
-				}
-			} else {
-				verdict = 'BUY';
-				if (inputs.complianceLevel !== 'none') {
-					verdictRationale = `Managed SaaS saves $${(custom3YrTco - saas3YrTco).toLocaleString()} by eliminating manual ${inputs.complianceLevel === 'soc2' ? 'SOC 2 Type II' : 'HIPAA BAA'} audit and infrastructure engineering drag.`;
-				} else if (isSoftwareIndexHigh) {
-					verdictRationale = 'Codebase tech debt index exceeds the 5,000 threshold. Migrating to standard SaaS prevents systemic maintenance failure.';
-				} else {
-					verdictRationale = `Managed SaaS integration saves $${(custom3YrTco - saas3YrTco).toLocaleString()} in cumulative engineering labor and opportunity costs.`;
-				}
-			}
-
-			// Populate outputs
-			outputs.verdict = verdict;
-			outputs.verdictRationale = verdictRationale;
-			outputs.custom3YrTco = custom3YrTco;
-			outputs.saas3YrTco = saas3YrTco;
-			outputs.customBuildCost = customBuildCost;
-			outputs.customMaintCostMonthly = customMaintCostMonthly;
-			outputs.customMaintCost3Yr = customMaintCost3Yr;
-			outputs.customComplianceCostAnnual = customComplianceCostAnnual;
-			outputs.customComplianceCost3Yr = customComplianceCost3Yr;
-			outputs.customOpportunityCost3Yr = customOpportunityCost3Yr;
-			outputs.saasIntegrateCost = saasIntegrateCost;
-			outputs.saasMaintCostMonthly = saasMaintCostMonthly;
-			outputs.saasSubCost3Yr = saasSubCost3Yr;
-			outputs.cpuCustom = cpuCustom;
-			outputs.cpuSaaS = cpuSaaS;
-			outputs.breakEvenMonths = breakEven.months;
-			outputs.breakEvenVerdict = breakEven.verdict;
-			outputs.softwareIndex = softwareIndex;
-			outputs.isSoftwareIndexHigh = isSoftwareIndexHigh;
-		}
-
-		else if (inputs.activeMode === 'personal_cpu') {
-			// Personal CPU (Espresso vs Cafe, Road Bike, etc.)
-			const usesPerYear = inputs.cpuWeeklyUses * 52;
-			const totalUses = usesPerYear * inputs.cpuLifespanYears;
-
-			// Invisible Cost 1: Depreciation (35% average asset depreciation over lifespan)
-			const personalCpuDepreciation = inputs.cpuStickerPrice * 0.35;
-
-			// Invisible Cost 2: Maintenance & Upkeep Budget (5% of sticker price per year)
-			const personalCpuMaintenance = inputs.cpuStickerPrice * 0.05 * inputs.cpuLifespanYears;
-
-			// Home TCO = Sticker Price + Operating Cost (uses * cost per drink) + Maintenance
-			const personalCpuHomeTco = inputs.cpuStickerPrice + (totalUses * inputs.cpuSecondaryCost) + personalCpuMaintenance;
-
-			// Outsource TCO = Uses * Cafe Price
-			const personalCpuOutsourceTco = totalUses * inputs.cpuOutsourceCost;
-
-			// Unit rates
-			const personalCpuHomePerUse = totalUses > 0 ? personalCpuHomeTco / totalUses : 0;
-			const personalCpuOutsourcePerUse = inputs.cpuOutsourceCost;
-
-			const personalCpuNetSavings = personalCpuOutsourceTco - personalCpuHomeTco;
-
-			// Break Even points
-			const priceDiffPerUse = inputs.cpuOutsourceCost - inputs.cpuSecondaryCost;
-			let personalCpuBreakEvenUses = Infinity;
-			let personalCpuBreakEvenMonths = Infinity;
-
-			if (priceDiffPerUse > 0) {
-				personalCpuBreakEvenUses = (inputs.cpuStickerPrice + personalCpuMaintenance) / priceDiffPerUse;
-				const usesPerMonth = usesPerYear / 12;
-				personalCpuBreakEvenMonths = usesPerMonth > 0 ? personalCpuBreakEvenUses / usesPerMonth : Infinity;
-			}
-
-			// Aspirational Check Warning Box
-			let personalCpuAspirationalWarning = '';
-			if (inputs.cpuWeeklyUses >= 14) {
-				personalCpuAspirationalWarning = 'Optimistic frequency warning: High usage assumptions (14+ times/week) might trigger shelf-sitting risk due to descaling, cleaning, and manual setup friction.';
-			}
-
-			// Determine Verdict
-			let verdict: 'BUY' | 'SKIP' | 'WAIT' = 'BUY';
-			let verdictRationale = '';
-
-			if (personalCpuHomePerUse > personalCpuOutsourcePerUse) {
-				verdict = 'SKIP';
-				verdictRationale = `Outsourcing is financially superior. Your home unit cost is $${personalCpuHomePerUse.toFixed(2)} per use compared to the $${personalCpuOutsourcePerUse.toFixed(2)} outsourcing rate because your usage density is low.`;
-			} else {
-				verdict = 'BUY';
-				verdictRationale = `Home ownership saves $${Math.round(personalCpuNetSavings).toLocaleString()} over ${inputs.cpuLifespanYears} years. Home unit cost drops to $${personalCpuHomePerUse.toFixed(2)} per use.`;
-			}
-
-			outputs.verdict = verdict;
-			outputs.verdictRationale = verdictRationale;
-			outputs.personalCpuHomeTco = personalCpuHomeTco;
-			outputs.personalCpuOutsourceTco = personalCpuOutsourceTco;
-			outputs.personalCpuHomePerUse = parseFloat(personalCpuHomePerUse.toFixed(2));
-			outputs.personalCpuOutsourcePerUse = personalCpuOutsourcePerUse;
-			outputs.personalCpuNetSavings = personalCpuNetSavings;
-			outputs.personalCpuTotalUses = totalUses;
-			outputs.personalCpuBreakEvenUses = Math.ceil(personalCpuBreakEvenUses);
-			outputs.personalCpuBreakEvenMonths = parseFloat(personalCpuBreakEvenMonths.toFixed(1));
-			outputs.personalCpuDepreciation = personalCpuDepreciation;
-			outputs.personalCpuMaintenance = personalCpuMaintenance;
-			outputs.personalCpuAspirationalWarning = personalCpuAspirationalWarning;
-		}
-
-		else if (inputs.activeMode === 'personal_repair') {
-			// Repair vs Replace (HVAC vs Laptops)
-			const personalRepairIndex = inputs.repairAssetAge * inputs.repairCost;
-			const personalRepairThreshold = inputs.repairAssetType === 'infrastructure' ? 5000 : 1500;
-
-			let verdict: 'REPLACE' | 'REPAIR' = 'REPAIR';
-			let verdictRationale = '';
-
-			if (personalRepairIndex >= personalRepairThreshold) {
-				verdict = 'REPLACE';
-				verdictRationale = `Asset tech debt index of ${personalRepairIndex.toLocaleString()} exceeds the ${personalRepairThreshold.toLocaleString()} threshold. Migrating to a new asset prevents ongoing repair money pits.`;
-			} else {
-				verdict = 'REPAIR';
-				verdictRationale = `Asset tech debt index of ${personalRepairIndex.toLocaleString()} is within the safe zone (under ${personalRepairThreshold.toLocaleString()}). Patching this asset is mathematically efficient.`;
-			}
-
-			outputs.verdict = verdict;
-			outputs.verdictRationale = verdictRationale;
-			outputs.personalRepairIndex = personalRepairIndex;
-			outputs.personalRepairThreshold = personalRepairThreshold;
-		}
-
-		else if (inputs.activeMode === 'personal_tinkering') {
-			// Tinkering Tax (Free Stack vs Paid App)
-			const personalTinkerMonthlyTimeCost = inputs.tinkerTroubleshootHours * inputs.tinkerTimeValue;
-			const personalTinker3YrTimeCost = personalTinkerMonthlyTimeCost * 36;
-			const personalTinker3YrSubCost = inputs.tinkerSubscriptionCost * 36;
-			const personalTinkerNetSavings = personalTinker3YrTimeCost - personalTinker3YrSubCost;
-
-			let verdict: 'BUY' | 'WAIT' = 'BUY';
-			let verdictRationale = '';
-
-			if (personalTinkerMonthlyTimeCost > inputs.tinkerSubscriptionCost) {
-				verdict = 'BUY';
-				verdictRationale = `Upgrading to the paid app saves $${personalTinkerNetSavings.toLocaleString()} in personal time value over 3 years by reclaiming ${inputs.tinkerTroubleshootHours} hours of frustration per month.`;
-			} else {
-				verdict = 'WAIT';
-				verdictRationale = `Keep using the free manual workaround. Your personal tinkering time cost of $${personalTinkerMonthlyTimeCost}/mo is lower than the $${inputs.tinkerSubscriptionCost}/mo subscription fee.`;
-			}
-
-			outputs.verdict = verdict;
-			outputs.verdictRationale = verdictRationale;
-			outputs.personalTinkerMonthlyTimeCost = personalTinkerMonthlyTimeCost;
-			outputs.personalTinker3YrTimeCost = personalTinker3YrTimeCost;
-			outputs.personalTinker3YrSubCost = personalTinker3YrSubCost;
-			outputs.personalTinkerNetSavings = personalTinkerNetSavings;
-		}
-
-		return outputs;
+	const seriesLabels: string[] = [];
+	const ownPoints: number[] = [];
+	const outsourcePoints: number[] = [];
+	for (let m = 0; m <= monthsTotal; m += 1) {
+		seriesLabels.push(m === 0 ? 'now' : `m${m}`);
+		const uses = (weeklyUses * 52 * m) / 12;
+		ownPoints.push(inputs.cpuStickerPrice - residual + uses * inputs.cpuSecondaryCost + upkeep * (m / monthsTotal));
+		outsourcePoints.push(uses * outsourcePerUse);
 	}
+
+	const figures: DecisionFigure[] = [
+		{ label: 'Own, per use', value: usd(ownPerUse, 2), note: `${int(totalUses)} uses over ${lifespan} yr` },
+		{ label: 'Outsource, per use', value: usd(outsourcePerUse, 2), note: 'Per use, no asset' },
+		{
+			label: 'Break-even',
+			value: Number.isFinite(breakEvenMonth) && breakEvenMonth > 0 ? months(Math.ceil(breakEvenMonth)) : 'Never',
+			note: Number.isFinite(breakEvenUses) && breakEvenUses > 0 ? `${int(Math.ceil(breakEvenUses))} uses` : 'No gap to close'
+		},
+		{
+			label: `${lifespan}-year difference`,
+			value: usd(Math.abs(outsourceTotal - ownTotal)),
+			note: cheaperToOwn ? 'Ownership wins' : 'Outsourcing wins'
+		}
+	];
+
+	const verdict = tossUp ? 'TOSS-UP' : cheaperToOwn ? 'BUY' : 'SKIP';
+	return {
+		mode: 'personal_cpu',
+		verdict,
+		verdictLabel: tossUp
+			? 'Within 2% per use. Buy it for the ownership, not the maths.'
+			: cheaperToOwn
+				? 'Own it'
+				: 'Keep paying per use',
+		headline: tossUp
+			? `Ownership and the per-use rate land within ${usd(outsourcePerUse * tossUpBand, 2)} of each other per use (${usd(ownPerUse, 2)} against ${usd(outsourcePerUse, 2)}).`
+			: cheaperToOwn
+				? `Owning costs ${usd(ownPerUse, 2)} per use against ${usd(outsourcePerUse, 2)} to outsource — ${usd(outsourceTotal - ownTotal)} saved across ${int(totalUses)} uses.`
+				: `Outsourcing costs ${usd(outsourcePerUse, 2)} per use against ${usd(ownPerUse, 2)} to own — the asset does not earn back its sticker at ${weeklyUses} uses a week.`,
+		tossUp,
+		figures,
+		sides: [
+			{ key: 'own', eyebrow: 'Option A', label: 'Own the asset', total: ownTotal, rows: ownRows },
+			{ key: 'outsource', eyebrow: 'Option B', label: 'Pay per use', total: outsourceTotal, rows: outsourceRows }
+		],
+		seriesLabels,
+		series: [
+			{ key: 'own', label: 'Own the asset', points: ownPoints },
+			{ key: 'outsource', label: 'Pay per use', points: outsourcePoints }
+		],
+		crossoverMonth: crossoverIndex(ownPoints, outsourcePoints),
+		premises: [
+			{
+				label: 'Aspirational frequency',
+				statement: `I will keep using this ${weeklyUses} times a week for ${lifespan} years, through the cleaning and the setup.`,
+				checked: inputs.cpuAspirationalCheck
+			}
+		],
+		horizonLabel: `${lifespan} years of owned use`
+	};
 }
+
+/* ── repair or replace ────────────────────────────────────────────────────── */
+
+function repairOrReplace(inputs: DecisionIntelligenceInputs): DecisionResult {
+	const infra = inputs.repairAssetType === 'infrastructure';
+	const threshold = infra ? 5_000 : 1_500;
+	const index = inputs.repairAssetAge * inputs.repairCost;
+
+	const extraLife = Math.max(1, inputs.repairExtraLifeYears);
+	const replacementLife = Math.max(1, inputs.repairReplacementLifeYears);
+
+	// Amortise both routes across the life each one actually buys. This is the only defensible
+	// comparison — a repair buys a few more years, a replacement buys a decade — and it also
+	// keeps the ledger totals honest: showing a $1,700 repair next to a $6,120 replacement made
+	// the cheaper-per-year route look three times dearer than the verdict said it was.
+	const repairPerYear = inputs.repairCost / extraLife;
+	const replacePerYear = inputs.repairReplacementCost / replacementLife;
+	const tradeIn = inputs.repairReplacementCost * 0.1;
+
+	const repairRows: LedgerRow[] = [
+		{
+			label: 'Repair quote',
+			amount: repairPerYear,
+			note: `${usd(inputs.repairCost)} once, ÷ ${extraLife} yr`
+		}
+	];
+
+	const replaceRows: LedgerRow[] = [
+		{
+			label: 'Replacement price',
+			amount: replacePerYear,
+			note: `${usd(inputs.repairReplacementCost)} once, ÷ ${replacementLife} yr`
+		},
+		{
+			label: 'Trade-in on the old unit',
+			amount: -tradeIn / replacementLife,
+			note: `10% of the price, recovered once`
+		}
+	];
+
+	const repairAnnual = totalOf(repairRows);
+	const replaceAnnual = totalOf(replaceRows);
+
+	const moneyFavoursRepair = repairAnnual <= replaceAnnual;
+	const indexBreached = index >= threshold;
+	const tossUp = Math.abs(repairAnnual - replaceAnnual) <= Math.max(repairAnnual, replaceAnnual) * tossUpBand;
+
+	// Two signals, and they are allowed to disagree. The index is the advertised metric, so a
+	// breach carries the verdict — but the copy says so out loud rather than pretending the
+	// money agreed.
+	const replace = !tossUp && (indexBreached || !moneyFavoursRepair);
+
+	const figures: DecisionFigure[] = [
+		{ label: 'Repair, per year', value: usd(repairAnnual), note: `${usd(inputs.repairCost)} buys ${extraLife} yr` },
+		{ label: 'Replace, per year', value: usd(replaceAnnual), note: `${usd(inputs.repairReplacementCost)} buys ${replacementLife} yr` },
+		{ label: 'Tech-debt index', value: int(index), note: `Threshold ${int(threshold)}` },
+		{
+			label: 'Index position',
+			value: `${int((index / threshold) * 100)}% of threshold`,
+			note: indexBreached ? 'Breached' : 'Inside the safe band'
+		}
+	];
+
+	const headline = tossUp
+		? `Repair and replacement both run about ${usd(repairAnnual)} a year over the life each buys.`
+		: replace && !moneyFavoursRepair
+			? `Replacement runs ${usd(replaceAnnual)} a year against ${usd(repairAnnual)} to keep repairing, and the ${int(index)} index is over the ${int(threshold)} threshold.`
+			: replace
+				? `Repair is cheaper at ${usd(repairAnnual)} a year against ${usd(replaceAnnual)}, but the ${int(index)} index is past the ${int(threshold)} threshold: ${extraLife} more years of a failing unit.`
+				: `Repairing costs ${usd(repairAnnual)} a year against ${usd(replaceAnnual)} to replace, and the ${int(index)} index sits under the ${int(threshold)} threshold.`;
+
+	return {
+		mode: 'personal_repair',
+		verdict: tossUp ? 'TOSS-UP' : replace ? 'REPLACE' : 'REPAIR',
+		verdictLabel: tossUp
+			? 'The two routes cost the same per year. Replace on age, not money.'
+			: replace && moneyFavoursRepair
+				? 'Replace on the failure record, not the price'
+				: replace
+					? 'Replace it'
+					: 'Repair and keep it',
+		headline,
+		tossUp,
+		figures,
+		sides: [
+			{
+				key: 'repair',
+				eyebrow: 'Option A',
+				label: 'Repair and keep',
+				total: repairAnnual,
+				totalLabel: '/yr',
+				rows: repairRows
+			},
+			{
+				key: 'replace',
+				eyebrow: 'Option B',
+				label: 'Replace',
+				total: replaceAnnual,
+				totalLabel: '/yr',
+				rows: replaceRows
+			}
+		],
+		seriesLabels: [],
+		series: [],
+		crossoverMonth: null,
+		premises: [
+			{
+				label: 'Repeated failure',
+				statement: 'This unit has already failed more than once in the last 12 months, and the repair history is not unusual.',
+				checked: false
+			}
+		],
+		horizonLabel: 'Per year of life bought'
+	};
+}
+
+/* ── tinkering tax ────────────────────────────────────────────────────────── */
+
+function tinkeringTax(inputs: DecisionIntelligenceInputs): DecisionResult {
+	const monthlyTime = inputs.tinkerTroubleshootHours * inputs.tinkerTimeValue;
+	const time3Yr = monthlyTime * 36;
+	const sub3Yr = inputs.tinkerSubscriptionCost * 36;
+
+	const keepRows: LedgerRow[] = [
+		{ label: 'Troubleshooting time', amount: time3Yr, hidden: true, note: `${inputs.tinkerTroubleshootHours} h/mo at ${usd(inputs.tinkerTimeValue)}/h` },
+		{ label: 'Software spend', amount: 0, note: 'Free stack' }
+	];
+	const payRows: LedgerRow[] = [
+		{ label: 'Subscription', amount: sub3Yr, note: `${usd(inputs.tinkerSubscriptionCost)}/mo` },
+		{ label: 'Troubleshooting time', amount: 0, note: 'Removed by the paid tool' }
+	];
+
+	const keepTotal = time3Yr;
+	const payTotal = sub3Yr;
+	const saving = keepTotal - payTotal;
+
+	const seriesLabels: string[] = [];
+	const keepPoints: number[] = [];
+	const payPoints: number[] = [];
+	for (let m = 0; m <= 36; m += 1) {
+		seriesLabels.push(m === 0 ? 'now' : m % 6 === 0 ? `m${m}` : '');
+		keepPoints.push(monthlyTime * m);
+		payPoints.push(inputs.tinkerSubscriptionCost * m);
+	}
+
+	const tossUp = Math.abs(saving) <= Math.max(keepTotal, payTotal) * tossUpBand;
+	const bringInApp = !tossUp && saving > 0;
+
+	const figures: DecisionFigure[] = [
+		{ label: 'Time cost', value: `${usd(monthlyTime)}/mo`, note: `${inputs.tinkerTroubleshootHours} h at ${usd(inputs.tinkerTimeValue)}/h` },
+		{ label: 'Subscription', value: `${usd(inputs.tinkerSubscriptionCost)}/mo`, note: `${usd(sub3Yr)} over 3 years` },
+		{ label: '3-year difference', value: usd(Math.abs(saving)), note: bringInApp ? 'Paid app wins' : 'Workaround wins' },
+		{ label: 'Hours reclaimed', value: `${int(inputs.tinkerTroubleshootHours * 36)} h`, note: 'Over 36 months' }
+	];
+
+	return {
+		mode: 'personal_tinkering',
+		verdict: tossUp ? 'TOSS-UP' : bringInApp ? 'BUY' : 'WAIT',
+		verdictLabel: tossUp
+			? 'Time and money cancel out. Decide on maintenance appetite.'
+			: bringInApp
+				? 'Pay for the app'
+				: 'Keep the workaround',
+		headline: tossUp
+			? `The paid app costs about what the tinkering costs — ${usd(monthlyTime)} a month of your time against ${usd(inputs.tinkerSubscriptionCost)} of subscription.`
+			: bringInApp
+				? `The paid app is ${usd(saving)} cheaper over 3 years and returns ${int(inputs.tinkerTroubleshootHours * 36)} hours of maintenance.`
+				: `Your time costs ${usd(monthlyTime)}/mo against a ${usd(inputs.tinkerSubscriptionCost)}/mo subscription, so the workaround is the cheaper route.`,
+		tossUp,
+		figures,
+		sides: [
+			{ key: 'keep', eyebrow: 'Option A', label: 'Keep the workaround', total: keepTotal, rows: keepRows },
+			{ key: 'pay', eyebrow: 'Option B', label: 'Pay for the app', total: payTotal, rows: payRows }
+		],
+		seriesLabels,
+		series: [
+			{ key: 'keep', label: 'Keep the workaround', points: keepPoints },
+			{ key: 'pay', label: 'Pay for the app', points: payPoints }
+		],
+		crossoverMonth: crossoverIndex(keepPoints, payPoints),
+		premises: [
+			{
+				label: 'It is a hobby',
+				statement: 'I actually enjoy the debugging, so the hours are leisure rather than a chore.',
+				checked: inputs.tinkerHobbyOffset
+			}
+		],
+		horizonLabel: '36 months'
+	};
+}
+
+export const DecisionIntelligenceEngine = {
+	calculate(inputs: DecisionIntelligenceInputs): DecisionResult {
+		switch (inputs.activeMode) {
+			case 'personal_cpu':
+				return costPerUse(inputs);
+			case 'personal_repair':
+				return repairOrReplace(inputs);
+			case 'personal_tinkering':
+				return tinkeringTax(inputs);
+			case 'enterprise_ciam':
+			default:
+				return enterprise(inputs);
+		}
+	}
+};

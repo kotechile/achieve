@@ -54,5 +54,9 @@ const { eyebrow, title, description } = Astro.props;
 		<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 			<slot name="aside" />
 		</div>
+
+		{/* Full-width aside slot: a fourth card in the 3-column grid leaves two empty cells, so
+		    pages with more than three asides land their last one here instead. */}
+		<slot name="aside-full" />
 	</div>
 </section>
