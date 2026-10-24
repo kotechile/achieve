@@ -1,5 +1,6 @@
 ---
 import CalculatorShell from '../../components/calculators/CalculatorShell.astro';
+import YouTubeEmbed from '../../components/YouTubeEmbed.astro';
 import JsonLd from '../../components/JsonLd.astro';
 import LocalVsCloudGpuCalculator from '../../components/calculators/react/LocalVsCloudGpuCalculator';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -74,17 +75,24 @@ const post = await fetchPostBySlug('self-hosted-ai-when-to-buy-vs-rent-gpus');
 		</article>
 
 		<article slot="aside" class="ai-panel p-6">
-			<p class="ai-label">Walkthrough</p>
-			<h2 class="mt-3 text-xl font-bold tracking-tight">GPU TCO video guide</h2>
-			<div class="relative mt-5 aspect-video overflow-hidden border border-[var(--ai-line)] bg-black">
-				<iframe
-					class="absolute left-0 top-0 h-full w-full"
-					src="https://www.youtube.com/embed/gYBJjWkID_I"
-					title="GPU TCO Analyzer walkthrough"
-					allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-					allowfullscreen
-				></iframe>
-			</div>
+			<p class="ai-label">Launch film</p>
+			<h2 class="mt-3 text-xl font-bold tracking-tight">The invoice, not the sticker price</h2>
+			<p class="mt-2 text-xs leading-6 text-[var(--ai-ink-2)]">
+				One Blackwell at street price, six hours a day for three years. Twenty-two seconds, and every
+				number on screen is this calculator's own output.
+			</p>
+			<YouTubeEmbed
+				id="tKbJ4W91Xfw"
+				poster="/media/tool-videos/gpu-compute-brag-poster.jpg"
+				label="GPU TCO Analyzer — 22s"
+				seconds={22}
+			/>
+			<a
+				class="mt-3 inline-block font-mono text-[0.62rem] uppercase tracking-[0.2em] text-[var(--ai-link)] hover:underline"
+				href="https://youtu.be/tKbJ4W91Xfw"
+				target="_blank"
+				rel="noopener">Watch on YouTube</a
+			>
 		</article>
 
 		<article slot="aside" class="ai-panel p-6">

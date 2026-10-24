@@ -1,0 +1,72 @@
+---
+/**
+ * YouTube facade — poster first, player only on click.
+ *
+ * Same contract as `ToolVideo.astro`, but for a video that lives on YouTube and has no
+ * self-hosted file: nothing is requested from google until the reader asks for it, so the
+ * page keeps its zero-third-party shape and the reader keeps their cookies.
+ */
+interface Props {
+	id: string;
+	poster: string;
+	label: string;
+	seconds: number;
+	width?: number;
+	height?: number;
+}
+
+const { id, poster, label, seconds, width = 1920, height = 1080 } = Astro.props;
+---
+
+<button
+	type="button"
+	class="group relative mt-5 block w-full cursor-pointer overflow-hidden border border-[var(--ai-line)] bg-black text-left"
+	data-yt-facade
+	data-yt-id={id}
+	data-w={width}
+	data-h={height}
+	aria-label={`Play the ${seconds} second film: ${label}`}
+>
+	<img
+		src={poster}
+		width={width}
+		height={height}
+		alt=""
+		loading="lazy"
+		decoding="async"
+		class="block w-full opacity-90 transition group-hover:opacity-100"
+	/>
+	<span class="absolute inset-0 grid place-items-center">
+		<span class="flex h-16 w-16 items-center justify-center border border-white/40 bg-black/55 transition group-hover:border-[var(--ai-signal)] group-hover:bg-black/70">
+			<svg viewBox="0 0 24 24" class="h-6 w-6 fill-white" aria-hidden="true">
+				<path d="M8 5v14l11-7z" />
+			</svg>
+		</span>
+	</span>
+	<span class="absolute bottom-0 left-0 right-0 flex items-center justify-between gap-3 bg-gradient-to-t from-black/85 to-transparent px-4 pb-3 pt-8 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-white/75">
+		<span>{label}</span>
+		<span>{seconds}s · YouTube</span>
+	</span>
+</button>
+
+<script>
+	const mount = (btn: HTMLElement) => {
+		const id = btn.dataset.ytId;
+		if (!id) return;
+		const frame = document.createElement('iframe');
+		frame.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
+		frame.title = btn.getAttribute('aria-label') || 'Video';
+		frame.width = String(Number(btn.dataset.w || 1920));
+		frame.height = String(Number(btn.dataset.h || 1080));
+		frame.allow =
+			'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+		frame.allowFullscreen = true;
+		frame.loading = 'lazy';
+		frame.className = 'mt-5 block w-full aspect-video bg-black';
+		btn.replaceWith(frame);
+	};
+
+	document.querySelectorAll<HTMLElement>('[data-yt-facade]').forEach((btn) => {
+		btn.addEventListener('click', () => mount(btn), { once: true });
+	});
+</script>
