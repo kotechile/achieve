@@ -503,7 +503,7 @@ function InteractiveBadge({ value, min, max, step = 1, unit, prefix, onChange }:
 				onChange={handleInputChange}
 				onBlur={handleBlur}
 				className="w-auto min-w-[3.5rem] bg-transparent text-right font-mono tabular-nums text-sm font-bold text-[#8A5A12] focus:outline-none border-none p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-				style={{ width: `calc(${Math.max(3, inputValue.length)}ch + 2.6rem)` }}
+				style={{ width: `calc(${Math.max(3, inputValue.length)}ch + 1.7rem)` }}
 			/>
 			{unit && <span className="text-xs text-gray-400 font-mono tabular-nums font-bold uppercase">{unit}</span>}
 		</div>
@@ -733,8 +733,74 @@ export default function LocalVsCloudGpuCalculator() {
 
 	return (
 		<>
+			{/* Gutter: the bay is a light surface mounted in a dark panel, so it needs its own air. */}
+			<div className="px-5 py-7 sm:px-8 sm:py-10">
+			{/* Answer first: the verdict, before any control */}
+			<div className="mb-8 bg-[#0E1116] px-6 py-7 text-white sm:px-8 sm:py-9">
+				<div className="flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
+					<div className="min-w-0">
+						<p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-white/50">
+							Verdict · {timePeriodMonths} month horizon
+						</p>
+						<p className="mt-3 text-[30px] font-bold leading-none tracking-tight sm:text-[40px]">
+							<span className="text-white/55">{calculations.localWins ? 'Owning saves' : 'Renting saves'}</span>{' '}
+							<span className={calculations.localWins ? 'text-emerald-400' : 'text-[#F0B457]'}>
+								<AnimatedCounter value={calculations.netSavings} formatter={formatCurrency} />
+							</span>
+						</p>
+						<p className="mt-3 max-w-xl text-sm leading-6 text-white/60">
+							{calculations.localWins
+								? Number.isFinite(calculations.breakEvenMonths)
+									? `Break-even lands at month ${calculations.breakEvenMonths}. Every month past it is margin.`
+									: 'Break-even sits beyond the 84-month search window at this utilisation.'
+								: 'No break-even inside 84 months at this utilisation — the hardware never repays itself.'}
+						</p>
+
+						{/* Two bars, same scale: the whole comparison in one glance */}
+						<div className="mt-6 space-y-3">
+							{[
+								{ label: 'Owned', value: calculations.netLocalTco, tone: 'bg-emerald-400' },
+								{ label: 'Rented', value: calculations.cloudTco, tone: 'bg-cyan-400' }
+							].map((row) => (
+								<div key={row.label} className="flex items-center gap-3">
+									<span className="w-14 shrink-0 font-mono text-[10px] uppercase tracking-[0.16em] text-white/45">{row.label}</span>
+									<div className="h-1.5 min-w-0 flex-1 bg-white/[0.08]">
+										<div
+											className={`${row.tone} transition-[width] duration-500 ease-out`}
+											style={{ width: `${Math.min(100, (row.value / Math.max(1, Math.max(calculations.netLocalTco, calculations.cloudTco))) * 100)}%`, height: '100%' }}
+										/>
+									</div>
+									<span className="w-24 shrink-0 text-right font-mono tabular-nums text-[11px] font-bold text-white/80">
+										{formatCurrency(row.value)}
+									</span>
+								</div>
+							))}
+						</div>
+					</div>
+
+					{/* The three numbers that decide it */}
+					<div className="grid shrink-0 grid-cols-3 gap-x-6 gap-y-4 border-t border-white/10 pt-6 sm:gap-x-10 xl:border-l xl:border-t-0 xl:pl-10 xl:pt-0">
+						{[
+							{ label: 'Owned $/hr', value: `$${calculations.localCostPerHour.toFixed(2)}` },
+							{ label: 'Rented $/hr', value: `$${calculations.cloudCostPerHour.toFixed(2)}` },
+							{
+								label: 'Street vs list',
+								value: calculations.streetPremiumPct === null
+									? 'n/a'
+									: `${calculations.streetPremiumPct > 0 ? '+' : ''}${calculations.streetPremiumPct.toFixed(0)}%`
+							}
+						].map((stat) => (
+							<div key={stat.label}>
+								<p className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/45">{stat.label}</p>
+								<p className="mt-1 font-mono tabular-nums text-lg font-bold text-white">{stat.value}</p>
+							</div>
+						))}
+					</div>
+				</div>
+			</div>
+
 			{/* Preset Comparison Banner */}
-			<div className="mb-8 bg-white border border-[#E3E3E7] rounded-lg p-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5">
+			<div className="mb-8 bg-white border border-[#E3E3E7] rounded-lg p-6 sm:p-8 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
 				<div>
 					<div className="flex items-center gap-2.5">
 						<ArrowLeftRight className="h-4 w-4 text-[#111114]" strokeWidth={1.75} />
@@ -761,7 +827,7 @@ export default function LocalVsCloudGpuCalculator() {
 			</div>
 
 			{/* Active Comparison Status Bar */}
-			<div className="mb-6 bg-[#FAFAFA] border border-[#E3E3E7] rounded-lg px-4 py-3 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+			<div className="mb-6 bg-[#FAFAFA] border border-[#E3E3E7] rounded-lg px-4 py-3.5 sm:px-5 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
 				<div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
 					<span className="flex h-2 w-2 rounded-full bg-[#111114] animate-pulse motion-reduce:animate-none" />
 					<span className="text-xs font-mono tabular-nums font-bold uppercase tracking-wider text-gray-400">Comparing:</span>
@@ -778,11 +844,11 @@ export default function LocalVsCloudGpuCalculator() {
 				</div>
 			</div>
 
-			<div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
+			<div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-10">
 				{/* Left Column: User Controls & Sliders */}
 				<div className="space-y-6">
 					{/* Usage Pattern Card */}
-					<div className="bg-white border border-[#E3E3E7] rounded-lg p-6 space-y-6">
+					<div className="bg-white border border-[#E3E3E7] rounded-lg p-6 sm:p-7 space-y-7">
 						<div className="flex items-center gap-3 border-b border-[#E3E3E7] pb-4">
 							<SlidersHorizontal className="h-4 w-4 shrink-0 text-[#111114]" strokeWidth={1.75} />
 							<h3 className="text-[12px] font-mono font-bold uppercase tracking-[0.18em] text-[#111114]">Your Usage Pattern</h3>
@@ -843,9 +909,9 @@ export default function LocalVsCloudGpuCalculator() {
 						{/* Evaluation Horizon Slider */}
 						<div className="space-y-2">
 							<div className="flex justify-between items-center text-[13px] font-semibold text-[#3F3F46]">
-								<div className="flex items-center gap-2">
-									<span>Evaluation Horizon</span>
-									<span className="text-[10px] text-[#8A5A12] font-mono tabular-nums font-bold bg-[#FDF6EA] px-2 py-0.5 rounded-sm border border-[#EBD9B8]">
+								<div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+									<span className="whitespace-nowrap">Evaluation Horizon</span>
+									<span className="shrink-0 whitespace-nowrap text-[10px] text-[#8A5A12] font-mono tabular-nums font-bold bg-[#FDF6EA] px-2 py-0.5 rounded-sm border border-[#EBD9B8]">
 										{(timePeriodMonths / 12).toFixed(1)} yrs
 									</span>
 								</div>
@@ -907,7 +973,7 @@ export default function LocalVsCloudGpuCalculator() {
 					</div>
 
 					{/* Select GPU Card */}
-					<div className="bg-white border border-[#E3E3E7] rounded-lg p-6 space-y-6">
+					<div className="bg-white border border-[#E3E3E7] rounded-lg p-6 sm:p-7 space-y-7">
 						<div className="flex items-center gap-3 border-b border-[#E3E3E7] pb-4">
 							<Cpu className="h-4 w-4 shrink-0 text-[#111114]" strokeWidth={1.75} />
 							<h3 className="text-[12px] font-mono font-bold uppercase tracking-[0.18em] text-[#111114]">Select Local GPU</h3>
@@ -976,7 +1042,7 @@ export default function LocalVsCloudGpuCalculator() {
 						)}
 
 						{/* Sub card: 3-Year Resale Value % Slider */}
-						<div className="bg-white border border-[#E3E3E7] rounded-lg p-5 space-y-3">
+						<div className="bg-white border border-[#E3E3E7] rounded-lg p-5 sm:p-6 space-y-3.5">
 							<div className="flex justify-between items-center text-[13px] font-semibold text-[#3F3F46]">
 								<span>3-Year Hardware Resale Value (%)</span>
 								<InteractiveBadge
@@ -1006,7 +1072,7 @@ export default function LocalVsCloudGpuCalculator() {
 						</div>
 
 						{/* Sub card: Annual Cost of Capital / Opportunity Cost (%) Slider */}
-						<div className="bg-white border border-[#E3E3E7] rounded-lg p-5 space-y-3">
+						<div className="bg-white border border-[#E3E3E7] rounded-lg p-5 sm:p-6 space-y-3.5">
 							<div className="flex justify-between items-center text-[13px] font-semibold text-[#3F3F46]">
 								<span>Cost of Capital / Interest Rate (%/yr)</span>
 								<InteractiveBadge
@@ -1036,7 +1102,7 @@ export default function LocalVsCloudGpuCalculator() {
 						</div>
 
 						{/* Sub card: System components price slider */}
-						<div className="bg-white border border-[#E3E3E7] rounded-lg p-5 space-y-3">
+						<div className="bg-white border border-[#E3E3E7] rounded-lg p-5 sm:p-6 space-y-3.5">
 							<div className="flex justify-between items-center text-[13px] font-semibold text-[#3F3F46]">
 								<span>System components (CPU, RAM, Motherboard, etc.)</span>
 								<InteractiveBadge
@@ -1062,7 +1128,7 @@ export default function LocalVsCloudGpuCalculator() {
 						</div>
 
 						{/* Sub card: Electricity Rate Slider */}
-						<div className="bg-white border border-[#E3E3E7] rounded-lg p-5 space-y-3">
+						<div className="bg-white border border-[#E3E3E7] rounded-lg p-5 sm:p-6 space-y-3.5">
 							<div className="flex justify-between items-center text-[13px] font-semibold text-[#3F3F46]">
 								<span>Local Electricity Rate</span>
 								<InteractiveBadge
@@ -1090,7 +1156,7 @@ export default function LocalVsCloudGpuCalculator() {
 					</div>
 
 					{/* Select Cloud Provider Card */}
-					<div className="bg-white border border-[#E3E3E7] rounded-lg p-6 space-y-6">
+					<div className="bg-white border border-[#E3E3E7] rounded-lg p-6 sm:p-7 space-y-7">
 						<div className="flex items-center gap-3 border-b border-[#E3E3E7] pb-4">
 							<Cloud className="h-4 w-4 shrink-0 text-[#111114]" strokeWidth={1.75} />
 							<h3 className="text-[12px] font-mono font-bold uppercase tracking-[0.18em] text-[#111114]">Select Cloud Provider &amp; GPU</h3>
@@ -1172,7 +1238,7 @@ export default function LocalVsCloudGpuCalculator() {
 							</div>
 						</div>
 
-						<div className="rounded-lg border border-[#E3E3E7] bg-[#FAFAFA] p-4 space-y-3">
+						<div className="rounded-lg border border-[#E3E3E7] bg-[#FAFAFA] p-4 sm:p-5 space-y-3.5">
 							<div className="flex justify-between text-sm">
 								<span className="font-semibold text-[#8C8C8C]">Provider:</span>
 								<span className="font-bold text-[#111114]">{activeProvider.providerName}</span>
@@ -1585,7 +1651,7 @@ export default function LocalVsCloudGpuCalculator() {
 			</div>
 
 			{/* Interactive Break-Even & Renting vs Owning Chart Section */}
-			<div className="mt-12 bg-white border border-[#E3E3E7] rounded-lg p-6 lg:p-8 space-y-6">
+			<div className="mt-12 bg-white border border-[#E3E3E7] rounded-lg p-6 sm:p-8 lg:p-10 space-y-7">
 				<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
 					<div>
 						<h3 className="text-2xl font-bold text-[#111114]">Renting vs. Owning Cumulative Cost Timeline</h3>
@@ -1629,6 +1695,7 @@ export default function LocalVsCloudGpuCalculator() {
 						window.scrollTo({ top: 0, behavior: 'smooth' });
 					}}
 				/>
+			</div>
 			</div>
 		</>
 	);

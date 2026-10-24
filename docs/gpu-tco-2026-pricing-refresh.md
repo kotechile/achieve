@@ -80,3 +80,16 @@ The pass below keeps the light "readout in a dark rack" surface and tightens the
   maintenance / capital), which is the line that makes the licensing argument visible at a glance.
 - **Mobile** — the comparison status bar stacks instead of overflowing; 390px has no horizontal
   scroll.
+
+## Air + answer-first pass
+
+Two problems the screenshots made obvious: the instrument bay had **zero inner padding**, so every
+card sat on the panel border, and the verdict was buried under the receipt where nobody scrolls.
+
+- The bay is padded (`px-5 py-7` → `px-8 py-10` from `sm`), cards moved to `p-6/p-7` with `space-y-7`,
+  sub-cards to `p-5/p-6`, column gap to `lg:gap-10`, chart section to `sm:p-8 lg:p-10`.
+- **Verdict banner** now opens the tool: the delta as a 40px number, one sentence of why, two
+  same-scale bars (owned vs rented over the horizon, emerald vs cyan to match the chart legend),
+  and `$/hr` both ways plus the street premium. Answer first, controls second.
+- The Evaluation Horizon chip collided with its label; that row wraps and the chip is `shrink-0`.
+- Selected segment/button states carry an ink border so active vs idle is unambiguous.
