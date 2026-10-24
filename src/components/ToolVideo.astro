@@ -1,0 +1,101 @@
+---
+/**
+ * Tool brief — click-to-load video facade.
+ *
+ * Zero media requests before the click: the poster is the only byte fetched, and the <video> element
+ * is built on demand. A tool with no entry in `TOOL_VIDEOS` renders nothing at all, so the page can
+ * never advertise a video that does not exist.
+ */
+import { getToolVideo } from '../data/launch-videos';
+
+interface Props {
+	slug: string;
+}
+
+const { slug } = Astro.props;
+const video = getToolVideo(slug);
+const id = `tool-video-${slug}`;
+const seconds = video ? Math.round(video.durationSec) : 0;
+---
+
+{
+	video && (
+		<figure class="ai-panel" id={id}>
+			<div class="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--ai-line)] px-4 py-3 font-mono text-[0.62rem] uppercase tracking-[0.2em] text-[var(--ai-ink-4)]">
+				<span>Tool brief</span>
+				<span class="flex items-center gap-2">
+					<span class="ai-lamp" aria-hidden="true" />
+					{seconds}s · {video.width}×{video.height} · captioned
+				</span>
+			</div>
+
+			<button
+				type="button"
+				class="group relative block w-full cursor-pointer overflow-hidden bg-black text-left"
+				data-video-play
+				data-src={video.src}
+				data-poster={video.poster}
+				data-captions={video.captions ?? ''}
+				data-w={video.width}
+				data-h={video.height}
+				aria-label={`Play the ${seconds} second tool brief`}
+			>
+				<img
+					src={video.poster}
+					width={video.width}
+					height={video.height}
+					alt=""
+					loading="lazy"
+					decoding="async"
+					class="block w-full opacity-90 transition group-hover:opacity-100"
+				/>
+				<span class="absolute inset-0 grid place-items-center">
+					<span class="flex h-16 w-16 items-center justify-center border border-white/40 bg-black/55 transition group-hover:border-[var(--ai-signal)] group-hover:bg-black/70">
+						<svg viewBox="0 0 24 24" class="h-6 w-6 fill-white" aria-hidden="true">
+							<path d="M8 5v14l11-7z" />
+						</svg>
+					</span>
+				</span>
+				<span class="absolute bottom-0 left-0 right-0 flex items-center justify-between gap-3 bg-gradient-to-t from-black/80 to-transparent px-4 pb-3 pt-8 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-white/70">
+					<span>{slug} — narrated walkthrough</span>
+					<span>Play</span>
+				</span>
+			</button>
+		</figure>
+	)
+}
+
+<script>
+	// One bundled handler for every facade on the page. The poster is the only request before the
+	// click; the <video> and its caption track are created on demand.
+	const mount = (btn: HTMLElement) => {
+		const v = document.createElement('video');
+		v.src = btn.dataset.src || '';
+		v.poster = btn.dataset.poster || '';
+		v.width = Number(btn.dataset.w || 1280);
+		v.height = Number(btn.dataset.h || 720);
+		v.controls = true;
+		v.autoplay = true;
+		v.playsInline = true;
+		v.preload = 'auto';
+		v.className = 'block w-full bg-black';
+		const captions = btn.dataset.captions;
+		if (captions) {
+			const track = document.createElement('track');
+			track.kind = 'captions';
+			track.label = 'English';
+			track.srclang = 'en';
+			track.src = captions;
+			track.default = true;
+			v.appendChild(track);
+		}
+		btn.replaceWith(v);
+		v.play().catch(() => {
+			/* autoplay can be blocked; controls stay visible so the reader can start it */
+		});
+	};
+
+	document.querySelectorAll<HTMLElement>('[data-video-play]').forEach((btn) => {
+		btn.addEventListener('click', () => mount(btn), { once: true });
+	});
+</script>

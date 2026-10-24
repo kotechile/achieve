@@ -142,6 +142,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"your-routes-5x-stop-gap",
 	"your-seller-wont-stay",
 	"your-tool-surface-is-a-release-surface",
+	"your-tooling-assist-is-dutiable",
 	"your-trace-wont-prove-925-points",
 	"zet-scale-ev-truck-residual-value-risk"
 ];
@@ -228,4 +229,4 @@ export const FOREIGN_TARGETS = {
 	"zapier-notion-integration-calculate-your-tinkering-tax": "https://giniloh.com"
 };
 export const GENERATED_FOR = "aichieve.net";
-export const GENERATED_AT = "2026-10-24T18:04:53.805Z";
+export const GENERATED_AT = "2026-10-24T18:25:56.506Z";

@@ -47,7 +47,9 @@ const post = await fetchPostBySlug('self-hosted-ai-when-to-buy-vs-rent-gpus');
 	<link slot="head" rel="canonical" href={new URL('/tools/gpu-compute/', Astro.site).toString()} />
 	{schema ? <JsonLd slot="head" data={schema} /> : null}
 
-	<CalculatorShell eyebrow="Compute infrastructure" title="GPU TCO Analyzer" description={description}>
+	<CalculatorShell
+		slug="gpu-compute"
+		eyebrow="Compute infrastructure" title="GPU TCO Analyzer" description={description}>
 		<div slot="calculator">
 			<LocalVsCloudGpuCalculator client:load />
 		</div>
