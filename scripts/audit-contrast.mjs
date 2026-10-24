@@ -33,7 +33,7 @@ import { existsSync } from 'node:fs';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { tmpdir } from 'node:os';
-import { dirname, extname, join } from 'node:path';
+import { basename, dirname, extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const exec = promisify(execFile);
@@ -210,13 +210,28 @@ function findChrome() {
 	return null;
 }
 
+/**
+ * Is this directory entry a sync-conflict copy rather than something the build wrote?
+ *
+ * This repo lives under `~/Documents`, which macOS syncs through iCloud Drive. When iCloud
+ * finds two versions of the same path it materialises the loser as `name 2`, `name 3`, … —
+ * and because `dist/` churns hundreds of files on every build, that is where the copies pile
+ * up. They are not build output, they are not referenced by anything, and one of them grew to
+ * 65,535 hard links, which made `readdir` fail with EAGAIN and took the whole audit down with
+ * an unhandled rejection.
+ *
+ * Conflict copies are skipped rather than reported: they are never pages to audit, and failing
+ * a contrast run because a sync client duplicated a directory would train people to ignore it.
+ */
+const isSyncConflict = (name) => / \d+$/.test(name) || name.endsWith('.nosync');
+
 /** One page per template, discovered from the build so it survives content churn. */
 async function defaultPages() {
 	const pages = ['/', '/articles/', '/categories/', '/tools/', '/tools/gpu-compute/',
 		'/tools/master-asset-tco/', '/about/', '/apps/', '/author/gini-loh/'];
 
 	const cats = await readdir(join(DIST, 'categories'), { withFileTypes: true }).catch(() => []);
-	const cat = cats.find((d) => d.isDirectory());
+	const cat = cats.find((d) => d.isDirectory() && !isSyncConflict(d.name));
 	if (cat) pages.push(`/categories/${cat.name}/`);
 
 	// The article template is the one carrying the standfirst, so find it by that marker
@@ -224,7 +239,7 @@ async function defaultPages() {
 	const TOP_LEVEL_SKIP = new Set(['_astro', 'articles', 'categories', 'tools', 'apps', 'about', 'author']);
 	const dirs = await readdir(DIST, { withFileTypes: true });
 	for (const d of dirs) {
-		if (!d.isDirectory() || TOP_LEVEL_SKIP.has(d.name)) continue;
+		if (!d.isDirectory() || TOP_LEVEL_SKIP.has(d.name) || isSyncConflict(d.name)) continue;
 		const html = await readFile(join(DIST, d.name, 'index.html'), 'utf8').catch(() => '');
 		if (html.includes('ai-quote')) { pages.push(`/${d.name}/`); break; }
 	}
@@ -239,6 +254,7 @@ async function allPages() {
 			const next = `${prefix}/${d.name}`;
 			// Asset directories and WordPress-era paths are not pages.
 			if (d.name.startsWith('_') || d.name.startsWith('.')) continue;
+			if (isSyncConflict(d.name)) continue;
 			pages.push(`${next}/`);
 			await walk(join(dir, d.name), next);
 		}
@@ -268,8 +284,27 @@ async function main() {
 			: await defaultPages();
 
 	// Serve a copy of the build so the auditor can be injected without touching dist/.
+	// `filter` keeps sync-conflict copies out: they can be unreadable trees that abort the
+	// copy, and nothing in them is ever audited anyway.
 	const sandbox = await mkdtemp(join(tmpdir(), 'contrast-audit-'));
-	await cp(DIST, sandbox, { recursive: true, force: true });
+	try {
+		await cp(DIST, sandbox, {
+			recursive: true,
+			force: true,
+			filter: (src) => !isSyncConflict(basename(src))
+		});
+	} catch (error) {
+		// Deliberately fatal, but with the remedy attached: a half-copied sandbox would make
+		// every page look like a 404 and report a pass over nothing.
+		console.error(red(`Could not copy ${DIST} to a sandbox: ${error.message}`));
+		console.error(
+			dim('A sync client (iCloud Drive) duplicates paths under ~/Documents as "name 2".') +
+				'\n' +
+				dim('Clear the build and rebuild: rm -rf dist && npm run build')
+		);
+		await rm(sandbox, { recursive: true, force: true }).catch(() => {});
+		process.exit(2);
+	}
 
 	const targets = [];
 	for (const page of pages) {
