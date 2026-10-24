@@ -42,7 +42,6 @@ const post = await fetchPostBySlug('enterprisebuildvsbuy-the-250k-ai-upkeep-tax'
 	{schema ? <JsonLd slot="head" data={schema} /> : null}
 
 	<CalculatorShell
-		slug="decision-intelligence"
 		eyebrow="Build vs. buy" title="Master Asset & Software TCO Calculator" description={description}>
 		<div slot="calculator">
 			<DecisionIntelligenceCalculator client:load />

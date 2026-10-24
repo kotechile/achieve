@@ -1,5 +1,4 @@
 ---
-import ToolVideo from '../ToolVideo.astro';
 /**
  * Instrument bay.
  *
@@ -12,14 +11,9 @@ interface Props {
 	eyebrow: string;
 	title: string;
 	description: string;
-	/**
-	 * Calculator slug. When it has an entry in TOOL_VIDEOS, the tool brief renders under the bay.
-	 * A page that supplies the `film` slot and omits `slug` shows one video instead of two.
-	 */
-	slug?: string;
 }
 
-const { eyebrow, title, description, slug } = Astro.props;
+const { eyebrow, title, description } = Astro.props;
 ---
 
 <section class="pb-16 pt-2">
@@ -56,8 +50,6 @@ const { eyebrow, title, description, slug } = Astro.props;
 				<slot name="calculator" />
 			</div>
 		</div>
-
-		{slug && <ToolVideo slug={slug} />}
 
 		<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 			<slot name="aside" />

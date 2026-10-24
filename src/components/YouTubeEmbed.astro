@@ -2,9 +2,8 @@
 /**
  * YouTube facade — poster first, player only on click.
  *
- * Same contract as `ToolVideo.astro`, but for a video that lives on YouTube and has no
- * self-hosted file: nothing is requested from google until the reader asks for it, so the
- * page keeps its zero-third-party shape and the reader keeps their cookies.
+ * Nothing is requested from google until the reader asks for it, so the page keeps its
+ * zero-third-party shape and the reader keeps their cookies.
  */
 interface Props {
 	id: string;

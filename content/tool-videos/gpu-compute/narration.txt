@@ -1,1 +1,0 @@
-I'm the GPU TCO Analyzer. I price an owned accelerator against rented capacity over your own horizon: street cost, power, maintenance, and the software licences everyone drops. NVIDIA AI Enterprise alone is four thousand five hundred dollars per GPU, per year. Put your utilisation in before you sign.

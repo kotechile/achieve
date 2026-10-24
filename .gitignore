@@ -22,9 +22,3 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
-
-# Tool-video frames are rebuilt from the composition; only the mp4/poster/vtt are kept.
-content/tool-videos/*/frames/
-content/tool-videos/*/*.aiff
-content/tool-videos/*/take.mp3
-content/tool-videos/*/take.wav
