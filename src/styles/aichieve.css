@@ -2218,3 +2218,63 @@ html, body { overflow-x: clip; }
 	border-color: var(--di-line);
 	background: #ffffff;
 }
+
+/* The ledger's proportional fill used to be a band behind the whole row, with its right edge
+   sitting wherever the value put it. Because the band painted behind the label, that edge
+   landed *inside* the text — on the off-invoice rows it cut through the word "OFF INVOICE".
+   A background block cannot have a ragged edge and also stay aligned with its text.
+   The proportion is now a rule along the row's bottom edge, out of the text layer entirely:
+   nothing can overlap, and the four rules still read as a small bar chart down the column. */
+
+.di .di-row {
+	padding: 0.45rem 0.45rem 0.62rem;
+}
+
+.di .di-row .di-row__bar {
+	position: absolute;
+	left: 0.45rem;
+	right: 0.45rem;
+	bottom: 0;
+	height: 3px;
+	z-index: 0;
+}
+
+.di .di-row .di-row__fill {
+	display: block;
+	height: 100%;
+}
+
+.di .di-side--0 .di-row__fill {
+	background: var(--di-a);
+	opacity: 0.45;
+}
+
+.di .di-side--0 .di-row__fill--hidden {
+	background: var(--di-a);
+	opacity: 0.85;
+}
+
+.di .di-side--1 .di-row__fill {
+	background: var(--di-b);
+	opacity: 0.45;
+}
+
+.di .di-side--1 .di-row__fill--hidden {
+	background: var(--di-b);
+	opacity: 0.85;
+}
+
+/* `inset: 0` in the base rule pins top as well as bottom, so `bottom: 0; height: 3px` still
+   resolved to the row's top edge. */
+.di .di-row .di-row__bar {
+	top: auto;
+}
+
+/* 4px of rule reads as a measured quantity; 3px read as a stray underline. */
+.di .di-row .di-row__bar {
+	height: 4px;
+}
+
+.di .di-row {
+	padding-bottom: 0.68rem;
+}

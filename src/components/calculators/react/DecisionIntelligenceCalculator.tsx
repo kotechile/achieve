@@ -473,7 +473,7 @@ function Side({ side, scale, index }: { side: OptionSide; scale: number; index: 
 							<span className="di-row__bar" aria-hidden="true">
 								<span
 									className={`di-row__fill${row.hidden ? ' di-row__fill--hidden' : ''}`}
-									style={{ width: `${Math.max(share * 100, row.amount ? 1.5 : 0)}%` }}
+									style={{ width: `${Math.max(share * 100, row.amount ? 2.3 : 0)}%` }}
 								/>
 							</span>
 							<span className="di-row__label">
