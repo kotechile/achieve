@@ -84,6 +84,8 @@ const seconds = video ? Math.round(video.durationSec) : 0;
 			frame.allowFullscreen = true;
 			frame.loading = 'lazy';
 			frame.className = 'block w-full aspect-video bg-black';
+			// height attribute is a presentational hint; let aspect-ratio own the height instead
+			frame.style.height = 'auto';
 			btn.replaceWith(frame);
 			return;
 		}

@@ -7,7 +7,7 @@
 > oEmbed payload, i.e. markdown escaping pasted into the title field. Fix in YouTube Studio →
 > Details → Title; the embed does not care, but search results and shares will show them.
 
-Video: `brag.mp4` (1920x1080, 22.2s, AAC 192k, -16.9 LUFS)
+Video: `GPU_TCO_Analyzer.mp4` (1920x1080, 22.2s, AAC 192k, -16.9 LUFS)
 Thumbnail: `brag.jpg` (1920x1080, 145 KB — already the video's frame 0, so the
 channel thumbnail matches the first frame exactly)
 
