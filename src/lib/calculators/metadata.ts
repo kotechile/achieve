@@ -22,7 +22,7 @@ export const calculators = [
 		iconType: 'server',
 		utility: 'Decide: build the cluster or lease the capacity',
 		description:
-			'Model a local GPU workstation or cluster against rented capacity — hardware, TDP load, persistent storage, depreciation and the utilization floor at which owning stops paying.',
+			'Model a local GPU cluster against rented capacity: street hardware pricing, enterprise software licences, TDP load, persistent storage, and the utilization floor where owning stops paying.',
 		keywords: [
 			'gpu tco calculator',
 			'local vs cloud gpu cost',

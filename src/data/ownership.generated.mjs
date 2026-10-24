@@ -9,6 +9,7 @@
  */
 export const OWNED_POST_SLUGS_GENERATED = [
 	"100-case-eval-925-coverage",
+	"7-days-notice-rewrites-your-duty",
 	"agent-audit-trail-not-evidence",
 	"agent-failure-topology-not-model",
 	"agent-failures-tests-stayed-green",
@@ -179,6 +180,8 @@ export const FOREIGN_POST_SLUGS_GENERATED = [
 	"your-61-day-window-costs-the-position",
 	"your-cheap-part-a-599-bill",
 	"your-disks-35-dead-by-year-six",
+	"your-home-servers-45-day-patch-gap",
+	"your-homelab-heat-pays-back-45-cents",
 	"your-ipo-payday-tax-bill",
 	"your-raise-dies-at-51-5-hours",
 	"zapier-notion-integration-calculate-your-tinkering-tax"
@@ -218,9 +221,11 @@ export const FOREIGN_TARGETS = {
 	"your-61-day-window-costs-the-position": "https://giniloh.com",
 	"your-cheap-part-a-599-bill": "https://giniloh.com",
 	"your-disks-35-dead-by-year-six": "https://giniloh.com",
+	"your-home-servers-45-day-patch-gap": "https://giniloh.com",
+	"your-homelab-heat-pays-back-45-cents": "https://giniloh.com",
 	"your-ipo-payday-tax-bill": "https://giniloh.com",
 	"your-raise-dies-at-51-5-hours": "https://giniloh.com",
 	"zapier-notion-integration-calculate-your-tinkering-tax": "https://giniloh.com"
 };
 export const GENERATED_FOR = "aichieve.net";
-export const GENERATED_AT = "2026-10-23T20:46:39.617Z";
+export const GENERATED_AT = "2026-10-24T17:53:49.814Z";
