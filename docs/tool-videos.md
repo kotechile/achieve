@@ -79,3 +79,41 @@ Every number in a video must be reproducible from the product it describes. `gpu
 analyzer's own default output ($32,797 owned vs $7,358 rented over 36 months). `decision-intelligence`
 deliberately shows **no** comparison bars: its result is entirely a function of the reader's inputs, so
 the template falls back to cost buckets rather than inventing a ratio.
+
+## Publishing options: self-hosted mp4 vs YouTube
+
+Two embed paths, one component. A tool with a `youtubeId` gets a `youtube-nocookie` iframe; without
+one it keeps the self-hosted `<video>`. Nothing else in the pipeline changes.
+
+### YouTube (manual, no OAuth)
+
+1. Upload the rendered mp4 from `public/media/tool-videos/<slug>.mp4` to the channel.
+2. Drop the id in `content/tool-videos/<slug>/youtube.json`:
+
+   ```json
+   { "id": "dQw4w9WgXcQ" }
+   ```
+
+3. `npm run video:build -- --embed-only` — re-derives `src/data/launch-videos.ts` without re-rendering.
+4. `npm run build`.
+
+The mp4 and poster stay on disk as the source of truth either way, so switching back is deleting the
+json and re-running the same command.
+
+### Which is actually leaner
+
+At two tools the media is **1.8 MB of an 8.8 MB `dist/`**. Self-hosting one click-to-load mp4 costs a
+range request to nginx; there is no third-party runtime, no cookie consent surface, no re-encode, and
+the poster alone (≈50 KB) is what loads before a click. YouTube is leaner on *bytes served by the VPS*
+and heavier on everything else: an iframe plus the YouTube player on click, Google-side cookies
+isolated by the nocookie domain, and a 16:9 thumbnail the page no longer controls.
+
+YouTube earns its place when the catalogue gets large, when traffic makes egress the top line, or when
+you want the video discoverable on the channel — not to save 900 KB per tool.
+
+### If you want it automated later
+
+The Data API upload path needs OAuth (`youtube.upload` scope), costs **1,600 quota units per upload**
+against a 10,000/day default, so about six uploads a day, and the endpoint is resumable with a
+200/201 + `id` read-back as the only success signal. That is real machinery for a two-video catalogue;
+the manual loop above is three commands and no stored credentials.

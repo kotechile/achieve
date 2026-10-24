@@ -203,6 +203,19 @@ async function buildOne(slug) {
 }
 
 async function writeEmbedData(built) {
+	// A manual YouTube upload is picked up here: drop {"id": "..."} into content/tool-videos/<slug>/
+	// youtube.json and the next build embeds the player instead of the mp4. No OAuth, no quota.
+	for (const v of built) {
+		const manifest = join(WORK, v.slug, 'youtube.json');
+		if (!existsSync(manifest)) continue;
+		try {
+			const j = JSON.parse(await readFile(manifest, 'utf8'));
+			if (j.id) v.youtubeId = String(j.id);
+		} catch (e) {
+			throw new Error(`${v.slug}: youtube.json is not valid JSON (${e.message})`);
+		}
+	}
+
 	const rows = built
 		.sort((a, b) => a.slug.localeCompare(b.slug))
 		.map(
@@ -212,7 +225,7 @@ async function writeEmbedData(built) {
 		width: ${v.width},
 		height: ${v.height},
 		durationSec: ${v.durationSec.toFixed(2)},
-		captions: '/media/tool-videos/${v.slug}.vtt'
+		captions: '/media/tool-videos/${v.slug}.vtt'${v.youtubeId ? `,\n\t\tyoutubeId: '${v.youtubeId}'` : ''}
 	}`
 		)
 		.join(',\n');
@@ -230,6 +243,8 @@ export interface ToolVideoEntry {
 	height: number;
 	durationSec: number;
 	captions?: string;
+	/** Present when content/tool-videos/<slug>/youtube.json holds an uploaded video id. */
+	youtubeId?: string;
 }
 
 export const TOOL_VIDEOS: Record<string, ToolVideoEntry> = {
@@ -259,10 +274,16 @@ for (const cast of drawn) {
 	if (!frozen) await writeCasting(WORK, final);
 }
 
+// `--embed-only` re-derives src/data/launch-videos.ts from the renders already on disk. That is the
+// whole loop after a manual YouTube upload: no re-render, no TTS, no frames.
+const embedOnly = process.argv.includes('--embed-only');
+
 const built = [];
-for (const slug of slugs) {
-	log(`▸ ${slug} — ${TOOLS[slug].__cast.voice} over ${TOOLS[slug].__cast.bed.replace('happy-beats-business-moves-', '').replace('-by-ende-dot-app.mp3', '')}`);
-	built.push(await buildOne(slug));
+if (!embedOnly) {
+	for (const slug of slugs) {
+		log(`▸ ${slug} — ${TOOLS[slug].__cast.voice} over ${TOOLS[slug].__cast.bed.replace('happy-beats-business-moves-', '').replace('-by-ende-dot-app.mp3', '')}`);
+		built.push(await buildOne(slug));
+	}
 }
 
 // A partial run must not drop the other tools from the embed map: probe any existing render and

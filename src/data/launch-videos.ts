@@ -11,6 +11,8 @@ export interface ToolVideoEntry {
 	height: number;
 	durationSec: number;
 	captions?: string;
+	/** Present when content/tool-videos/<slug>/youtube.json holds an uploaded video id. */
+	youtubeId?: string;
 }
 
 export const TOOL_VIDEOS: Record<string, ToolVideoEntry> = {

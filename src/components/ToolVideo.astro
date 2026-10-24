@@ -34,6 +34,7 @@ const seconds = video ? Math.round(video.durationSec) : 0;
 				class="group relative block w-full cursor-pointer overflow-hidden bg-black text-left"
 				data-video-play
 				data-src={video.src}
+				data-youtube={video.youtubeId ?? ''}
 				data-poster={video.poster}
 				data-captions={video.captions ?? ''}
 				data-w={video.width}
@@ -67,8 +68,26 @@ const seconds = video ? Math.round(video.durationSec) : 0;
 
 <script>
 	// One bundled handler for every facade on the page. The poster is the only request before the
-	// click; the <video> and its caption track are created on demand.
+	// click; the player is created on demand. Two paths, one contract:
+	//   · youtube id present → youtube-nocookie iframe (no cookies or third-party JS until clicked)
+	//   · otherwise → self-hosted <video> with the caption track
 	const mount = (btn: HTMLElement) => {
+		const yt = btn.dataset.youtube;
+		if (yt) {
+			const frame = document.createElement('iframe');
+			frame.src = `https://www.youtube-nocookie.com/embed/${yt}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
+			frame.title = btn.getAttribute('aria-label') || 'Tool brief';
+			frame.width = String(Number(btn.dataset.w || 1280));
+			frame.height = String(Number(btn.dataset.h || 720));
+			frame.allow =
+				'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+			frame.allowFullscreen = true;
+			frame.loading = 'lazy';
+			frame.className = 'block w-full aspect-video bg-black';
+			btn.replaceWith(frame);
+			return;
+		}
+
 		const v = document.createElement('video');
 		v.src = btn.dataset.src || '';
 		v.poster = btn.dataset.poster || '';
