@@ -4,6 +4,7 @@ import JsonLd from '../../components/JsonLd.astro';
 import DecisionIntelligenceCalculator from '../../components/calculators/react/DecisionIntelligenceCalculator';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import RelatedArticleCard from '../../components/calculators/RelatedArticleCard.astro';
+import YouTubeEmbed from '../../components/YouTubeEmbed.astro';
 import { getCalculatorBySlug, getCalculatorSchema } from '../../lib/calculators/metadata';
 import { fetchPostBySlug } from '../../lib/wordpress';
 
@@ -45,6 +46,36 @@ const post = await fetchPostBySlug('enterprisebuildvsbuy-the-250k-ai-upkeep-tax'
 		eyebrow="Build vs. buy" title="Master Asset & Software TCO Calculator" description={description}>
 		<div slot="calculator">
 			<DecisionIntelligenceCalculator client:load />
+		</div>
+
+		<div slot="film" class="mt-10">
+			<div class="ai-panel">
+				<div
+					class="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--ai-line)] px-4 py-3 font-mono text-[0.62rem] uppercase tracking-[0.2em] text-[var(--ai-ink-4)]"
+				>
+					<span>Launch film · the 91% your invoice leaves out</span>
+					<span class="flex items-center gap-2">
+						<span class="ai-lamp" aria-hidden="true"></span>
+						23s · 1920×1080 · narrated
+					</span>
+				</div>
+				<YouTubeEmbed
+					id="3ISpqw_tzHg"
+					poster="/media/tool-videos/master-asset-tco-brag-poster.jpg"
+					label="Master Asset and Software TCO Calculator — 23s"
+					seconds={23}
+				/>
+				<div class="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--ai-line)] px-4 py-3">
+					<p class="max-w-xl text-xs leading-6 text-[var(--ai-ink-2)]">
+						Build at $681,000 or buy at $12,380 across 36 months — and $619,800 of that build never
+						reaches the invoice. Every figure on screen is this calculator's own output.
+					</p>
+					<span class="flex items-center gap-5 font-mono text-[0.62rem] uppercase tracking-[0.2em]">
+						<a class="text-[var(--ai-link)] hover:underline" href="https://youtu.be/3ISpqw_tzHg" target="_blank" rel="noopener">YouTube</a>
+						<a class="text-[var(--ai-ink-3)] hover:text-[var(--ai-signal)]" href="#calculator">Model your own numbers ↓</a>
+					</span>
+				</div>
+			</div>
 		</div>
 
 		<article slot="aside" class="ai-panel p-6">

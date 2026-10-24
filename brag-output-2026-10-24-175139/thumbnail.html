@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      @font-face {
+        font-family: "InterLocal";
+        src: url("composition/assets/fonts/inter-latin-800-normal.woff2") format("woff2");
+        font-weight: 800;
+        font-display: block;
+      }
+      @font-face {
+        font-family: "InterLocal";
+        src: url("composition/assets/fonts/inter-latin-400-normal.woff2") format("woff2");
+        font-weight: 400;
+        font-display: block;
+      }
+      @font-face {
+        font-family: "MonoLocal";
+        src: url("composition/assets/fonts/jetbrains-mono-latin-700-normal.woff2") format("woff2");
+        font-weight: 700;
+        font-display: block;
+      }
+      @font-face {
+        font-family: "MonoLocal";
+        src: url("composition/assets/fonts/jetbrains-mono-latin-500-normal.woff2") format("woff2");
+        font-weight: 500;
+        font-display: block;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        width: 1280px;
+        height: 720px;
+        overflow: hidden;
+        background: #08090b;
+        color: #e9eef4;
+        font-family: "InterLocal", system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .grid {
+        position: absolute;
+        inset: 0;
+        background-image: repeating-linear-gradient(0deg, rgba(255,255,255,0.055) 0 1px, transparent 1px 40px),
+          repeating-linear-gradient(90deg, rgba(255,255,255,0.055) 0 1px, transparent 1px 40px);
+      }
+      .glow {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(560px 380px at 20% 34%, rgba(232,163,61,0.2), rgba(232,163,61,0) 64%);
+      }
+      .glow2 {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(460px 320px at 88% 26%, rgba(143,196,224,0.12), rgba(143,196,224,0) 68%);
+      }
+
+      .frame { position: absolute; inset: 0; }
+      .frame .tick { position: absolute; width: 16px; height: 16px; border-style: solid; border-width: 0; border-color: rgba(255,255,255,0.22); }
+      .tl { left: 34px; top: 34px; border-left-width: 2px; border-top-width: 2px; }
+      .tr { right: 34px; top: 34px; border-right-width: 2px; border-top-width: 2px; }
+      .bl { left: 34px; bottom: 34px; border-left-width: 2px; border-bottom-width: 2px; }
+      .br { right: 34px; bottom: 34px; border-right-width: 2px; border-bottom-width: 2px; }
+
+      .mark { position: absolute; left: 62px; top: 56px; display: flex; align-items: center; gap: 14px; }
+      .glyph {
+        width: 46px; height: 46px; border: 2px solid #e8a33d; color: #e8a33d;
+        display: flex; align-items: center; justify-content: center;
+        font-family: "MonoLocal", monospace; font-size: 20px; font-weight: 700;
+      }
+      .word { font-family: "MonoLocal", monospace; font-size: 21px; font-weight: 700; letter-spacing: 0.26em; }
+      .kicker { position: absolute; right: 62px; top: 58px; font-family: "MonoLocal", monospace; font-size: 17px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: #94a3b8; }
+
+      .left { position: absolute; left: 62px; top: 150px; }
+      .right { position: absolute; right: 62px; top: 150px; text-align: right; }
+
+      .lbl {
+        display: flex; align-items: center; gap: 12px;
+        font-family: "MonoLocal", monospace; font-size: 19px; font-weight: 500;
+        letter-spacing: 0.22em; text-transform: uppercase; color: #b9c6d3;
+      }
+      .lbl.end { justify-content: flex-end; }
+      .lbl i { width: 26px; height: 3px; background: #e8a33d; display: block; }
+      .lbl.steel i { background: #8fc4e0; }
+
+      .big {
+        margin-top: 20px;
+        font-size: 130px; font-weight: 800; line-height: 0.88; letter-spacing: -0.04em;
+        font-variant-numeric: tabular-nums;
+      }
+      .small {
+        margin-top: 74px;
+        font-size: 70px; font-weight: 800; line-height: 1; letter-spacing: -0.03em;
+        color: #8fc4e0; font-variant-numeric: tabular-nums;
+      }
+
+      .track { position: absolute; height: 10px; background: #1c222a; }
+      .fill { height: 10px; }
+      .t1 { left: 62px; top: 372px; width: 640px; }
+      .f1 { width: 100%; background: #e8a33d; }
+      .t2 { left: 748px; top: 372px; width: 470px; }
+      .f2 { width: 1.8%; background: #8fc4e0; }
+
+      .band {
+        position: absolute; left: 62px; right: 62px; bottom: 74px;
+        border-top: 1px solid rgba(255,255,255,0.14); padding-top: 26px;
+        display: flex; align-items: flex-end; justify-content: space-between;
+      }
+      .hook { font-size: 60px; font-weight: 800; letter-spacing: -0.025em; line-height: 1; }
+      .hook em { color: #e8a33d; font-style: normal; }
+      .sub { font-family: "MonoLocal", monospace; font-size: 18px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: #94a3b8; text-align: right; line-height: 1.7; }
+    </style>
+  </head>
+  <body>
+    <div class="grid"></div>
+    <div class="glow"></div>
+    <div class="glow2"></div>
+    <div class="frame">
+      <div class="tick tl"></div><div class="tick tr"></div>
+      <div class="tick bl"></div><div class="tick br"></div>
+    </div>
+
+    <div class="mark">
+      <div class="glyph">AI</div>
+      <div class="word">AICHIEVE</div>
+    </div>
+    <div class="kicker">TCO Calculator</div>
+
+    <div class="left">
+      <div class="lbl"><i></i>In-house build</div>
+      <div class="big">$681,000</div>
+    </div>
+
+    <div class="right">
+      <div class="lbl steel end">Managed platform<i></i></div>
+      <div class="small">$12,380</div>
+    </div>
+
+    <div class="track t1"><div class="fill f1"></div></div>
+    <div class="track t2"><div class="fill f2"></div></div>
+
+    <div class="band">
+      <div class="hook"><em>91%</em> off the invoice.</div>
+      <div class="sub">36 months<br />fully loaded</div>
+    </div>
+  </body>
+</html>
