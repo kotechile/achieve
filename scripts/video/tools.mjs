@@ -13,9 +13,10 @@
 export const TOOLS = {
 	'gpu-compute': {
 		slug: 'gpu-compute',
-		// FNV-1a of the slug picks bed + voice, so re-renders are identical and the suite is not monotone.
-		bed: 'bed-a',
-		voice: 'Samantha',
+		// Kokoro voices via `hyperframes tts` — the same voice set /brag uses. Bed from /brag's
+		// bundled library, vendored under assets/audio/music so the build is self-contained.
+		bed: 'happy-beats-business-moves-vol-10-by-ende-dot-app.mp3',
+		voice: 'bm_george',
 		eyebrow: 'Compute infrastructure',
 		title: 'GPU TCO Analyzer',
 		kicker: 'Own it or rent it',
@@ -39,8 +40,8 @@ export const TOOLS = {
 	},
 	'decision-intelligence': {
 		slug: 'decision-intelligence',
-		bed: 'bed-c',
-		voice: 'Daniel',
+		bed: 'happy-beats-business-moves-vol-12-by-ende-dot-app.mp3',
+		voice: 'am_michael',
 		eyebrow: 'Build vs. buy',
 		title: 'Master Asset & Software TCO Calculator',
 		kicker: 'Build it or buy it',

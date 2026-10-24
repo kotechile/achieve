@@ -18,6 +18,7 @@ import { execFile } from 'node:child_process';
 import { mkdir, writeFile, rm, readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { homedir } from 'node:os';
 import { promisify } from 'node:util';
 import { TOOLS } from './tools.mjs';
 import { composeHtml } from './compose.mjs';
@@ -34,29 +35,53 @@ const TAIL_MS = 1600;
 
 const log = (...a) => console.log(...a);
 
-async function tts(text, voice, outMp3) {
-	const aiff = outMp3.replace(/\.mp3$/, '.aiff');
+async function tts(text, voice, outWav) {
 	if (process.env.TTS_CMD) {
-		await exec('bash', ['-lc', process.env.TTS_CMD], { env: { ...process.env, TTS_TEXT: text, TTS_OUT: outMp3 } });
+		await exec('bash', ['-lc', process.env.TTS_CMD], {
+			env: { ...process.env, TTS_TEXT: text, TTS_OUT: outWav }
+		});
 	} else {
-		await exec('say', ['-v', voice, '-r', '168', '-o', aiff, text]);
-		await exec('ffmpeg', ['-y', '-loglevel', 'error', '-i', aiff, '-ar', '48000', '-ac', '1', '-b:a', '192k', outMp3]);
-		await rm(aiff, { force: true });
+		// Kokoro-82M via the HyperFrames CLI — the same voice set /brag uses. PYTHONPATH must be
+		// cleared: an active venv on it shadows the kokoro venv's own packages and the synth fails.
+		const env = { ...process.env };
+		delete env.PYTHONPATH;
+		env.HYPERFRAMES_PYTHON =
+			process.env.HYPERFRAMES_PYTHON || join(homedir(), '.venvs/kokoro/bin/python');
+		env.PATH = `${homedir()}/.local/bin:${env.PATH || ''}`;
+		await exec(
+			'hyperframes',
+			['tts', '--voice', voice, '--speed', '0.95', '-o', outWav, text],
+			{ env }
+		);
 	}
 	const { stdout } = await exec('ffprobe', [
-		'-v', 'error', '-show_entries', 'format=duration', '-of', 'default=nw=1:nk=1', outMp3
+		'-v', 'error', '-show_entries', 'format=duration', '-of', 'default=nw=1:nk=1', outWav
 	]);
 	return Number(stdout.trim());
 }
 
-async function mux(framesDir, audio, outMp4) {
-	// Video is the timeline; audio is normalised and never trimmed. `-shortest` is deliberately absent:
-	// it is what silently cuts narration when the take runs long.
+async function mux(framesDir, narration, music, durationSec, outMp4) {
+	// Video is the timeline; audio is built against it, never trimmed to it. `-shortest` stays off:
+	// it is what silently cuts narration mid-word when a take runs long.
+	const D = durationSec.toFixed(2);
+	const fadeOut = Math.max(0.5, durationSec - 1.2).toFixed(2);
+	const graph = [
+		// bed: 0.34 of full scale (/brag policy is 0.30–0.40, never above 0.5), faded at both ends
+		`[2:a]atrim=0:${D},asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.4,afade=t=out:st=${fadeOut}:d=1.2,volume=0.34[bed]`,
+		// apad matters: sidechaincompress stops consuming the bed the moment its key signal ends, which
+		// silently cuts the music tail. Padding the voice to the full duration keeps both lanes aligned.
+		`[1:a]loudnorm=I=-16:TP=-1.5:LRA=11,apad=whole_dur=${D},asplit=2[nar][key]`,
+		// 3:1 duck keyed off the voice, so the bed steps back while speech is present
+		`[bed][key]sidechaincompress=threshold=0.05:ratio=3:attack=20:release=350[bedduck]`,
+		`[nar][bedduck]amix=inputs=2:duration=longest:normalize=0,loudnorm=I=-14:TP=-1.5:LRA=11[a]`
+	].join(';');
+
 	await exec('ffmpeg', [
 		'-y', '-loglevel', 'error',
 		'-framerate', String(FPS), '-i', join(framesDir, 'frame-%04d.jpg'),
-		'-i', audio,
-		'-filter_complex', '[1:a]loudnorm=I=-14:TP=-1.5:LRA=11,aresample=48000[a]',
+		'-i', narration,
+		'-i', music,
+		'-filter_complex', graph,
 		'-map', '0:v:0', '-map', '[a]',
 		'-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p',
 		'-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-ac', '2',
@@ -109,7 +134,7 @@ async function buildOne(slug) {
 	log(`  compose   ${slug} — ${words} words narration`);
 
 	// 2. voice, measured
-	const audio = join(dir, 'take.mp3');
+	const audio = join(dir, 'take.wav');
 	const audioSec = await tts(tool.narration, tool.voice, audio);
 	// Length follows the take: the voice sets the clock, not a hard-coded 14s.
 	const durationMs = Math.min(
@@ -128,8 +153,11 @@ async function buildOne(slug) {
 	log(`  render    ${r.frames} frames @${FPS}fps ${r.width}x${r.height}`);
 
 	// 4. mix + poster
+	// A missing bed is a hard failure, not a silent narration-only render.
+	const music = join(ROOT, 'assets/audio/music', tool.bed);
+	if (!existsSync(music)) throw new Error(`${slug}: music bed not found at ${music}`);
 	const mp4 = join(MEDIA, `${slug}.mp4`);
-	await mux(framesDir, audio, mp4);
+	await mux(framesDir, audio, music, durationMs / 1000, mp4);
 	const poster = join(MEDIA, `${slug}-poster.jpg`);
 	await exec('ffmpeg', [
 		'-y', '-loglevel', 'error', '-ss', String(((durationMs * 0.62) / 1000).toFixed(2)), '-i', mp4,

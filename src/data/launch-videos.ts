@@ -19,7 +19,7 @@ export const TOOL_VIDEOS: Record<string, ToolVideoEntry> = {
 		poster: '/media/tool-videos/decision-intelligence-poster.jpg',
 		width: 1280,
 		height: 720,
-		durationSec: 19.50,
+		durationSec: 22.56,
 		captions: '/media/tool-videos/decision-intelligence.vtt'
 	},
 	'gpu-compute': {
@@ -27,7 +27,7 @@ export const TOOL_VIDEOS: Record<string, ToolVideoEntry> = {
 		poster: '/media/tool-videos/gpu-compute-poster.jpg',
 		width: 1280,
 		height: 720,
-		durationSec: 21.50,
+		durationSec: 24.04,
 		captions: '/media/tool-videos/gpu-compute.vtt'
 	}
 };

@@ -27,3 +27,4 @@ pnpm-debug.log*
 content/tool-videos/*/frames/
 content/tool-videos/*/*.aiff
 content/tool-videos/*/take.mp3
+content/tool-videos/*/take.wav

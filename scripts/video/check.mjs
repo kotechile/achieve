@@ -50,18 +50,30 @@ for (const slug of Object.keys(TOOLS)) {
 	}
 	if (dur < 15 || dur > 25) fails.push(`${slug}: ${dur.toFixed(2)}s outside the 15–25s window`);
 
-	// Audio must actually be audible, not a silent stream that satisfies the codec check.
-	const { stderr } = await exec('ffmpeg', [
-		'-hide_banner', '-ss', '1', '-t', String(Math.max(2, dur - 2)), '-i', mp4,
-		'-af', 'volumedetect', '-f', 'null', '-'
-	]).catch((e) => ({ stderr: e.stderr || '' }));
-	const mean = /mean_volume:\s*(-?\d+(?:\.\d+)?) dB/.exec(stderr);
-	if (!mean || Number(mean[1]) < -40) {
-		fails.push(`${slug}: narration looks silent (mean ${mean ? mean[1] + ' dB' : 'unmeasured'})`);
+	// Two measurements, because one is not enough: the mix must be at a sane loudness, and the music
+	// must still be audible in the window after the voice stops (a narration-only mix passes every
+	// codec check and is exactly the failure this catches).
+	const measure = async (ss, t) => {
+		const { stderr } = await exec('ffmpeg', [
+			'-hide_banner', '-ss', String(ss), '-t', String(t), '-i', mp4,
+			'-af', 'volumedetect', '-f', 'null', '-'
+		]).catch((e) => ({ stderr: e.stderr || '' }));
+		const m = /mean_volume:\s*(-?\d+(?:\.\d+)?) dB/.exec(stderr);
+		return m ? Number(m[1]) : null;
+	};
+	const mixMean = await measure(1, Math.max(2, dur - 3));
+	if (mixMean === null || mixMean < -40) {
+		fails.push(`${slug}: the mix is silent (mean ${mixMean === null ? 'unmeasured' : mixMean + ' dB'})`);
+	} else if (mixMean > -10 || mixMean < -22) {
+		fails.push(`${slug}: mix loudness ${mixMean} dB is outside the −22…−10 dB window`);
+	}
+	const bedTail = await measure(Math.max(0.5, dur - 0.9), 0.6);
+	if (bedTail === null || bedTail < -45) {
+		fails.push(`${slug}: no music under the tail (${bedTail === null ? 'unmeasured' : bedTail + ' dB'}) — bed missing or muted`);
 	}
 
 	rows.push(
-		`${slug.padEnd(24)} ${dur.toFixed(2)}s  ${v.width}x${v.height}  ${(Number(j.format.size) / 1e6).toFixed(1)} MB  mean ${mean ? mean[1] : '?'} dB`
+		`${slug.padEnd(24)} ${dur.toFixed(2)}s  ${v.width}x${v.height}  ${(Number(j.format.size) / 1e6).toFixed(1)} MB  mix ${mixMean} dB  bed ${bedTail} dB`
 	);
 }
 

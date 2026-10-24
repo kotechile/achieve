@@ -29,23 +29,34 @@ src/data/launch-videos.ts                     GENERATED embed map
    animation and no clock, so the same millisecond always yields the same pixels.
 2. **Narrate** — the script lives in `tools.mjs`, 35–55 words, first person. A gate rejects anything
    outside that window.
-3. **Voice** — macOS `say` at 168 wpm, converted to 48k mono. This is the only host dependency in the
-   chain. Set `TTS_CMD` to any command that reads `$TTS_TEXT` and writes `$TTS_OUT` to swap in Kokoro
-   or ElevenLabs without touching anything downstream.
+3. **Voice** — Kokoro-82M through `hyperframes tts`, the same voice set `/brag` uses (`bm_george`,
+   `am_michael`, 0.95x). Needs the HyperFrames CLI on PATH plus a Python env for it:
+   `HYPERFRAMES_PYTHON=~/.venvs/kokoro/bin/python` with `PYTHONPATH` **unset** — an active venv on
+   `PYTHONPATH` shadows kokoro's own packages and the synth dies. Set `TTS_CMD` to any command that
+   reads `$TTS_TEXT` and writes `$TTS_OUT` to bypass it entirely.
+   The music beds are `/brag`'s bundled "Happy Beats / Business Moves" tracks, vendored under
+   `assets/audio/music/` so a clean clone can rebuild without the skill installed.
 4. **Length** — the take sets the clock: `duration = take + 1.6s`, clamped to 15–25s, and the scene
    windows are fractions of it. A longer script makes a longer video instead of getting cut.
 5. **Render** — `render.mjs` drives headless Chrome over CDP using Node's built-in `fetch` and
-   `WebSocket`. No Puppeteer, no HyperFrames, no new dependency: it is the same Chrome + ffmpeg the
+   `WebSocket`. No browser-automation package, no new dependency: it is the same Chrome + ffmpeg the
    repo's audit scripts already require.
-6. **Mix** — `loudnorm` to −14 LUFS / −1.5 TP, AAC 192k, `+faststart`, and deliberately **no**
-   `-shortest`: that flag is what silently cuts narration mid-word when a take runs long.
+6. **Mix** — narration and bed are summed, not concatenated: voice normalised to −16 LUFS, bed at
+   0.34 with 0.4s in / 1.2s out fades, sidechain-ducked 3:1 under the voice (threshold 0.05, attack
+   20ms, release 350ms), the sum normalised to −14 LUFS / −1.5 TP, AAC 192k 48k stereo, `+faststart`,
+   and deliberately **no** `-shortest`: that flag is what silently cuts narration mid-word.
+
+   Two gotchas worth keeping in the graph. The voice is `apad`-ed to the full length, because
+   `sidechaincompress` stops consuming the bed the moment its key signal ends and silently truncates
+   the music tail. And the voice is `asplit` before the sidechain, because an ffmpeg filter output can
+   only be consumed once.
 
 ## The gate
 
 `npm run video:check` fails the build if any tool is missing an mp4, poster or captions; if the
 streams are anything other than H.264 + AAC 48k stereo; if the duration falls outside 15–25s; if the
-mix measures below −40 dB (a silent stream still satisfies a codec check); or if the embed map does
-not mention the tool.
+mix is silent or sits outside −22…−10 dB; if the **music** is missing from the window after the voice
+stops (a narration-only mix passes every codec check); or if the embed map does not mention the tool.
 
 ## Adding a tool
 
