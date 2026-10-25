@@ -22,9 +22,14 @@ export interface ProApp {
 	output: string;
 	/** The operational failure this exists to catch. */
 	failure: string;
-	audience: 'Finance Operations' | 'Logistics Operations' | 'AI Platform' | 'Warehouse / CAPEX';
+	audience:
+		| 'Finance Operations'
+		| 'Logistics Operations'
+		| 'AI Platform'
+		| 'Warehouse / CAPEX'
+		| 'Energy Operations';
 	/** Glyph used wherever the app is listed beside the free engines (ToolRail, index cards). */
-	icon: 'table' | 'flow' | 'matrix' | 'server' | 'chart-line' | 'globe';
+	icon: 'table' | 'flow' | 'matrix' | 'server' | 'chart-line' | 'globe' | 'bolt';
 	path: string;
 }
 
@@ -83,6 +88,18 @@ export const PRO_APPS: ProApp[] = [
 		failure: 'Payouts that reach the bank unable to be tied back to the ledger',
 		audience: 'Finance Operations',
 		path: '/ledgerlink'
+	},
+	{
+		slug: 'ratchetproof',
+		icon: 'bolt',
+		name: 'RatchetProof',
+		tagline: 'Commercial electric billed-demand and ratchet audit',
+		input: 'Interval export from the account’s meters + the filed tariff’s demand clause',
+		output:
+			'Billed demand rebuilt from the coincident peak, the ratchet percentage and the contract minimum, with the months the bill disagrees',
+		failure: 'A ratchet billed on a peak the tariff never bills, or a clause read as 0% because nobody opened it',
+		audience: 'Energy Operations',
+		path: '/ratchetproof'
 	}
 ];
 
