@@ -23,12 +23,15 @@ export interface ProApp {
 	/** The operational failure this exists to catch. */
 	failure: string;
 	audience: 'Finance Operations' | 'Logistics Operations' | 'AI Platform' | 'Warehouse / CAPEX';
+	/** Glyph used wherever the app is listed beside the free engines (ToolRail, index cards). */
+	icon: 'table' | 'flow' | 'matrix' | 'server' | 'chart-line' | 'globe';
 	path: string;
 }
 
 export const PRO_APPS: ProApp[] = [
 	{
 		slug: 'spendproof',
+		icon: 'table',
 		name: 'SpendProof',
 		tagline: 'AI provider invoice ↔ tagged-usage reconciliation',
 		input: 'AI provider invoice + your tagged usage export',
@@ -39,6 +42,7 @@ export const PRO_APPS: ProApp[] = [
 	},
 	{
 		slug: 'parcelproof',
+		icon: 'flow',
 		name: 'ParcelProof',
 		tagline: 'Carrier invoice DIM-weight and surcharge audit',
 		input: 'Carrier invoice lines + shipment file',
@@ -49,6 +53,7 @@ export const PRO_APPS: ProApp[] = [
 	},
 	{
 		slug: 'caseproof',
+		icon: 'matrix',
 		name: 'CaseProof',
 		tagline: 'Buyer-side audit of a warehouse-automation business case',
 		input: "Vendor's quoted business case + your own cost assumptions",
@@ -59,6 +64,7 @@ export const PRO_APPS: ProApp[] = [
 	},
 	{
 		slug: 'facturgate',
+		icon: 'table',
 		name: 'FacturGate',
 		tagline: 'EU e-invoice pre-send gate and Factur-X / UBL converter',
 		input: 'Invoice model or CII / UBL file',
@@ -69,6 +75,7 @@ export const PRO_APPS: ProApp[] = [
 	},
 	{
 		slug: 'ledgerlink',
+		icon: 'chart-line',
 		name: 'LedgerLink',
 		tagline: 'Stripe payout → general ledger reconciliation engine',
 		input: 'Stripe payout export',

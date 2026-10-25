@@ -1,0 +1,33 @@
+---
+/**
+ * The one glyph set on this property.
+ *
+ * `lib/calculators/metadata.ts` carries an `iconType` per engine and `lib/apps.ts` carries one per
+ * PRO app, so the tool rail, the register page and any future card render the same mark for the same
+ * tool instead of each surface inventing its own inline SVG.
+ */
+interface Props {
+	type?: string;
+	class?: string;
+}
+
+const { type, class: className = 'h-4 w-4' } = Astro.props;
+
+const PATHS: Record<string, string> = {
+	server:
+		'M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01',
+	matrix:
+		'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2',
+	table: 'M3 10h18M3 14h18m-9-4v8m-7 4h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+	flow: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15',
+	'chart-line': 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
+	globe:
+		'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+};
+
+const path = PATHS[type ?? ''] ?? PATHS['matrix'];
+---
+
+<svg class={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+	<path stroke-linecap="round" stroke-linejoin="round" d={path} />
+</svg>

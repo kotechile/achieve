@@ -1,0 +1,87 @@
+---
+/**
+ * The tool rail beside every dispatch.
+ *
+ * The article argues a position; the tools take the reader's own numbers. This panel used to be two
+ * bare text links, which made the engines look like footnotes. Now every tool the property runs is
+ * listed with its glyph — the two free engines first, then the paid apps that need a real file — so a
+ * reader who has just finished a build-vs-lease piece can see the GPU analyzer without hunting.
+ *
+ * Design: panel stock one step lighter than its neighbours, with the amber cap rail that marks a
+ * powered unit on this console. Glyph tiles are the only place amber sits at rest.
+ */
+import { PRO_APPS, appUrl } from '../lib/apps';
+import { calculators } from '../lib/calculators/metadata';
+import ToolIcon from './ToolIcon.astro';
+---
+
+<section
+	aria-labelledby="tool-rail-heading"
+	class="ai-panel ai-panel--cap bg-[var(--ai-panel-2)] p-5"
+>
+	<p class="ai-label ai-label--signal">Run your own numbers</p>
+	<h3 id="tool-rail-heading" class="sr-only">Every AIChieve tool</h3>
+	<p class="mt-2 text-xs leading-relaxed text-[var(--ai-ink-3)]">
+		The engines take your inputs. The apps take your files.
+	</p>
+
+	<nav aria-label="Free engines" class="mt-4">
+		<ul class="grid gap-1">
+			{
+				calculators.map((tool) => (
+					<li>
+						<a
+							href={tool.href}
+							title={tool.utility}
+							class="group flex items-center gap-3 border border-transparent px-1.5 py-1.5 transition-colors hover:border-[var(--ai-line)] hover:bg-[var(--ai-panel-3)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-[var(--ai-signal)]"
+						>
+							<span class="flex h-7 w-7 shrink-0 items-center justify-center border border-[var(--ai-line)] bg-[var(--ai-panel-3)] text-[var(--ai-signal)]">
+								<ToolIcon type={tool.iconType} class="h-3.5 w-3.5" />
+							</span>
+							<span class="min-w-0 flex-1 text-[0.8rem] font-semibold leading-snug text-[var(--ai-ink)] transition-colors group-hover:text-[var(--ai-signal)]">
+								{tool.title}
+							</span>
+							<span class="shrink-0 font-mono text-[0.55rem] uppercase tracking-[0.16em] text-[var(--ai-ink-4)]">
+								Free
+							</span>
+						</a>
+					</li>
+				))
+			}
+		</ul>
+	</nav>
+
+	<div class="mt-4 border-t border-[var(--ai-line-soft)] pt-3">
+		<p class="ai-label">When the decision lives in a file</p>
+		<nav aria-label="Paid apps" class="mt-2">
+			<ul class="grid gap-0.5">
+				{
+					PRO_APPS.map((app) => (
+						<li>
+							<a
+								href={appUrl(app.path)}
+								title={app.tagline}
+								target="_blank"
+								rel="noopener"
+								class="group flex items-center gap-2.5 px-1.5 py-1 transition-colors hover:bg-[var(--ai-panel-3)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-[var(--ai-signal)]"
+							>
+								<span class="flex h-5 w-5 shrink-0 items-center justify-center text-[var(--ai-ink-3)] transition-colors group-hover:text-[var(--ai-signal)]">
+									<ToolIcon type={app.icon} class="h-3.5 w-3.5" />
+								</span>
+								<span class="min-w-0 flex-1 truncate text-[0.75rem] font-medium text-[var(--ai-ink-2)] transition-colors group-hover:text-[var(--ai-ink)]">
+									{app.name}
+								</span>
+								<span aria-hidden="true" class="shrink-0 font-mono text-[0.6rem] text-[var(--ai-ink-4)]">↗</span>
+							</a>
+						</li>
+					))
+				}
+			</ul>
+		</nav>
+	</div>
+
+	<a href="/tools/" class="mt-4 flex items-center justify-between border-t border-[var(--ai-line-soft)] pt-3 font-mono text-[0.6rem] font-bold uppercase tracking-[0.16em] text-[var(--ai-ink-3)] transition hover:text-[var(--ai-signal)]">
+		<span>Tool register</span>
+		<span aria-hidden="true">→</span>
+	</a>
+</section>
