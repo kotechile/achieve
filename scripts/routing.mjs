@@ -63,9 +63,16 @@ function loadEnv() {
 	return out;
 }
 
-async function getJson(url, headers = {}) {
+async function getJson(url, headers = {}, { allowInvalidPage = false } = {}) {
 	const res = await fetch(url, { headers: { 'User-Agent': 'routing', ...headers } });
-	if (!res.ok) throw new Error(`GET ${url} -> HTTP ${res.status}`);
+	if (!res.ok) {
+		// WordPress answers `400 rest_post_invalid_page_number` once the requested page is past the
+		// last one. That is the end of the list, not a build failure: at exactly per_page x N posts
+		// the loop asks for page N+1 and this throw turned every deploy into a red build (2026-10-28,
+		// the 200th post on cms.giniloh.com).
+		if (allowInvalidPage && res.status === 400) return [];
+		throw new Error(`GET ${url} -> HTTP ${res.status}`);
+	}
 	return res.json();
 }
 
@@ -73,7 +80,11 @@ async function getJson(url, headers = {}) {
 async function fetchPosts() {
 	const posts = [];
 	for (let page = 1; page <= 20; page++) {
-		const batch = await getJson(`${WP_BASE}/wp-json/wp/v2/posts?per_page=100&page=${page}&_fields=slug,vertical`);
+		const batch = await getJson(
+			`${WP_BASE}/wp-json/wp/v2/posts?per_page=100&page=${page}&_fields=slug,vertical`,
+			{},
+			{ allowInvalidPage: true }
+		);
 		posts.push(...batch);
 		if (batch.length < 100) break;
 	}
