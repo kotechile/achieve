@@ -22,6 +22,22 @@ sibling `giniloh.com` front end is *not* touched.
 
 ---
 
+## Status
+
+| Wave | State | Evidence |
+| --- | --- | --- |
+| 0 · shared platform | **shipped** | `aichieve.css` §8, 5 primitives, 5 engines, `npm run check:engines` = 140 assertions green |
+| 1 · Engine A (agentic breakeven) | **shipped** | `/tools/agentic-workflow-breakeven/` builds; 164/164 text elements clear AA; 0px overflow at 390 and 768 |
+| 1 · Engine B (slotting) | engine + fixtures done, page outstanding | `slottingPayback.ts` |
+| 2–4 | engines + fixtures done, pages outstanding | `inventoryAccuracy.ts`, `landedCost.ts`, `parcelDim.ts` |
+
+Two findings from the build that this plan did not anticipate, both now handled in code:
+
+1. **The bay's policy layer reaches inside the engine.** `:is(.paper,.instrument-surface) :is(p,.text-base,.text-sm){color:#716f6f!important;font-weight:400!important}` is `(0,2,0)` with `!important`, so every `<p>` in an engine was pinned to grey at weight 400 — the verdict headline measured 4.45:1 on the erosion wash, just under AA. Every `<p>`-based part now carries its own `!important` three classes deep. §8 documents it where the layer is introduced.
+2. **`dist/` picks up iCloud conflict copies** (`sitemap 2.xml`) that break `audit:contrast`'s sandbox copy. `rm -rf dist && npm run build` before auditing; the repo's audit script already names this fix.
+
+---
+
 ## 1. What already exists (read before starting)
 
 | Thing | Where | Relevance |
@@ -60,12 +76,12 @@ Reject from the brief: glassmorphism, rounded cards, drop shadows, and a **fourt
 console is hairline-industrial by contract, and inventing steel/amber/crimson alongside `--ai-signal`
 gives the property two amber meanings. Map instead, on the light bay, with measured contrast:
 
-| Brief | Use in engine | Ratio on `#fff` | Verdict |
+| Brief | Shipped token | Ratio on `#fff` | Why |
 | --- | --- | --- | --- |
-| Steel Blue `#5A7A8F` | baseline parameter strokes | 4.55:1 | keep for strokes; label text in `#475569` (7.58) |
-| Amber `#D97706` | operational friction / tax bars | **3.19:1** | **fails AA body text** → use `#B45309` (5.02:1) |
-| Crimson `#DC2626` | erosion, unviable thresholds | 4.83:1 | keep; `#B91C1C` (6.47:1) for text on the same fill |
-| — | verdict/positive | — | `--ai-ok #4e9e86` on white is 3.0:1 → use `#0f766e` (5.47:1) |
+| Steel Blue `#5A7A8F` | `--en-base #0e7490` | 5.4:1 | the §6 instrument's accent, so both tools read as one family |
+| Amber `#D97706` | `--en-friction #92400e` | **7.0:1** | the brief's amber is 3.19:1 on this ground and fails AA outright |
+| Crimson `#DC2626` | `--en-erosion #a33b32` | 6.5:1 | the brief's crimson passes (4.83) but is a second red on a site that already has one |
+| — | `--en-positive #1c6b4f` | 6.1:1 | replaces `#0f766e` for the same reason |
 
 Three new semantic tokens go in `aichieve.css` (`--eng-base`, `--eng-friction`, `--eng-erosion`) so no
 engine hardcodes a hex, and `npm run audit:contrast --all` is the proof.
@@ -138,7 +154,10 @@ brief's rounded 1.28 / 1.65 / 1.96 / 2.33 mixed with 1.645 / 2.326 in its own pr
 ### 2.6 Slotting/CAPEX: the brief double-counts the walk
 
 `ΔC_slotting + ΔC_automation` adds two savings both measured against the unoptimised baseline, so the
-seconds of walk recovered once are paid for twice. That inflates the vendor case *and* the buyer case.
+seconds of walk recovered once are paid for twice. At the defaults the overlap is **$114,376 a year** —
+less than the whole $208,000 slotting saving, because the vendor applies the throughput gain to fixed
+pick time as well as walk, but enough to move a payback by a year. That inflates the vendor case *and*
+the buyer case.
 Compute three scenarios — current, slotted, slotted+automated — and let the automation saving be
 `labour(slotted) − labour(slotted+automated)`. The buyer payback then also carries AMC, WMS
 integration and downtime, which the brief's own "honest" denominator omits.
@@ -266,7 +285,7 @@ npm run audit:layout 390 /tools/gpu-compute/   # no regression on an existing en
 Defaults are the brief's, except where §2 corrects them. Every fixture below is computed by
 `check-engines.mjs`; a changed constant fails the gate.
 
-### Wave 1 / Engine A — Agentic Workflow Breakeven
+### Wave 1 / Engine A — Agentic Workflow Breakeven  ✅ shipped
 
 - **Route:** `/tools/agentic-workflow-breakeven/` · **slugs:** `agenticBreakeven` ·
   `domainCategory: 'Agentic Operations'` · **icon:** `flow`
@@ -325,8 +344,9 @@ Statistical definition must be agreed before code (§2.5).
 - **Outputs:** `sigmaEffective`, `safetyStockClean`, `safetyStockWithIra`, `deadCash`,
   `annualHoldingCost`, `phantomEvents`, `phantomLostMargin`, plus the same pair recomputed at a clean
   (<5%) accuracy baseline for the comparison curve
-- **Fixture (defaults):** σ base 130.90 · σ_rec 204.75 · σ_eff 243.02 · SS 216 → 401 units (**185/SKU**)
-  → **$11.10M dead cash**, **$2.44M/yr** holding; **9,321 phantom events/yr**, **$5.37M lost margin**
+- **Fixture (defaults, Z = 1.6449 at full precision):** σ base 130.90 · σ_rec 204.75 · σ_eff 243.02 ·
+  SS **215.3 → 399.7** units (**184.45/SKU**) → **$11.07M dead cash**, **$2.43M/yr** holding;
+  **9,321 phantom events/yr**, **$5.37M lost margin**
 - **KPIs:** `Dead cash in buffer` ($) · `Phantom stockout margin` ($/yr) · `Extra units per SKU`
 - **Canvas:** working capital vs service level 90 → 99%, two curves (current accuracy vs audited <5%);
   Z from the full-precision table.
@@ -385,6 +405,9 @@ Highest stale-data risk (carrier tables) → ships last.
 - **Refuses:** labelling excess billed weight as leakage; a right-sizing saving when the new height is
   below the tallest stacked item (needs a contents-height input or a stated ceiling); any surcharge
   claim without printing `EFFECTIVE_FROM`.
+- **Corrected in build:** carton C (12×10×8) does *not* bill at scale weight — 960 in³ is 6.9 lb at 139,
+  so it bills 7 lb against a 3.1 lb scale weight. The scale-weight case needed a dense carton (6×6×6 at
+  12 lb), which is now a fixture.
 - **PRO bridge:** ParcelProof — every tracking number, not three box averages.
 - **Related article:** `parcelproof-stop-bleeding-28-on-carrier-invoices`, then `fuel-surcharge-peg-mpg-audit`.
 
@@ -427,35 +450,43 @@ npm run audit:layout 390 /tools/agentic-workflow-breakeven/ /tools/parcel-dim-we
 
 ## 6. Files likely to change
 
-**Create**
+**Shipped (wave 0 + pilot)**
 
 ```
-src/lib/calculators/agenticBreakeven.ts
-src/lib/calculators/slottingPayback.ts
-src/lib/calculators/inventoryAccuracy.ts
-src/lib/calculators/landedCost.ts
-src/lib/calculators/parcelDim.ts
-src/lib/calculators/assumptions2026.ts
-src/components/calculators/react/primitives/{NumberField,SliderField,SelectField,Group,BreakevenChart,WaterfallChart,MatrixBars,PaybackBars}.tsx
+src/lib/calculators/engineTypes.ts          shared verdict / refusal / assumption contract
+src/lib/calculators/assumptions2026.ts      dated CBP, carrier and Z-table constants
+src/lib/calculators/agenticBreakeven.ts     engine A  ✅  page shipped
+src/lib/calculators/slottingPayback.ts      engine B
+src/lib/calculators/inventoryAccuracy.ts    engine C
+src/lib/calculators/landedCost.ts           engine D
+src/lib/calculators/parcelDim.ts            engine E
 src/components/calculators/react/primitives/useUrlState.ts
-src/components/calculators/react/{AgenticBreakevenCalculator,SlottingPaybackCalculator,InventoryAccuracyCalculator,LandedCostCalculator,ParcelDimCalculator}.tsx
-src/pages/tools/{agentic-workflow-breakeven,warehouse-slotting-payback,inventory-record-accuracy,total-delivered-cost,parcel-dim-weight}.astro
+src/components/calculators/react/primitives/Fields.tsx        NumberField, SelectField, SegmentedField, Group
+src/components/calculators/react/primitives/KpiStrip.tsx      KpiStrip, Verdict, Refusals, ProBridge, ResetButton
+src/components/calculators/react/primitives/Charts.tsx        ChartFrame, BreakevenChart, BarRows
+src/components/calculators/react/primitives/EngineLayout.tsx  35/65 frame + .engine scope
+src/components/calculators/react/AgenticBreakevenCalculator.tsx
+src/pages/tools/agentic-workflow-breakeven.astro
 scripts/check-engines.mjs
 ```
+
+Four primitives in one `Fields.tsx` and three chart parts in one `Charts.tsx` rather than the one-file-per-
+component split this plan proposed: they share the plate markup and the row geometry, and splitting them
+would have duplicated it. `page` files for engines B–E are the remaining wave-1/2/3 work.
 
 **Modify**
 
 ```
-src/lib/calculators/metadata.ts        five register entries + docstring
-src/lib/calculators/format.ts          formatRate, formatTokens, formatMonths, formatPctPoints
-src/styles/aichieve.css                .engine-* token block
-src/lib/product-cta.ts                 five honest bridges
-src/pages/tools/index.astro            H1, meta description, domain grouping
-src/components/ToolRail.astro          docstring, "free engines" count
-src/components/ProductCTA.astro        "Both engines" line
-scripts/verify.mjs                     five routes
-package.json                           check:engines; prebuild chain
-README.md                              tools section
+src/lib/calculators/metadata.ts        engine A registered ✅ (B–E outstanding); docstring still says "two engines"
+src/lib/calculators/format.ts          usd, usdCompact, pct, num, years, months ✅
+src/styles/aichieve.css                §8 `.engine` layer ✅
+src/lib/product-cta.ts                 five honest bridges — outstanding
+src/pages/tools/index.astro            H1, meta description, domain grouping — outstanding
+src/components/ToolRail.astro          docstring, "free engines" count — outstanding
+src/components/ProductCTA.astro        "Both engines" line — outstanding
+scripts/verify.mjs                     five routes — outstanding
+package.json                           check:engines ✅, prebuild chain ✅
+README.md                              tools section — outstanding
 ```
 
 ---
@@ -497,7 +528,7 @@ README.md                              tools section
 | Slotting | vendor payback | 3.13 y | 1.85M / (549,288 + 208,000 − 166,500) |
 | Slotting | buyer payback | 9.93 y | (1.85M + 220,000) / (434,888 − 166,500 − 60,000) |
 | IRA | σ_eff | 243.02 | √(130.90² + 204.75²) |
-| IRA | dead cash | 11,099,398 | (400.98 − 216.05) × 2500 × 24 |
+| IRA | dead cash | 11,066,900 | (399.75 − 215.30) × 2500 × 24 |
 | IRA | phantom cost | 5,368,629 | 9,321 × 18 × 2 × 16 |
 | TDC | duty + 301 + MPF | 4.0284 | 12.60 × (0.065 + 0.25 + 0.004714) |
 | TDC | landed | 18.2166 | 11.50 + 1.10 + 4.0284 + 1.5882 |

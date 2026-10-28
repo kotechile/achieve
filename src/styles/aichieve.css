@@ -2278,3 +2278,730 @@ html, body { overflow-x: clip; }
 .di .di-row {
 	padding-bottom: 0.68rem;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   8 · STANDARD ENGINES — the shared layer for /tools/ engines 3–7
+
+   Five engines ship against one shell (split rail, sticky executive strip, one canvas, PRO
+   bridge). This section is that shell's vocabulary: a `.engine` root, `.en-*` parts.
+
+   WHY A SECOND NAMESPACE INSTEAD OF REUSING §6
+   §6 (`.di`) is the decision instrument's own vocabulary and it is tuned — its rules were
+   written, measured and repaired in four separate passes, the last three of which are §6b–6d
+   patches on top of it. Editing 40 selectors there to share a root would put every one of those
+   fixes at risk for no visual gain. The token *values* below are deliberately identical to §6's,
+   so the two instruments read as one family; the rules are separate so this layer can add what
+   §6 never needed (sticky KPI strip, collapsible groups, four chart canvases) without touching it.
+
+   SPECIFICITY IS LOAD-BEARING, exactly as it is in §6. Two policy rules sit under every engine:
+     `.instrument-surface p, li, span, div { color: inherit }`                    (0,1,1)
+     `.instrument-surface p { color: var(--paper-ink-2) }`                        (0,1,1)
+     `:is(.paper,.instrument-surface) :is(p,.text-base,.text-sm) { color:#716f6f
+        !important; font-weight:400 !important }`                                 (0,2,0, !important)
+   The last one comes from giniloh's light-paper policy and it reaches INTO the bay — it is why the
+   verdict headline first measured #716f6f at weight 400 on the erosion wash, 4.45:1, just under AA.
+   Rules below are two classes deep, and every rule that lands on a <p> carries `!important` and
+   three classes so it cannot lose to that pin or to source order. No Tailwind utility carries a
+   colour anywhere inside an engine.
+
+   Contrast, measured against #fff (the instrument bay's ground):
+     --en-ink      #14181d  16.9:1   values, headline figures
+     --en-ink-2    #414852   8.9:1   body copy
+     --en-ink-3    #5f6b76   5.5:1   labels, captions     (same value §4b re-pins the bay to)
+     --en-base     #0e7490   5.4:1   baseline parameter
+     --en-friction #92400e   7.0:1   operational friction / tax
+     --en-erosion  #a33b32   6.5:1   erosion, unviable thresholds
+     --en-positive #1c6b4f   6.1:1   recovered / viable
+   The brief proposed amber #D97706 (3.19:1) and crimson #DC2626 (4.83:1) for friction and
+   erosion. #D97706 fails AA on this ground; #92400e is the in-house amber at 7.0:1 and keeps the
+   family consistent with §6.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.engine {
+	--en-ink: #14181d;
+	--en-ink-2: #414852;
+	--en-ink-3: #5f6b76;
+	--en-line: #d9dee3;
+	--en-line-2: #eef1f3;
+	--en-fill: #f7f9fa;
+	--en-base: #0e7490;
+	--en-friction: #92400e;
+	--en-erosion: #a33b32;
+	--en-positive: #1c6b4f;
+	--en-base-wash: rgba(14, 116, 144, 0.08);
+	--en-friction-wash: rgba(146, 64, 14, 0.08);
+	--en-erosion-wash: rgba(163, 59, 50, 0.08);
+	--en-positive-wash: rgba(28, 107, 79, 0.08);
+
+	display: grid;
+	color: var(--en-ink);
+	font-family: var(--font-sans);
+	text-align: left;
+}
+
+/* Neutralise §4a's ink inheritance for the parts this layer does not name explicitly. Every
+   coloured element below is two classes deep, so it still wins over this. */
+.engine p,
+.engine li,
+.engine span,
+.engine div,
+.engine dt,
+.engine dd {
+	color: inherit;
+}
+
+.engine h2,
+.engine h3,
+.engine p,
+.engine ul,
+.engine ol,
+.engine dl,
+.engine dd,
+.engine dt,
+.engine figure,
+.engine fieldset,
+.engine legend { margin: 0; padding: 0; }
+
+.engine ul,
+.engine ol { list-style: none; }
+.engine fieldset { border: 0; min-width: 0; }
+
+/* ── frame: 35 / 65 split, rail on paper ───────────────────────────────────── */
+
+.engine .en__grid { display: grid; }
+
+.engine .en__rail {
+	padding: 1.1rem 1rem;
+	border-bottom: 1px solid var(--en-line);
+}
+
+.engine .en__readout { padding: 1rem; }
+
+@media (min-width: 1024px) {
+	/* 22rem against a 64rem bay lands the rail at ~34%, the brief's 35/65 split. */
+	.engine .en__grid { grid-template-columns: minmax(0, 22rem) minmax(0, 1fr); }
+
+	.engine .en__rail {
+		padding: 1.35rem 1.25rem;
+		border-right: 1px solid var(--en-line);
+		border-bottom: 0;
+	}
+
+	.engine .en__readout { padding: 1.35rem; }
+}
+
+/* ── executive strip: three KPIs, sticky on the readout column ─────────────── */
+
+.engine .en-kpis {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	border: 1px solid var(--en-line);
+	background: #fff;
+}
+
+@media (min-width: 1024px) {
+	.engine .en-kpis {
+		position: sticky;
+		top: 4.7rem; /* clears the 4.25rem console header */
+		z-index: 2;
+	}
+}
+
+.engine .en-kpi {
+	padding: 0.7rem 0.75rem;
+	border-left: 1px solid var(--en-line-2);
+	min-width: 0;
+}
+
+.engine .en-kpi:first-child { border-left: 0; }
+
+.engine .en-kpi__label {
+	display: block;
+	font-family: var(--font-mono);
+	font-size: 0.56rem;
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--en-ink-3);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.engine .en-kpi__value {
+	display: block;
+	margin-top: 0.3rem;
+	font-family: var(--font-mono);
+	font-size: clamp(1.05rem, 2.4vw, 1.5rem);
+	font-weight: 700;
+	line-height: 1.05;
+	letter-spacing: -0.02em;
+	font-variant-numeric: tabular-nums;
+	color: var(--en-ink);
+	overflow-wrap: anywhere;
+}
+
+.engine .en-kpi__note {
+	display: block;
+	margin-top: 0.25rem;
+	font-size: 0.64rem;
+	line-height: 1.35;
+	color: var(--en-ink-3);
+}
+
+/* Tone modifiers — one class deep on top of `.en-kpi__value`, two classes once scoped. */
+.engine .en-tone--friction { color: var(--en-friction); }
+.engine .en-tone--erosion { color: var(--en-erosion); }
+.engine .en-tone--positive { color: var(--en-positive); }
+.engine .en-tone--base { color: var(--en-base); }
+
+/* ── groups: inputs that matter, and the ones that only matter sometimes ───── */
+
+.engine .en-group { border-top: 1px solid var(--en-line-2); }
+.engine .en-group:first-of-type { border-top: 0; }
+
+.engine .en-group__summary {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+	padding: 0.7rem 0;
+	cursor: pointer;
+	list-style: none;
+	font-family: var(--font-mono);
+	font-size: 0.64rem;
+	font-weight: 700;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	color: var(--en-ink-3);
+	transition: color 140ms ease;
+}
+
+.engine .en-group__summary::-webkit-details-marker { display: none; }
+.engine .en-group__summary:hover { color: var(--en-ink); }
+.engine .en-group__summary:focus-visible { outline: 2px solid var(--en-base); outline-offset: 2px; }
+
+/* Chevron, drawn rather than typed: a glyph would inherit the mono label size and sit off-centre. */
+.engine .en-group__summary::after {
+	content: "";
+	width: 0.42rem;
+	height: 0.42rem;
+	margin-top: -0.2rem;
+	border-right: 1.5px solid currentColor;
+	border-bottom: 1.5px solid currentColor;
+	transform: rotate(45deg);
+	transition: transform 160ms ease;
+}
+
+.engine .en-group[open] > .en-group__summary::after {
+	margin-top: 0.15rem;
+	transform: rotate(-135deg);
+}
+
+.engine .en-group__count {
+	margin-left: auto;
+	font-size: 0.58rem;
+	font-weight: 600;
+	letter-spacing: 0.1em;
+	color: var(--en-ink-3);
+}
+
+.engine .en-group__body { padding-bottom: 0.35rem; }
+
+@media (prefers-reduced-motion: reduce) {
+	.engine .en-group__summary,
+	.engine .en-group__summary::after { transition: none; }
+}
+
+/* ── fields ────────────────────────────────────────────────────────────────── */
+
+.engine .en-field { padding: 0.6rem 0; }
+.engine .en-field + .en-field { border-top: 1px dashed var(--en-line-2); }
+
+.engine .en-field__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+	min-height: 1.9rem;
+}
+
+.engine .en-field__label {
+	font-size: 0.78rem;
+	font-weight: 600;
+	line-height: 1.3;
+	color: var(--en-ink-2);
+	min-width: 0;
+}
+
+.engine .en-field .en-field__hint {
+	margin-top: 0.3rem;
+	font-size: 0.66rem;
+	font-weight: 400;
+	line-height: 1.45;
+	color: var(--en-ink-3) !important;
+}
+
+.engine .en-plate {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.15rem;
+	flex-shrink: 0;
+	padding: 0.24rem 0.36rem;
+	background: var(--en-fill);
+	border: 1px solid var(--en-line);
+	border-radius: 2px;
+	transition: border-color 150ms ease;
+}
+
+.engine .en-plate:focus-within { border-color: var(--en-base); }
+
+.engine .en-plate__input {
+	width: auto;
+	min-width: 2.4rem;
+	border: 0;
+	background: transparent;
+	padding: 0;
+	font-family: var(--font-mono);
+	font-size: 0.8rem;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	text-align: right;
+	color: var(--en-ink);
+	-moz-appearance: textfield;
+	appearance: textfield;
+}
+
+.engine .en-plate__input::-webkit-outer-spin-button,
+.engine .en-plate__input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.engine .en-plate__input:focus { outline: none; }
+
+.engine .en-plate__affix {
+	font-family: var(--font-mono);
+	font-size: 0.66rem;
+	font-weight: 600;
+	color: var(--en-ink-3);
+}
+
+/* Range. Browser default tracks read as a grey groove with no relation to the value, so the
+   track carries a fill to `--en-pct` and the thumb is drawn to match the plate border. */
+.engine .en-range {
+	-webkit-appearance: none;
+	appearance: none;
+	display: block;
+	width: 100%;
+	height: 1.25rem;
+	margin-top: 0.45rem;
+	background: transparent;
+	cursor: pointer;
+}
+
+.engine .en-range::-webkit-slider-runnable-track {
+	height: 3px;
+	border-radius: 0;
+	background: linear-gradient(
+		to right,
+		var(--en-base) 0,
+		var(--en-base) var(--en-pct, 0%),
+		var(--en-line) var(--en-pct, 0%),
+		var(--en-line) 100%
+	);
+}
+
+.engine .en-range::-moz-range-track {
+	height: 3px;
+	border-radius: 0;
+	background: var(--en-line);
+}
+
+.engine .en-range::-moz-range-progress {
+	height: 3px;
+	border-radius: 0;
+	background: var(--en-base);
+}
+
+.engine .en-range::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 0.85rem;
+	height: 0.85rem;
+	margin-top: -0.36rem;
+	border-radius: 50%;
+	background: #fff;
+	border: 2px solid var(--en-base);
+	transition: transform 120ms ease;
+}
+
+.engine .en-range::-moz-range-thumb {
+	width: 0.85rem;
+	height: 0.85rem;
+	border-radius: 50%;
+	background: #fff;
+	border: 2px solid var(--en-base);
+}
+
+.engine .en-range:hover::-webkit-slider-thumb { transform: scale(1.08); }
+.engine .en-range:focus-visible { outline: 2px solid var(--en-base); outline-offset: 4px; }
+
+@media (prefers-reduced-motion: reduce) {
+	.engine .en-range::-webkit-slider-thumb,
+	.engine .en-range:hover::-webkit-slider-thumb { transition: none; transform: none; }
+}
+
+/* Select + segmented control */
+.engine .en-select {
+	width: 100%;
+	margin-top: 0.35rem;
+	padding: 0.45rem 0.5rem;
+	background: #fff;
+	border: 1px solid var(--en-line);
+	border-radius: 2px;
+	font-family: var(--font-mono);
+	font-size: 0.74rem;
+	font-weight: 600;
+	color: var(--en-ink);
+}
+
+.engine .en-select:focus-visible { outline: 2px solid var(--en-base); outline-offset: 1px; }
+
+.engine .en-seg__row { display: flex; flex-wrap: wrap; margin-top: 0.35rem; }
+
+.engine .en-seg__option { display: flex; }
+
+.engine .en-seg__option input {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.engine .en-seg__option span {
+	display: inline-block;
+	padding: 0.4rem 0.55rem;
+	border: 1px solid var(--en-line);
+	margin-left: -1px;
+	font-family: var(--font-mono);
+	font-size: 0.68rem;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	color: var(--en-ink-2);
+	background: #fff;
+	cursor: pointer;
+	transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+
+.engine .en-seg__option:first-child span { margin-left: 0; }
+.engine .en-seg__option span:hover { background: var(--en-fill); color: var(--en-ink); }
+
+.engine .en-seg__option input:checked + span {
+	background: var(--en-base);
+	border-color: var(--en-base);
+	color: #fff;
+}
+
+.engine .en-seg__option input:focus-visible + span {
+	outline: 2px solid var(--en-base);
+	outline-offset: 1px;
+}
+
+/* ── canvas ────────────────────────────────────────────────────────────────── */
+
+.engine .en-canvas {
+	margin-top: 1rem;
+	border: 1px solid var(--en-line);
+	border-radius: 2px;
+	padding: 0.85rem 0.85rem 0.65rem;
+}
+
+.engine .en-canvas__cap {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 0.75rem;
+	padding-bottom: 0.55rem;
+}
+
+.engine .en-canvas__title {
+	font-family: var(--font-mono);
+	font-size: 0.6rem;
+	font-weight: 700;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	color: var(--en-ink-3);
+}
+
+.engine .en-canvas__note {
+	font-family: var(--font-mono);
+	font-size: 0.6rem;
+	color: var(--en-ink-3);
+	text-align: right;
+}
+
+.engine .en-canvas__svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+.engine .en-chart__grid { stroke: var(--en-line-2); stroke-width: 1; }
+.engine .en-chart__axis { stroke: var(--en-line); stroke-width: 1; }
+
+.engine .en-chart__tick {
+	fill: var(--en-ink-3);
+	font-family: var(--font-mono);
+	font-size: 10px;
+	font-weight: 500;
+	font-variant-numeric: tabular-nums;
+}
+
+.engine .en-chart__label {
+	fill: var(--en-ink-3);
+	font-family: var(--font-mono);
+	font-size: 9px;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.engine .en-chart__marker {
+	fill: var(--en-ink);
+	font-family: var(--font-mono);
+	font-size: 10px;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+
+.engine .en-chart__line--base { stroke: var(--en-base); stroke-width: 2; fill: none; }
+.engine .en-chart__line--friction { stroke: var(--en-friction); stroke-width: 2; fill: none; }
+.engine .en-chart__line--erosion { stroke: var(--en-erosion); stroke-width: 2; fill: none; }
+.engine .en-chart__line--positive { stroke: var(--en-positive); stroke-width: 2; fill: none; }
+.engine .en-chart__line--muted { stroke: var(--en-ink-3); stroke-width: 1.5; stroke-dasharray: 4 3; fill: none; }
+
+.engine .en-chart__area--base { fill: var(--en-base-wash); }
+.engine .en-chart__area--friction { fill: var(--en-friction-wash); }
+
+.engine .en-chart__bar--base { fill: var(--en-base); }
+.engine .en-chart__bar--friction { fill: var(--en-friction); }
+.engine .en-chart__bar--erosion { fill: var(--en-erosion); }
+.engine .en-chart__bar--positive { fill: var(--en-positive); }
+.engine .en-chart__bar--muted { fill: #c7cfd6; }
+
+.engine .en-chart__cross {
+	stroke: var(--en-erosion);
+	stroke-width: 1;
+	stroke-dasharray: 3 3;
+}
+
+.engine .en-chart__crosslabel { fill: var(--en-erosion); }
+
+.engine .en-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.65rem 1rem;
+	margin-top: 0.7rem;
+	padding-top: 0.55rem;
+	border-top: 1px solid var(--en-line-2);
+}
+
+.engine .en-legend__item {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	font-family: var(--font-mono);
+	font-size: 0.6rem;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--en-ink-3);
+}
+
+.engine .en-legend__swatch {
+	width: 0.65rem;
+	height: 0.2rem;
+	flex-shrink: 0;
+	background: var(--en-ink-3);
+}
+
+.engine .en-legend__swatch--base { background: var(--en-base); }
+.engine .en-legend__swatch--friction { background: var(--en-friction); }
+.engine .en-legend__swatch--erosion { background: var(--en-erosion); }
+.engine .en-legend__swatch--positive { background: var(--en-positive); }
+
+/* ── verdict, notes, PRO bridge ────────────────────────────────────────────── */
+
+.engine .en-verdict {
+	margin-top: 1rem;
+	padding: 0.8rem 0.9rem;
+	border-left: 3px solid var(--en-base);
+	background: var(--en-base-wash);
+}
+
+.engine .en-verdict[data-tone="friction"] { border-left-color: var(--en-friction); background: var(--en-friction-wash); }
+.engine .en-verdict[data-tone="erosion"] { border-left-color: var(--en-erosion); background: var(--en-erosion-wash); }
+.engine .en-verdict[data-tone="positive"] { border-left-color: var(--en-positive); background: var(--en-positive-wash); }
+
+.engine .en-verdict .en-verdict__call {
+	font-family: var(--font-mono);
+	font-size: 0.58rem;
+	font-weight: 700 !important;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: var(--en-ink-3) !important;
+}
+
+.engine .en-verdict .en-verdict__headline {
+	margin-top: 0.3rem;
+	font-size: 0.95rem;
+	font-weight: 700 !important;
+	line-height: 1.35;
+	color: var(--en-ink) !important;
+}
+
+.engine .en-verdict .en-verdict__body {
+	margin-top: 0.35rem;
+	font-size: 0.74rem;
+	font-weight: 400;
+	line-height: 1.5;
+	color: var(--en-ink-2) !important;
+}
+
+.engine .en-note {
+	margin-top: 0.85rem;
+	padding-top: 0.6rem;
+	border-top: 1px solid var(--en-line-2);
+	font-size: 0.68rem;
+	line-height: 1.5;
+	color: var(--en-ink-3);
+}
+
+.engine .en-bridge {
+	margin-top: 1rem;
+	padding: 0.75rem 0.9rem;
+	border: 1px solid var(--en-line);
+	background: var(--en-fill);
+}
+
+.engine .en-bridge .en-bridge__label {
+	font-family: var(--font-mono);
+	font-size: 0.56rem;
+	font-weight: 700 !important;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	color: var(--en-friction) !important;
+}
+
+.engine .en-bridge .en-bridge__body {
+	margin-top: 0.3rem;
+	font-size: 0.74rem;
+	font-weight: 400;
+	line-height: 1.5;
+	color: var(--en-ink-2) !important;
+}
+
+.engine .en-bridge__link {
+	display: inline-block;
+	margin-top: 0.45rem;
+	font-family: var(--font-mono);
+	font-size: 0.66rem;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--en-base);
+	border-bottom: 1px solid currentColor;
+	transition: color 140ms ease;
+}
+
+.engine .en-bridge__link:hover { color: var(--en-ink); }
+
+/* ── the table behind every chart ──────────────────────────────────────────── */
+
+/* A visually-hidden mirror of the plotted series. The chart is `role="img"` with a headline
+   label; this is what a screen reader gets instead of the whole picture. */
+/* Bar rows: a waterfall step, a DIM comparison and a payback pair are the same primitive — a
+   labelled quantity against a shared scale, starting at zero so lengths stay comparable. */
+.engine .en-row { padding: 0.34rem 0; }
+.engine .en-row + .en-row { border-top: 1px solid var(--en-line-2); }
+
+.engine .en-row__head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 0.75rem;
+}
+
+.engine .en-row__label {
+	font-size: 0.72rem;
+	font-weight: 600;
+	line-height: 1.3;
+	color: var(--en-ink-2);
+	min-width: 0;
+}
+
+.engine .en-row__value {
+	font-family: var(--font-mono);
+	font-size: 0.72rem;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	color: var(--en-ink);
+	white-space: nowrap;
+}
+
+.engine .en-row__track {
+	margin-top: 0.3rem;
+	height: 5px;
+	background: var(--en-line-2);
+	overflow: hidden;
+}
+
+.engine .en-row__fill {
+	display: block;
+	height: 100%;
+	background: var(--en-base);
+	transition: width 160ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.engine .en-row__fill--friction { background: var(--en-friction); }
+.engine .en-row__fill--erosion { background: var(--en-erosion); }
+.engine .en-row__fill--positive { background: var(--en-positive); }
+.engine .en-row__fill--muted { background: #c7cfd6; }
+
+.engine .en-row__note {
+	display: block;
+	margin-top: 0.2rem;
+	font-size: 0.64rem;
+	line-height: 1.4;
+	color: var(--en-ink-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.engine .en-row__fill { transition: none; }
+}
+
+.engine .en-datatable {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+.engine .en-reset {
+	margin-top: 0.9rem;
+	padding-top: 0.75rem;
+	border-top: 1px solid var(--en-line-2);
+	font-family: var(--font-mono);
+	font-size: 0.62rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--en-base);
+	background: none;
+	border-left: 0;
+	border-right: 0;
+	border-bottom: 0;
+	cursor: pointer;
+}
+
+.engine .en-reset:hover { color: var(--en-ink); }
+.engine .en-reset:focus-visible { outline: 2px solid var(--en-base); outline-offset: 2px; }

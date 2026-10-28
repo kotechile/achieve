@@ -52,6 +52,27 @@ export const calculators = [
 			'engineer years calculator'
 		],
 		category: 'BusinessApplication'
+	},
+	{
+		slug: 'agentic-workflow-breakeven',
+		title: 'Agentic Workflow Breakeven Calculator',
+		href: '/tools/agentic-workflow-breakeven/',
+		status: 'Live',
+		accent: 'signal',
+		domainCategory: 'Agentic Operations',
+		outputType: 'Verification Cliff',
+		iconType: 'flow',
+		utility: 'Decide: how much failure an agent can absorb',
+		description:
+			'Model an agentic workflow against the task it replaces: tokens with retry overhead, the human audit sample, rework of failures and the cost of what ships wrong — then read the failure rate at which the saving reverses.',
+		keywords: [
+			'agentic workflow cost calculator',
+			'agent roi calculator',
+			'human in the loop cost',
+			'ai agent failure rate',
+			'token cost per task'
+		],
+		category: 'BusinessApplication'
 	}
 ] as const;
 

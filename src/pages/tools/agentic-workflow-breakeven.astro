@@ -1,0 +1,92 @@
+---
+import CalculatorShell from '../../components/calculators/CalculatorShell.astro';
+import RelatedArticleCard from '../../components/calculators/RelatedArticleCard.astro';
+import AgenticBreakevenCalculator from '../../components/calculators/react/AgenticBreakevenCalculator';
+import JsonLd from '../../components/JsonLd.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCalculatorBySlug, getCalculatorSchema } from '../../lib/calculators/metadata';
+import { fetchPostBySlug } from '../../lib/wordpress';
+
+const calculator = getCalculatorBySlug('agentic-workflow-breakeven');
+const schema = calculator && Astro.site ? getCalculatorSchema(calculator, Astro.site) : null;
+
+const description =
+	'Model an agentic workflow against the task it replaces: tokens with retry overhead, the human audit sample, rework of failures and the cost of what ships wrong — then read the failure rate at which the saving reverses.';
+
+const faqItems = [
+	{
+		question: 'What is the verification cliff?',
+		answer:
+			'The failure rate at which an agent costs the same per task as doing it by hand. Above it, every extra point of failure costs more than the labour the agent removed, so the project gets more expensive the harder it is pushed.'
+	},
+	{
+		question: 'Why does the audit sample dominate the token line?',
+		answer:
+			'Tokens are a rounding error beside human minutes. Fourteen thousand tokens at $4.50 per million is under eight cents; eight minutes of a $160/hour reviewer on a quarter of the runs is over five dollars. A per-token comparison and a per-task comparison are different questions.'
+	},
+	{
+		question: 'Is an escaped defect charged twice?',
+		answer:
+			'It pays its rework and its penalty. Someone eventually finds it and fixes it, so rework is charged against every failure rather than only the audited share, and the penalty is charged against the share nobody reviewed.'
+	},
+	{
+		question: 'What does the engine refuse to assume?',
+		answer:
+			'That a cliff always exists. When tokens plus the audit sample already exceed the manual cost there is no failure rate at which the agent wins, and the page says so instead of printing a small margin.'
+	}
+];
+
+const post = await fetchPostBySlug('your-retrieval-misses-57');
+---
+
+<BaseLayout
+	title="Agentic Workflow Breakeven Calculator — the verification cliff | AIChieve"
+	description={description}
+>
+	<link slot="head" rel="canonical" href={new URL('/tools/agentic-workflow-breakeven/', Astro.site).toString()} />
+	{schema ? <JsonLd slot="head" data={schema} /> : null}
+
+	<CalculatorShell
+		eyebrow="Agentic operations"
+		title="Agentic Workflow Breakeven Calculator"
+		description={description}
+	>
+		<div slot="calculator">
+			<AgenticBreakevenCalculator client:load />
+		</div>
+
+		<article slot="aside" class="ai-panel p-6">
+			<p class="ai-label">Operator notes</p>
+			<h2 class="mt-3 text-xl font-bold tracking-tight">How to run it</h2>
+			<ol class="mt-5 grid gap-4 text-sm leading-7 text-[var(--ai-ink-2)]">
+				<li>1. Start with the manual task: minutes, loaded cost and how many runs a month.</li>
+				<li>2. Enter the failure rate you actually measure, not the one in the vendor deck.</li>
+				<li>3. Set the audit sample to the share a person really reads today.</li>
+				<li>4. Price the reviewer at the rate of whoever audits and reworks, not the operator.</li>
+				<li>5. Read the cliff, then compare it with the failure rate on line two.</li>
+			</ol>
+			<div class="mt-6 border-t border-[var(--ai-line-soft)] pt-4">
+				<p class="ai-label">Model logic</p>
+				<p class="mt-2 text-xs leading-6 text-[var(--ai-ink-2)]">
+					Manual cost = minutes ÷ 60 × loaded rate. Agent cost = tokens × (1 + retry) × price, plus the audit
+					sample, plus rework on every failure, plus the penalty on the share nobody reviewed. The cliff solves
+					that expression for the failure rate where it equals the manual cost.
+				</p>
+			</div>
+		</article>
+
+		<article slot="aside" class="ai-panel p-6">
+			<p class="ai-label">FAQ</p>
+			<div class="mt-5 grid gap-4">
+				{faqItems.map((item) => (
+					<div class="border-l-2 border-[var(--ai-line)] pl-4">
+						<h3 class="text-sm font-bold tracking-tight text-[var(--ai-ink)]">{item.question}</h3>
+						<p class="mt-2 text-xs leading-6 text-[var(--ai-ink-2)]">{item.answer}</p>
+					</div>
+				))}
+			</div>
+		</article>
+
+		{post && <RelatedArticleCard slot="aside" post={post} />}
+	</CalculatorShell>
+</BaseLayout>
