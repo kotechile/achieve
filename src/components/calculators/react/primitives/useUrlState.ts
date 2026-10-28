@@ -26,6 +26,12 @@ export interface UrlFieldSpec {
 	max?: number;
 	/** Decimal places to round to on a round trip. */
 	decimals?: number;
+	/**
+	 * Allowed values for a string field (an incoterm, a service level name). A value not in this list
+	 * is dropped on read, so a hand-edited link cannot put an engine into a state its selector cannot
+	 * produce.
+	 */
+	values?: readonly string[];
 }
 
 export type UrlSpec<T> = Partial<Record<Extract<keyof T, string>, UrlFieldSpec>>;
@@ -45,11 +51,17 @@ export function readEngineState<T extends object>(
 	spec: UrlSpec<T>
 ): T {
 	const params = new URLSearchParams(search);
-	const next = { ...defaults } as Record<string, number>;
+	const next = { ...defaults } as Record<string, unknown>;
 	for (const [name, field] of Object.entries(spec) as [Extract<keyof T, string>, UrlFieldSpec][]) {
 		const fallback = (defaults as Record<string, unknown>)[name];
-		if (typeof fallback !== 'number') continue;
-		next[name] = coerce(params.get(field.key), field, fallback);
+		if (typeof fallback === 'number') {
+			next[name] = coerce(params.get(field.key), field, fallback);
+			continue;
+		}
+		if (typeof fallback === 'string') {
+			const raw = params.get(field.key);
+			next[name] = raw !== null && (!field.values || field.values.includes(raw)) ? raw : fallback;
+		}
 	}
 	return next as T;
 }
@@ -62,6 +74,10 @@ export function serialiseEngineState<T extends object>(
 	const params = new URLSearchParams();
 	for (const [name, field] of Object.entries(spec) as [Extract<keyof T, string>, UrlFieldSpec][]) {
 		const value = (state as Record<string, unknown>)[name];
+		if (typeof value === 'string') {
+			params.set(field.key, value);
+			continue;
+		}
 		if (typeof value !== 'number' || !Number.isFinite(value)) continue;
 		const rounded = field.decimals === undefined ? value : Number(value.toFixed(field.decimals));
 		params.set(field.key, String(rounded));
@@ -76,7 +92,7 @@ export function useUrlState<T extends object>(
 	spec: UrlSpec<T>
 ): {
 	state: T;
-	setField: <K extends keyof T>(field: K, value: number) => void;
+	setField: <K extends keyof T>(field: K, value: T[K]) => void;
 	reset: () => void;
 	/** True once the URL has been read, so a page can hold a skeleton for one frame if it wants. */
 	hydrated: boolean;
@@ -112,7 +128,7 @@ export function useUrlState<T extends object>(
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [state, hydrated, specKey]);
 
-	const setField = useCallback(<K extends keyof T>(field: K, value: number) => {
+	const setField = useCallback(<K extends keyof T>(field: K, value: T[K]) => {
 		setState((previous) => ({ ...previous, [field]: value }) as T);
 	}, []);
 

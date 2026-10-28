@@ -27,14 +27,29 @@ sibling `giniloh.com` front end is *not* touched.
 | Wave | State | Evidence |
 | --- | --- | --- |
 | 0 · shared platform | **shipped** | `aichieve.css` §8, 5 primitives, 5 engines, `npm run check:engines` = 140 assertions green |
-| 1 · Engine A (agentic breakeven) | **shipped** | `/tools/agentic-workflow-breakeven/` builds; 164/164 text elements clear AA; 0px overflow at 390 and 768 |
-| 1 · Engine B (slotting) | engine + fixtures done, page outstanding | `slottingPayback.ts` |
-| 2–4 | engines + fixtures done, pages outstanding | `inventoryAccuracy.ts`, `landedCost.ts`, `parcelDim.ts` |
+| 1–3 · all five engines + pages | **shipped** | `/tools/{agentic-workflow-breakeven,warehouse-slotting-payback,inventory-record-accuracy,total-delivered-cost,parcel-dim-weight}/` |
+| 4 · integration | **shipped** | register, tools index, tool rail, ProductCTA, `verify.mjs` routes, README |
+
+Gate results at close of wave 4:
+
+```
+npm run check        0 errors
+npm run check:engines 140 assertions
+npm run build        186 pages, copy gate PASS, 0 new warnings
+audit:contrast       938 text elements across 6 pages, all clear AA
+audit:layout 390     0px horizontal overflow on all five engines + the register
+```
+
+`product-cta.ts` needed no change: every category the new engines sit under already maps to a PRO
+app, and the engine pages carry their own bridge inside the island rather than through the page CTA.
 
 Two findings from the build that this plan did not anticipate, both now handled in code:
 
 1. **The bay's policy layer reaches inside the engine.** `:is(.paper,.instrument-surface) :is(p,.text-base,.text-sm){color:#716f6f!important;font-weight:400!important}` is `(0,2,0)` with `!important`, so every `<p>` in an engine was pinned to grey at weight 400 — the verdict headline measured 4.45:1 on the erosion wash, just under AA. Every `<p>`-based part now carries its own `!important` three classes deep. §8 documents it where the layer is introduced.
 2. **`dist/` picks up iCloud conflict copies** (`sitemap 2.xml`) that break `audit:contrast`'s sandbox copy. `rm -rf dist && npm run build` before auditing; the repo's audit script already names this fix.
+
+One more, from the URL contract: the incoterm is a string, so `useUrlState` grew an enum field
+(`values[]`) rather than shipping a select whose state never round-tripped through the link.
 
 ---
 

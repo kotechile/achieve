@@ -1,0 +1,79 @@
+---
+import CalculatorShell from '../../components/calculators/CalculatorShell.astro';
+import RelatedArticleCard from '../../components/calculators/RelatedArticleCard.astro';
+import LandedCostCalculator from '../../components/calculators/react/LandedCostCalculator';
+import JsonLd from '../../components/JsonLd.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCalculatorBySlug, getCalculatorSchema } from '../../lib/calculators/metadata';
+import { fetchPostBySlug } from '../../lib/wordpress';
+
+const calculator = getCalculatorBySlug('total-delivered-cost');
+const schema = calculator && Astro.site ? getCalculatorSchema(calculator, Astro.site) : null;
+
+const description =
+	'Step a selling price down to contribution: goods at FOB, the customs assist hidden in offshore tooling, the tariff stack on the dutiable value, freight by cube, the capital in transit, cost to serve and returns.';
+
+const faqItems = [
+	{
+		question: 'Why is the tooling in the duty base?',
+		answer:
+			'A mould, die or fixture paid to an offshore supplier is part of the value of the goods it produces. CBP treats it as a dutiable assist, so the tariff is charged on the tool as well as on the product.'
+	},
+	{
+		question: 'Does the incoterm change the duty?',
+		answer:
+			'It changes the dutiable value. US transaction value excludes international freight, so a CIF price has to be reduced to FOB before duty is applied. EXW adds the origin inland leg, which is dutiable.'
+	},
+	{
+		question: 'What is the MPF floor?',
+		answer:
+			'Merchandise Processing Fee is ad valorem with a minimum per entry. On a small entry the floor binds and the effective rate is far above 0.3464%, so the page flags it when that happens.'
+	},
+	{
+		question: 'Why is carrying cost inside delivered cost?',
+		answer:
+			'The unit is paid for before it sells. Stock and transit days are capital working at your cost of capital, and at 105 days that is a real per-unit figure rather than overhead.'
+	}
+];
+
+const post = await fetchPostBySlug('your-tooling-assist-is-dutiable');
+---
+
+<BaseLayout title="Total Delivered Cost Calculator — landed cost and duty waterfall | AIChieve" description={description}>
+	<link slot="head" rel="canonical" href={new URL('/tools/total-delivered-cost/', Astro.site).toString()} />
+	{schema ? <JsonLd slot="head" data={schema} /> : null}
+
+	<CalculatorShell eyebrow="Supply chain" title="Total Delivered Cost Calculator" description={description}>
+		<div slot="calculator">
+			<LandedCostCalculator client:load />
+		</div>
+
+		<article slot="aside" class="ai-panel p-6">
+			<p class="ai-label">Operator notes</p>
+			<h2 class="mt-3 text-xl font-bold tracking-tight">How to run it</h2>
+			<ol class="mt-5 grid gap-4 text-sm leading-7 text-[var(--ai-ink-2)]">
+['\t\t\t\t<li>1. Enter the selling price and the FOB cost, then the tooling paid offshore and the run it amortises over.</li>', '\t\t\t\t<li>2. Set the incoterm: EXW adds a dutiable inland leg, CIF strips freight back out of the duty base.</li>', '\t\t\t\t<li>3. Add the base duty, the punitive rate and how many units share a customs entry.</li>', '\t\t\t\t<li>4. Enter the carton cube, weight, ocean rate and surcharge — the container limit that binds is shown.</li>', '\t\t\t\t<li>5. Read the contribution, then the duty share of delivered cost. That is where a re-sourcing case starts.</li>']
+			</ol>
+			<div class="mt-6 border-t border-[var(--ai-line-soft)] pt-4">
+				<p class="ai-label">Model logic</p>
+				<p class="mt-2 text-xs leading-6 text-[var(--ai-ink-2)]">
+					Dutiable value = FOB + amortised tooling (+ origin inland under EXW). Duty = that value × (base rate + punitive rate + MPF 0.3464% + HMF 0.125%). Delivered cost adds freight per CBM, capital over stock and transit days, pick and pack, and the return rate.
+				</p>
+			</div>
+		</article>
+
+		<article slot="aside" class="ai-panel p-6">
+			<p class="ai-label">FAQ</p>
+			<div class="mt-5 grid gap-4">
+				{faqItems.map((item) => (
+					<div class="border-l-2 border-[var(--ai-line)] pl-4">
+						<h3 class="text-sm font-bold tracking-tight text-[var(--ai-ink)]">{item.question}</h3>
+						<p class="mt-2 text-xs leading-6 text-[var(--ai-ink-2)]">{item.answer}</p>
+					</div>
+				))}
+			</div>
+		</article>
+
+		{post && <RelatedArticleCard slot="aside" post={post} />}
+	</CalculatorShell>
+</BaseLayout>

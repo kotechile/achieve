@@ -81,6 +81,8 @@ export interface LinePoint {
 
 export interface BreakevenChartProps {
 	points: LinePoint[];
+	/** Optional second series, drawn in the base tone — two policies on one axis. */
+	secondary?: LinePoint[];
 	/** The flat comparison line. */
 	baseline: number;
 	/** Vertical marker in x-units, when the model has a crossing. */
@@ -103,6 +105,7 @@ const niceMax = (value: number) => {
 
 export function BreakevenChart({
 	points,
+	secondary,
 	baseline,
 	marker,
 	markerLabel,
@@ -120,11 +123,22 @@ export function BreakevenChart({
 	const plotH = height - pad.top - pad.bottom;
 
 	const xMax = Math.max(...points.map((point) => point.x), 0.01);
-	const yMax = niceMax(Math.max(...points.map((point) => point.y), baseline) * 1.08);
+	const yMax = niceMax(
+		Math.max(
+			...points.map((point) => point.y),
+			...(secondary ? secondary.map((point) => point.y) : []),
+			baseline
+		) * 1.08
+	);
 	const sx = (x: number) => pad.left + (x / xMax) * plotW;
 	const sy = (y: number) => pad.top + plotH - (Math.min(Math.max(y, 0), yMax) / yMax) * plotH;
 
 	const path = points.map((point, index) => `${index === 0 ? 'M' : 'L'}${sx(point.x).toFixed(1)} ${sy(point.y).toFixed(1)}`).join(' ');
+	const secondaryPath = secondary
+		? secondary
+				.map((point, index) => `${index === 0 ? 'M' : 'L'}${sx(point.x).toFixed(1)} ${sy(point.y).toFixed(1)}`)
+				.join(' ')
+		: null;
 	const area = `${path} L${sx(points[points.length - 1]?.x ?? 0).toFixed(1)} ${sy(0).toFixed(1)} L${sx(points[0]?.x ?? 0).toFixed(1)} ${sy(0).toFixed(1)} Z`;
 	const yTicks = [0, 0.25, 0.5, 0.75, 1].map((fraction) => fraction * yMax);
 	const xTicks = [0, 0.25, 0.5, 0.75, 1].map((fraction) => fraction * xMax);
@@ -161,6 +175,7 @@ export function BreakevenChart({
 				{yFormat(baseline)} manual
 			</text>
 
+			{secondaryPath ? <path className="en-chart__line--base" d={secondaryPath} /> : null}
 			<path className="en-chart__line--erosion" d={path} />
 
 			{typeof marker === 'number' && marker > 0 && marker <= xMax ? (

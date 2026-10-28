@@ -206,12 +206,12 @@ export function computeLandedCost(input: LandedCostState): LandedCostResult {
 	const refusals: string[] = [];
 	if (state.incoterm === 'CIF') {
 		refusals.push(
-			'A CIF price already contains the ocean freight, so the freight estimate is stripped out of the duty base instead of being charged a second time on the landed line.'
+			'A CIF price already contains the ocean freight. The freight estimate is stripped out of the duty base instead of being charged a second time on the landed line.'
 		);
 	}
 	if (state.incoterm === 'EXW') {
 		refusals.push(
-			'The EXW inland leg is dutiable: it is added to the duty base as well as to landed cost, because it is paid before the goods leave the origin country.'
+			'The EXW inland leg is dutiable. It is added to the duty base as well as to landed cost, because it is paid before the goods leave the origin country.'
 		);
 	}
 	if (mpfFloorBinding) {

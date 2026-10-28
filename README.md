@@ -102,9 +102,14 @@ safer than the same article appearing on two domains with two canonicals.
 | Route | Notes |
 | --- | --- |
 | `/` | Command deck: coverage board, domain grid, tool register, PRO apps, dispatch log |
-| `/tools/` | The two deterministic engines |
+| `/tools/` | The deterministic engines |
 | `/tools/gpu-compute/` | GPU TCO Analyzer — local build vs. cloud lease |
 | `/tools/master-asset-tco/` | Master Asset & Software TCO Calculator — build vs. buy |
+| `/tools/agentic-workflow-breakeven/` | Agentic Workflow Breakeven Calculator — the verification cliff |
+| `/tools/warehouse-slotting-payback/` | Slotting and automation payback on the buyer's baseline |
+| `/tools/inventory-record-accuracy/` | Dead cash in buffer stock the records force you to hold |
+| `/tools/total-delivered-cost/` | Price to contribution through duty, freight and returns |
+| `/tools/parcel-dim-weight/` | Billable weight, the divisor and the recoverable surcharge |
 | `/apps/` | PRO app directory (paid, hosted on `PUBLIC_APPS_BASE`) |
 | `/articles/` | Full archive (no pagination cut) |
 | `/categories/`, `/categories/[slug]/` | Domains |

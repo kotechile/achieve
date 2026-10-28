@@ -144,7 +144,7 @@ export function computeInventoryAccuracy(input: InventoryAccuracyState): Invento
 		refusals.push('A detection time under one day prices phantom stockouts at zero margin loss, which no pick-face process achieves.');
 	}
 	refusals.push(
-		'Dead cash is working capital tied up, not a one-off release: it is recovered once, and the holding cost is what it costs every year until the records are fixed.'
+		'Dead cash is working capital tied up, not a one-off release. It is recovered once, and the holding cost is what it costs every year until the records are fixed.'
 	);
 
 	return {

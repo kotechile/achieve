@@ -1,0 +1,79 @@
+---
+import CalculatorShell from '../../components/calculators/CalculatorShell.astro';
+import RelatedArticleCard from '../../components/calculators/RelatedArticleCard.astro';
+import ParcelDimCalculator from '../../components/calculators/react/ParcelDimCalculator';
+import JsonLd from '../../components/JsonLd.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCalculatorBySlug, getCalculatorSchema } from '../../lib/calculators/metadata';
+import { fetchPostBySlug } from '../../lib/wordpress';
+
+const calculator = getCalculatorBySlug('parcel-dim-weight');
+const schema = calculator && Astro.site ? getCalculatorSchema(calculator, Astro.site) : null;
+
+const description =
+	'Price a parcel by its cube: billable weight at the published divisor against a negotiated one and a smaller box, with the surcharges no carton change removes kept in their own line.';
+
+const faqItems = [
+	{
+		question: 'Is excess billed weight a billing error?',
+		answer:
+			'No. Carriers are entitled to bill dimensional weight. The saving comes from a smaller box or a better divisor, which is why the recoverable figure never includes the whole excess-weight cost.'
+	},
+	{
+		question: 'Why are residential and delivery-area fees separate?',
+		answer:
+			'Because no carton, divisor or negotiation in this model removes them. Adding them to the recoverable total would make the estimate look better and be wrong.'
+	},
+	{
+		question: 'When does a parcel become a large package?',
+		answer:
+			'At 165 inches of length plus girth, or 96 inches of length. The 130-inch threshold is Additional Handling, a much smaller charge, and the page flags them separately.'
+	},
+	{
+		question: 'Why does 139 become 166?',
+		answer:
+			'The divisor is a contract term. A larger divisor divides the same cube into fewer billed pounds, so the same box bills lighter. Published rates are the starting point, not the floor.'
+	}
+];
+
+const post = await fetchPostBySlug('parcelproof-stop-bleeding-28-on-carrier-invoices');
+---
+
+<BaseLayout title="Parcel DIM-Weight Calculator — recoverable surcharge estimate | AIChieve" description={description}>
+	<link slot="head" rel="canonical" href={new URL('/tools/parcel-dim-weight/', Astro.site).toString()} />
+	{schema ? <JsonLd slot="head" data={schema} /> : null}
+
+	<CalculatorShell eyebrow="Logistics" title="Parcel DIM-Weight Calculator" description={description}>
+		<div slot="calculator">
+			<ParcelDimCalculator client:load />
+		</div>
+
+		<article slot="aside" class="ai-panel p-6">
+			<p class="ai-label">Operator notes</p>
+			<h2 class="mt-3 text-xl font-bold tracking-tight">How to run it</h2>
+			<ol class="mt-5 grid gap-4 text-sm leading-7 text-[var(--ai-ink-2)]">
+['\t\t\t\t<li>1. Enter monthly parcels and the divisor you are billed on: 139 is the published daily rate.</li>', '\t\t\t\t<li>2. Set the divisor in the contract you are negotiating and the incremental rate per billed pound.</li>', '\t\t\t\t<li>3. Add the residential and delivery-area surcharges — they price the structural block.</li>', '\t\t\t\t<li>4. Set the height a better carton would remove, then read the recoverable figure and the structural one separately.</li>', '\t\t\t\t<li>5. Take the divisor lever to the carrier and the carton change to your packaging supplier. They are different negotiations.</li>']
+			</ol>
+			<div class="mt-6 border-t border-[var(--ai-line-soft)] pt-4">
+				<p class="ai-label">Model logic</p>
+				<p class="mt-2 text-xs leading-6 text-[var(--ai-ink-2)]">
+					Billable weight = max(scale weight, ⌈L × W × H ÷ divisor⌉), each dimension rounded up. The saving is the billed weight today minus the billed weight at the negotiated divisor and the smaller box, priced at the incremental rate per pound.
+				</p>
+			</div>
+		</article>
+
+		<article slot="aside" class="ai-panel p-6">
+			<p class="ai-label">FAQ</p>
+			<div class="mt-5 grid gap-4">
+				{faqItems.map((item) => (
+					<div class="border-l-2 border-[var(--ai-line)] pl-4">
+						<h3 class="text-sm font-bold tracking-tight text-[var(--ai-ink)]">{item.question}</h3>
+						<p class="mt-2 text-xs leading-6 text-[var(--ai-ink-2)]">{item.answer}</p>
+					</div>
+				))}
+			</div>
+		</article>
+
+		{post && <RelatedArticleCard slot="aside" post={post} />}
+	</CalculatorShell>
+</BaseLayout>

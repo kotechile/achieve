@@ -1,0 +1,79 @@
+---
+import CalculatorShell from '../../components/calculators/CalculatorShell.astro';
+import RelatedArticleCard from '../../components/calculators/RelatedArticleCard.astro';
+import SlottingPaybackCalculator from '../../components/calculators/react/SlottingPaybackCalculator';
+import JsonLd from '../../components/JsonLd.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCalculatorBySlug, getCalculatorSchema } from '../../lib/calculators/metadata';
+import { fetchPostBySlug } from '../../lib/wordpress';
+
+const calculator = getCalculatorBySlug('warehouse-slotting-payback');
+const schema = calculator && Astro.site ? getCalculatorSchema(calculator, Astro.site) : null;
+
+const description =
+	'Price the free re-slot before the automation: three labour scenarios, the walk time a golden-zone layout recovers, and the payback a vendor model hides by measuring both savings from the same baseline.';
+
+const faqItems = [
+	{
+		question: 'Why is the buyer payback longer than the vendor\'s?',
+		answer:
+			'Because the vendor measures both savings from today\'s layout and leaves out the maintenance contract, the WMS integration and the downtime. Once the free re-slot is credited to the layout rather than to the machine, the machine\'s share of the saving is smaller.'
+	},
+	{
+		question: 'Is the slotting saving really free?',
+		answer:
+			'It costs labour to move the racks and no capital. The engine prices the walk it removes and not the weekend it takes to move, which is the one cost a buyer still has to add by hand.'
+	},
+	{
+		question: 'What does undiscounted payback leave out?',
+		answer:
+			'The time value of the money. A payback printed here is when the cash returns, not the return on it; two projects with the same payback and different cash shapes are not the same investment.'
+	},
+	{
+		question: 'Which number should I take to the vendor?',
+		answer:
+			'The buyer payback, with the maintenance contract and the integration quoted separately in writing. A vendor who recognises those two lines in the meeting is a different risk from one who does not.'
+	}
+];
+
+const post = await fetchPostBySlug('your-golden-zone-costs-10-miles');
+---
+
+<BaseLayout title="Warehouse Slotting and Automation Payback Calculator | AIChieve" description={description}>
+	<link slot="head" rel="canonical" href={new URL('/tools/warehouse-slotting-payback/', Astro.site).toString()} />
+	{schema ? <JsonLd slot="head" data={schema} /> : null}
+
+	<CalculatorShell eyebrow="Warehouse and CAPEX" title="Warehouse Slotting & Automation Payback Calculator" description={description}>
+		<div slot="calculator">
+			<SlottingPaybackCalculator client:load />
+		</div>
+
+		<article slot="aside" class="ai-panel p-6">
+			<p class="ai-label">Operator notes</p>
+			<h2 class="mt-3 text-xl font-bold tracking-tight">How to run it</h2>
+			<ol class="mt-5 grid gap-4 text-sm leading-7 text-[var(--ai-ink-2)]">
+["\t\t\t\t<li>1. Enter days, lines a day, walk per line and the loaded wage — that is today's pick cost.</li>", '\t\t\t\t<li>2. Set the walk the re-slotting removes; 32% is the published range for an ABC layout.</li>', "\t\t\t\t<li>3. Enter the vendor's capital, maintenance and throughput gain as quoted.</li>", '\t\t\t\t<li>4. Add the WMS integration and the downtime cost, which the quote usually leaves out.</li>', "\t\t\t\t<li>5. Read the buyer payback against the vendor's, then decide whether the machine is the first move.</li>"]
+			</ol>
+			<div class="mt-6 border-t border-[var(--ai-line-soft)] pt-4">
+				<p class="ai-label">Model logic</p>
+				<p class="mt-2 text-xs leading-6 text-[var(--ai-ink-2)]">
+					Annual hours = days × lines × (fixed seconds + walk ÷ speed) ÷ (3600 × utilisation). Slotting is priced against today's layout, and the automation only against the already-slotted one, so the walk seconds are not counted twice.
+				</p>
+			</div>
+		</article>
+
+		<article slot="aside" class="ai-panel p-6">
+			<p class="ai-label">FAQ</p>
+			<div class="mt-5 grid gap-4">
+				{faqItems.map((item) => (
+					<div class="border-l-2 border-[var(--ai-line)] pl-4">
+						<h3 class="text-sm font-bold tracking-tight text-[var(--ai-ink)]">{item.question}</h3>
+						<p class="mt-2 text-xs leading-6 text-[var(--ai-ink-2)]">{item.answer}</p>
+					</div>
+				))}
+			</div>
+		</article>
+
+		{post && <RelatedArticleCard slot="aside" post={post} />}
+	</CalculatorShell>
+</BaseLayout>

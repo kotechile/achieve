@@ -1,0 +1,79 @@
+---
+import CalculatorShell from '../../components/calculators/CalculatorShell.astro';
+import RelatedArticleCard from '../../components/calculators/RelatedArticleCard.astro';
+import InventoryAccuracyCalculator from '../../components/calculators/react/InventoryAccuracyCalculator';
+import JsonLd from '../../components/JsonLd.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCalculatorBySlug, getCalculatorSchema } from '../../lib/calculators/metadata';
+import { fetchPostBySlug } from '../../lib/wordpress';
+
+const calculator = getCalculatorBySlug('inventory-record-accuracy');
+const schema = calculator && Astro.site ? getCalculatorSchema(calculator, Astro.site) : null;
+
+const description =
+	'Size the safety stock your records force you to hold: demand and lead-time variance plus the error in the bin count itself, the working capital it ties up, and the margin lost to stockouts the ERP says cannot happen.';
+
+const faqItems = [
+	{
+		question: 'Why is record error written as units rather than a rate?',
+		answer:
+			'A rate multiplied by velocity does not act like a deviation. The error is an amount of stock: the inaccuracy share times the mean on-hand, spread by an assumption stated on the page. Defined that way it moves the answer, which is the point.'
+	},
+	{
+		question: 'What is a phantom stockout?',
+		answer:
+			'The ERP shows stock on hand, the shelf is empty, and the replenishment order that should have been raised never was. The order gets cut at the pick face, and the margin on those units is gone.'
+	},
+	{
+		question: 'Is dead cash a one-off saving?',
+		answer:
+			'No. The stock is released once when the records are fixed, and the holding cost is what it costs every year until then. Both figures are on the page because they answer different questions.'
+	},
+	{
+		question: 'Why compare against a 5% baseline?',
+		answer:
+			'Because a cycle-counted location is expected to sit under five percent variance. The comparison is not zero error, it is the accuracy a counted warehouse already reaches.'
+	}
+];
+
+const post = await fetchPostBySlug('why-65-percent-of-stock-records-miss');
+---
+
+<BaseLayout title="Inventory Record Accuracy Calculator — dead cash in buffer stock | AIChieve" description={description}>
+	<link slot="head" rel="canonical" href={new URL('/tools/inventory-record-accuracy/', Astro.site).toString()} />
+	{schema ? <JsonLd slot="head" data={schema} /> : null}
+
+	<CalculatorShell eyebrow="Supply chain" title="Inventory Record Accuracy Calculator" description={description}>
+		<div slot="calculator">
+			<InventoryAccuracyCalculator client:load />
+		</div>
+
+		<article slot="aside" class="ai-panel p-6">
+			<p class="ai-label">Operator notes</p>
+			<h2 class="mt-3 text-xl font-bold tracking-tight">How to run it</h2>
+			<ol class="mt-5 grid gap-4 text-sm leading-7 text-[var(--ai-ink-2)]">
+['\t\t\t\t<li>1. Enter SKU count, unit cost and the margin a lost sale costs you.</li>', '\t\t\t\t<li>2. Set daily demand and supplier lead time with their swings — this is the buffer you would hold anyway.</li>', '\t\t\t\t<li>3. Enter the share of records that disagree with the shelf and how long a phantom takes to notice.</li>', '\t\t\t\t<li>4. Pick the service level you promise, then read the excess at that level rather than the total.</li>', '\t\t\t\t<li>5. Compare the dead cash against the annual cost of counting, and fix the records before the storage.</li>']
+			</ol>
+			<div class="mt-6 border-t border-[var(--ai-line-soft)] pt-4">
+				<p class="ai-label">Model logic</p>
+				<p class="mt-2 text-xs leading-6 text-[var(--ai-ink-2)]">
+					σ over lead time = √(lead time × demand swing² + demand² × lead-time swing² + record error²). Record error is the inaccuracy share × mean on-hand × spread, and safety stock is Z × σ. Dead cash is the extra units across all SKUs at unit cost.
+				</p>
+			</div>
+		</article>
+
+		<article slot="aside" class="ai-panel p-6">
+			<p class="ai-label">FAQ</p>
+			<div class="mt-5 grid gap-4">
+				{faqItems.map((item) => (
+					<div class="border-l-2 border-[var(--ai-line)] pl-4">
+						<h3 class="text-sm font-bold tracking-tight text-[var(--ai-ink)]">{item.question}</h3>
+						<p class="mt-2 text-xs leading-6 text-[var(--ai-ink-2)]">{item.answer}</p>
+					</div>
+				))}
+			</div>
+		</article>
+
+		{post && <RelatedArticleCard slot="aside" post={post} />}
+	</CalculatorShell>
+</BaseLayout>

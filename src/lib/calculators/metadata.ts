@@ -1,10 +1,11 @@
 /**
  * The AIChieve tool register.
  *
- * Two deterministic engines, not a directory: the GPU TCO Analyzer answers "build the
- * cluster or lease it", and the Master Asset & Software TCO Calculator answers "build the
- * system or buy it". Everything else this property sells lives on the product host as a
- * PRO app — see `src/lib/apps.ts`.
+ * Seven deterministic engines, not a directory. Two were migrated from giniloh.com in the 2026
+ * split (build the cluster or lease it; build the system or buy it). Five are the standard tools:
+ * agentic breakeven, warehouse slotting payback, inventory record accuracy, total delivered cost
+ * and parcel DIM weight. Everything else this property sells lives on the product host as a PRO
+ * app — see `src/lib/apps.ts`.
  *
  * Migrated from giniloh.com in the 2026 split. Their canonical URLs moved from
  * `/calculators/<slug>/` to `/tools/<slug>/`; giniloh.com 301s the old paths here, and this
@@ -64,13 +65,97 @@ export const calculators = [
 		iconType: 'flow',
 		utility: 'Decide: how much failure an agent can absorb',
 		description:
-			'Model an agentic workflow against the task it replaces: tokens with retry overhead, the human audit sample, rework of failures and the cost of what ships wrong — then read the failure rate at which the saving reverses.',
+			'Model an agentic workflow against the task it replaces: tokens with retries, the human audit sample, rework of failures and the cost of what ships wrong.',
 		keywords: [
 			'agentic workflow cost calculator',
 			'agent roi calculator',
 			'human in the loop cost',
 			'ai agent failure rate',
 			'token cost per task'
+		],
+		category: 'BusinessApplication'
+	},
+	{
+		slug: 'warehouse-slotting-payback',
+		title: 'Warehouse Slotting & Automation Payback Calculator',
+		href: '/tools/warehouse-slotting-payback/',
+		status: 'Live',
+		accent: 'signal',
+		domainCategory: 'Warehouse / CAPEX',
+		outputType: 'Buyer-Audited Payback',
+		iconType: 'matrix',
+		utility: 'Decide: move the racks or buy the machine',
+		description:
+			'Price the free re-slot before the automation: three labour scenarios, the walk a golden-zone layout recovers, and the payback a vendor model shortens.',
+		keywords: [
+			'warehouse automation payback calculator',
+			'slotting roi calculator',
+			'pick path labour cost',
+			'asrs business case',
+			'warehouse capex payback'
+		],
+		category: 'BusinessApplication'
+	},
+	{
+		slug: 'inventory-record-accuracy',
+		title: 'Inventory Record Accuracy Calculator',
+		href: '/tools/inventory-record-accuracy/',
+		status: 'Live',
+		accent: 'signal',
+		domainCategory: 'Supply chain',
+		outputType: 'Dead Cash in Buffer Stock',
+		iconType: 'server',
+		utility: 'Decide: count the shelves or buy storage',
+		description:
+			'Size the safety stock the records force you to hold. Demand and lead-time variance, the error in the bin count, the capital tied up and the margin lost to phantom stockouts.',
+		keywords: [
+			'inventory accuracy calculator',
+			'safety stock calculator',
+			'record inaccuracy cost',
+			'phantom inventory stockout',
+			'working capital buffer stock'
+		],
+		category: 'BusinessApplication'
+	},
+	{
+		slug: 'total-delivered-cost',
+		title: 'Total Delivered Cost Calculator',
+		href: '/tools/total-delivered-cost/',
+		status: 'Live',
+		accent: 'signal',
+		domainCategory: 'Supply chain',
+		outputType: 'Price-to-TDC Waterfall',
+		iconType: 'table',
+		utility: 'Decide: whether the margin survives the border',
+		description:
+			'Step a selling price down to contribution: goods at FOB, the customs assist in offshore tooling, the tariff stack, freight by cube, capital in transit and returns.',
+		keywords: [
+			'landed cost calculator',
+			'total delivered cost',
+			'customs assist tooling duty',
+			'section 301 landed cost',
+			'contribution margin import'
+		],
+		category: 'BusinessApplication'
+	},
+	{
+		slug: 'parcel-dim-weight',
+		title: 'Parcel DIM-Weight Calculator',
+		href: '/tools/parcel-dim-weight/',
+		status: 'Live',
+		accent: 'signal',
+		domainCategory: 'Logistics',
+		outputType: 'Recoverable Surcharge',
+		iconType: 'bolt',
+		utility: 'Decide: renegotiate the divisor or re-box',
+		description:
+			'Price a parcel by its cube. Billable weight at the published divisor, a negotiated one and a smaller box, with the surcharges no carton removes kept apart.',
+		keywords: [
+			'dim weight calculator',
+			'parcel surcharge audit',
+			'billable weight divisor',
+			'carton right sizing savings',
+			'carrier invoice leakage'
 		],
 		category: 'BusinessApplication'
 	}
