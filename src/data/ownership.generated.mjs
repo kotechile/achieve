@@ -61,6 +61,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"gate-the-step-not-the-model",
 	"goods-tariff-relief-vs-vessel-fee",
 	"gpu-hour-price-set-by-memory",
+	"half-your-tokens-5-of-bill",
 	"holiday-forecasts-miss-what-shoppers-count",
 	"hour-14-recovery-wall",
 	"inventory-carrying-cost-rate",
@@ -84,6 +85,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"openai-just-made-the-agent-loop-a-commodity",
 	"openais-custom-chip-beats-nvidia-on-power-2",
 	"owned-shuttles-or-rented-robots",
+	"parcel-fuel-percentage-weekly-january",
 	"parcelproof-stop-bleeding-28-on-carrier-invoices",
 	"pick-station-sets-robot-count",
 	"planner-as-router-fold-the-model-choice-into-the-plan",
@@ -150,6 +152,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"your-chip-stopped-deciding",
 	"your-ci-bill-232-hours",
 	"your-cluster-hidden-clock",
+	"your-compaction-trap-87-forgeries-survive",
 	"your-eta-misses-27-hours",
 	"your-exception-log-owes-5-years",
 	"your-fleets-charger-gap",
@@ -212,6 +215,7 @@ export const FOREIGN_POST_SLUGS_GENERATED = [
 	"your-home-servers-45-day-patch-gap",
 	"your-homelab-heat-pays-back-45-cents",
 	"your-ipo-payday-tax-bill",
+	"your-llc-bill-75-until-2028",
 	"your-raise-dies-at-51-5-hours",
 	"zapier-notion-integration-calculate-your-tinkering-tax"
 ];
@@ -253,8 +257,9 @@ export const FOREIGN_TARGETS = {
 	"your-home-servers-45-day-patch-gap": "https://giniloh.com",
 	"your-homelab-heat-pays-back-45-cents": "https://giniloh.com",
 	"your-ipo-payday-tax-bill": "https://giniloh.com",
+	"your-llc-bill-75-until-2028": "https://giniloh.com",
 	"your-raise-dies-at-51-5-hours": "https://giniloh.com",
 	"zapier-notion-integration-calculate-your-tinkering-tax": "https://giniloh.com"
 };
 export const GENERATED_FOR = "aichieve.net";
-export const GENERATED_AT = "2026-10-28T21:20:32.685Z";
+export const GENERATED_AT = "2026-10-29T13:01:32.549Z";

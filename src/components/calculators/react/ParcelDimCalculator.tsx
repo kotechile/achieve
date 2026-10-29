@@ -6,9 +6,12 @@
  * difference between the first and the third, and it is deliberately kept apart from the surcharges no
  * carton change touches.
  *
- * The carton profiles are fixed. Editing them per SKU is exactly what the paid audit does from an invoice,
- * and the page says so rather than offering three editable averages that would imply more precision than
- * the estimate has.
+ * THE CARTONS ARE EDITABLE, AND THEY LIVE IN THE LINK
+ * The brief called for three box averages, and that is what the engine prices — but a reader whose worst
+ * carton is none of the three cannot use a fixed profile. So each carton's five numbers are flattened into
+ * the form state (`c1Length`, `c1Width`, …), which keeps the URL contract flat and means a buyer can send
+ * the exact carton they are arguing about. Names stay fixed (A/B/C): they are the reader's ordering, not
+ * a measurement.
  */
 import React, { useMemo } from 'react';
 import { appUrl } from '../../../lib/apps';
@@ -24,7 +27,70 @@ import { Group, NumberField } from './primitives/Fields';
 import { KpiStrip, ProBridge, Refusals, ResetButton, Verdict } from './primitives/KpiStrip';
 import { useUrlState, type UrlSpec } from './primitives/useUrlState';
 
-const SPEC: UrlSpec<ParcelDimState> = {
+/**
+ * The form state: every engine scalar plus each carton's five numbers, flattened.
+ * Flat because the URL contract is flat — a nested object in a query string needs an encoding this site
+ * has no reason to invent, and fifteen short keys cost about 150 characters.
+ */
+interface ParcelFormState {
+	monthlyShipmentVolume: number;
+	currentDimDivisor: number;
+	targetNegotiatedDivisor: number;
+	incrementalRatePerLb: number;
+	baseRatePerParcel: number;
+	residentialSharePct: number;
+	residentialSurcharge: number;
+	deliveryAreaShare: number;
+	deliveryAreaFee: number;
+	cartonHeightReductionInches: number;
+	c1Length: number;
+	c1Width: number;
+	c1Height: number;
+	c1Weight: number;
+	c1Share: number;
+	c2Length: number;
+	c2Width: number;
+	c2Height: number;
+	c2Weight: number;
+	c2Share: number;
+	c3Length: number;
+	c3Width: number;
+	c3Height: number;
+	c3Weight: number;
+	c3Share: number;
+}
+
+const [CARTON_A, CARTON_B, CARTON_C] = DEFAULT_PARCEL_DIM_STATE.cartons;
+
+const DEFAULT_FORM: ParcelFormState = {
+	monthlyShipmentVolume: DEFAULT_PARCEL_DIM_STATE.monthlyShipmentVolume,
+	currentDimDivisor: DEFAULT_PARCEL_DIM_STATE.currentDimDivisor,
+	targetNegotiatedDivisor: DEFAULT_PARCEL_DIM_STATE.targetNegotiatedDivisor,
+	incrementalRatePerLb: DEFAULT_PARCEL_DIM_STATE.incrementalRatePerLb,
+	baseRatePerParcel: DEFAULT_PARCEL_DIM_STATE.baseRatePerParcel,
+	residentialSharePct: DEFAULT_PARCEL_DIM_STATE.residentialSharePct,
+	residentialSurcharge: DEFAULT_PARCEL_DIM_STATE.residentialSurcharge,
+	deliveryAreaShare: DEFAULT_PARCEL_DIM_STATE.deliveryAreaSurchargePct,
+	deliveryAreaFee: DEFAULT_PARCEL_DIM_STATE.dasFeeAvg,
+	cartonHeightReductionInches: DEFAULT_PARCEL_DIM_STATE.cartonHeightReductionInches,
+	c1Length: CARTON_A.lengthInches,
+	c1Width: CARTON_A.widthInches,
+	c1Height: CARTON_A.heightInches,
+	c1Weight: CARTON_A.actualWeightLbs,
+	c1Share: CARTON_A.volumeSharePct,
+	c2Length: CARTON_B.lengthInches,
+	c2Width: CARTON_B.widthInches,
+	c2Height: CARTON_B.heightInches,
+	c2Weight: CARTON_B.actualWeightLbs,
+	c2Share: CARTON_B.volumeSharePct,
+	c3Length: CARTON_C.lengthInches,
+	c3Width: CARTON_C.widthInches,
+	c3Height: CARTON_C.heightInches,
+	c3Weight: CARTON_C.actualWeightLbs,
+	c3Share: CARTON_C.volumeSharePct
+};
+
+const SPEC: UrlSpec<ParcelFormState> = {
 	monthlyShipmentVolume: { key: 'vol', min: 0, max: 5_000_000 },
 	currentDimDivisor: { key: 'div', min: 90, max: 400 },
 	targetNegotiatedDivisor: { key: 'tdiv', min: 90, max: 400 },
@@ -32,14 +98,133 @@ const SPEC: UrlSpec<ParcelDimState> = {
 	baseRatePerParcel: { key: 'base', min: 0, max: 500, decimals: 2 },
 	residentialSharePct: { key: 'res', min: 0, max: 1, decimals: 3 },
 	residentialSurcharge: { key: 'resfee', min: 0, max: 100, decimals: 2 },
-	deliveryAreaSurchargePct: { key: 'das', min: 0, max: 1, decimals: 3 },
-	dasFeeAvg: { key: 'dasfee', min: 0, max: 100, decimals: 2 },
-	cartonHeightReductionInches: { key: 'cut', min: 0, max: 12, decimals: 1 }
+	deliveryAreaShare: { key: 'das', min: 0, max: 1, decimals: 3 },
+	deliveryAreaFee: { key: 'dasfee', min: 0, max: 100, decimals: 2 },
+	cartonHeightReductionInches: { key: 'cut', min: 0, max: 12, decimals: 1 },
+	c1Length: { key: 'a1l', min: 1, max: 96 },
+	c1Width: { key: 'a1w', min: 1, max: 96 },
+	c1Height: { key: 'a1h', min: 1, max: 96 },
+	c1Weight: { key: 'a1lb', min: 0.1, max: 150, decimals: 2 },
+	c1Share: { key: 'a1sh', min: 0, max: 1, decimals: 3 },
+	c2Length: { key: 'b2l', min: 1, max: 96 },
+	c2Width: { key: 'b2w', min: 1, max: 96 },
+	c2Height: { key: 'b2h', min: 1, max: 96 },
+	c2Weight: { key: 'b2lb', min: 0.1, max: 150, decimals: 2 },
+	c2Share: { key: 'b2sh', min: 0, max: 1, decimals: 3 },
+	c3Length: { key: 'c3l', min: 1, max: 96 },
+	c3Width: { key: 'c3w', min: 1, max: 96 },
+	c3Height: { key: 'c3h', min: 1, max: 96 },
+	c3Weight: { key: 'c3lb', min: 0.1, max: 150, decimals: 2 },
+	c3Share: { key: 'c3sh', min: 0, max: 1, decimals: 3 }
 };
 
 export default function ParcelDimCalculator() {
-	const { state, setField, reset } = useUrlState(DEFAULT_PARCEL_DIM_STATE, SPEC);
-	const result = useMemo(() => computeParcelDim(state), [state]);
+	const { state, setField, reset } = useUrlState(DEFAULT_FORM, SPEC);
+
+	const engineState = useMemo<ParcelDimState>(
+		() => ({
+			monthlyShipmentVolume: state.monthlyShipmentVolume,
+			currentDimDivisor: state.currentDimDivisor,
+			targetNegotiatedDivisor: state.targetNegotiatedDivisor,
+			incrementalRatePerLb: state.incrementalRatePerLb,
+			baseRatePerParcel: state.baseRatePerParcel,
+			residentialSharePct: state.residentialSharePct,
+			residentialSurcharge: state.residentialSurcharge,
+			deliveryAreaSurchargePct: state.deliveryAreaShare,
+			dasFeeAvg: state.deliveryAreaFee,
+			cartonHeightReductionInches: state.cartonHeightReductionInches,
+			cartons: [
+				{
+					id: CARTON_A.id,
+					name: CARTON_A.name,
+					lengthInches: state.c1Length,
+					widthInches: state.c1Width,
+					heightInches: state.c1Height,
+					actualWeightLbs: state.c1Weight,
+					volumeSharePct: state.c1Share
+				},
+				{
+					id: CARTON_B.id,
+					name: CARTON_B.name,
+					lengthInches: state.c2Length,
+					widthInches: state.c2Width,
+					heightInches: state.c2Height,
+					actualWeightLbs: state.c2Weight,
+					volumeSharePct: state.c2Share
+				},
+				{
+					id: CARTON_C.id,
+					name: CARTON_C.name,
+					lengthInches: state.c3Length,
+					widthInches: state.c3Width,
+					heightInches: state.c3Height,
+					actualWeightLbs: state.c3Weight,
+					volumeSharePct: state.c3Share
+				}
+			]
+		}),
+		[state]
+	);
+
+	const result = useMemo(() => computeParcelDim(engineState), [engineState]);
+
+	/** One carton's five numbers, as a closed group so the rail does not open with fifteen controls. */
+	const cartonGroup = (index: 1 | 2 | 3, name: string) => {
+		const field = (suffix: 'Length' | 'Width' | 'Height' | 'Weight' | 'Share') =>
+			`c${index}${suffix}` as keyof ParcelFormState;
+		return (
+			<Group title={name} count={5}>
+				<NumberField
+					label="Length"
+					value={state[field('Length')]}
+					onChange={(value) => setField(field('Length'), value)}
+					min={1}
+					max={96}
+					step={1}
+					affix="in"
+				/>
+				<NumberField
+					label="Width"
+					value={state[field('Width')]}
+					onChange={(value) => setField(field('Width'), value)}
+					min={1}
+					max={96}
+					step={1}
+					affix="in"
+				/>
+				<NumberField
+					label="Height"
+					value={state[field('Height')]}
+					onChange={(value) => setField(field('Height'), value)}
+					min={1}
+					max={96}
+					step={1}
+					affix="in"
+					hint="Right-sizing takes the height out, so this is the dimension to check first."
+				/>
+				<NumberField
+					label="Scale weight"
+					value={state[field('Weight')]}
+					onChange={(value) => setField(field('Weight'), value)}
+					min={0.1}
+					max={150}
+					step={0.1}
+					affix="lb"
+					decimals={2}
+				/>
+				<NumberField
+					label="Share of volume"
+					value={state[field('Share')]}
+					onChange={(value) => setField(field('Share'), value)}
+					min={0}
+					max={1}
+					step={0.01}
+					decimals={2}
+					hint="Decimal: 0.50 is half the parcels. Shares are normalised to their total."
+				/>
+			</Group>
+		);
+	};
 
 	const maxBillable = Math.max(...result.cartons.flatMap((carton) => [carton.billableCurrent, carton.billableRightSized]), 1);
 
@@ -90,6 +275,12 @@ export default function ParcelDimCalculator() {
 						/>
 					</Group>
 
+					<Group title="Carton profiles" count={15}>
+						{cartonGroup(1, CARTON_A.name)}
+						{cartonGroup(2, CARTON_B.name)}
+						{cartonGroup(3, CARTON_C.name)}
+					</Group>
+
 					<Group title="Surcharges" count={5}>
 						<NumberField
 							label="Base rate a parcel"
@@ -123,8 +314,8 @@ export default function ParcelDimCalculator() {
 						/>
 						<NumberField
 							label="Delivery-area share"
-							value={state.deliveryAreaSurchargePct}
-							onChange={(value) => setField('deliveryAreaSurchargePct', value)}
+							value={state.deliveryAreaShare}
+							onChange={(value) => setField('deliveryAreaShare', value)}
 							min={0}
 							max={1}
 							step={0.01}
@@ -132,8 +323,8 @@ export default function ParcelDimCalculator() {
 						/>
 						<NumberField
 							label="Delivery-area fee"
-							value={state.dasFeeAvg}
-							onChange={(value) => setField('dasFeeAvg', value)}
+							value={state.deliveryAreaFee}
+							onChange={(value) => setField('deliveryAreaFee', value)}
 							min={0}
 							max={50}
 							step={0.05}
@@ -280,8 +471,8 @@ export default function ParcelDimCalculator() {
 			<Refusals lines={result.refusals} />
 
 			<ProBridge
-				label="When three box averages is not enough"
-				body="This estimate prices three cartons. ParcelProof reads the carrier's invoice and shipment file line by line, recomputes every rule-triggered charge and names the ones with no basis."
+				label="When three cartons is not the whole invoice"
+				body="This estimate prices the cartons you entered. ParcelProof reads the carrier's invoice and shipment file line by line, recomputes every rule-triggered charge and names the ones with no basis."
 				appName="ParcelProof"
 				href={appUrl('/parcelproof')}
 			/>

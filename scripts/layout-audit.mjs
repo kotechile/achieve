@@ -13,7 +13,7 @@ import { existsSync } from 'node:fs';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { tmpdir } from 'node:os';
-import { extname, join } from 'node:path';
+import { basename, extname, join } from 'node:path';
 
 const exec = promisify(execFile);
 const DIST = process.env.DIST_DIR || 'dist';
@@ -125,7 +125,10 @@ async function main() {
   const winWidth = width * DSF;
 
   const tmp = await mkdtemp(join(tmpdir(), 'layout-audit-'));
-  await cp(DIST, tmp, { recursive: true });
+  // Same conflict-copy rule as audit-contrast.mjs: iCloud duplicates as `<stem> 2.<ext>`, and a copy
+  // inside a page folder makes the sandbox copy fail before a single page is measured.
+  const isSyncConflict = (name) => / \d+$/.test(name) || / \d+\.[^.]+$/.test(name) || name.endsWith('.nosync');
+  await cp(DIST, tmp, { recursive: true, filter: (src) => !isSyncConflict(basename(src)) });
 
   for (const p of paths) {
     const file = p.endsWith('/') ? join(tmp, p, 'index.html') : join(tmp, p.endsWith('.html') ? p : join(p, 'index.html'));

@@ -223,7 +223,12 @@ function findChrome() {
  * Conflict copies are skipped rather than reported: they are never pages to audit, and failing
  * a contrast run because a sync client duplicated a directory would train people to ignore it.
  */
-const isSyncConflict = (name) => / \d+$/.test(name) || name.endsWith('.nosync');
+// iCloud writes a duplicate as `<stem> 2.<ext>` mid-write — `index 2.html`, `sitemap 2.xml` — and
+// occasionally duplicates a whole directory as `categories 2`. The original rule only caught the
+// directory shape, so a conflict copy inside an article folder still broke the sandbox copy. Both
+// shapes are matched here, and the marker is only ever a space + digits (+ extension).
+const isSyncConflict = (name) =>
+	/ \d+$/.test(name) || / \d+\.[^.]+$/.test(name) || name.endsWith('.nosync');
 
 /** One page per template, discovered from the build so it survives content churn. */
 async function defaultPages() {
