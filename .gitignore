@@ -22,3 +22,16 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# iCloud conflict copies. Working under ~/Documents, the sync client periodically duplicates a file as
+# "<name> 2.<ext>" mid-write. They are never real content: one broke `audit:contrast`'s sandbox copy
+# and a sweep once landed eighteen of them in a commit. Ignore them rather than re-discovering them.
+* 2.md
+* 2.astro
+* 2.ts
+* 2.tsx
+* 2.mjs
+* 2.js
+* 2.json
+* 2.css
+* 2.xml
