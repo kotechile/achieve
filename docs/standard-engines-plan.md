@@ -40,6 +40,21 @@ audit:contrast       938 text elements across 6 pages, all clear AA
 audit:layout 390     0px horizontal overflow on all five engines + the register
 ```
 
+Deployed to aichieve.net (Coolify → `kotechile/achieve:main`), and the deploy contract is green:
+
+```
+npm run verify -- https://aichieve.net   GREEN — 41 checks
+                                        (five new tool routes 200, canonical host, www,
+                                         ownership boundary: 39 foreign posts still 404)
+```
+
+One live interaction check against production, because a 200 is not an engine: setting the failure
+rate plate to `0.10` on `/tools/agentic-workflow-breakeven/` moved the strip from `$19.90 / 3.2% /
+$160k` to `$30.83 / 3.2% / $433k`, left the cliff untouched (it is a property of the model, not the
+assumed rate), and rewrote the address bar to
+`?vol=25000&tm=18&orh=45&tok=14000&tp=4.5&rt=0.22&fail=0.1&aud=0.25&atm=8&rwm=25&srh=160&pen=250` —
+all twelve keys, fixed order, so two people comparing links get byte-identical URLs.
+
 `product-cta.ts` needed no change: every category the new engines sit under already maps to a PRO
 app, and the engine pages carry their own bridge inside the island rather than through the page CTA.
 
