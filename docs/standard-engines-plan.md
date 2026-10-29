@@ -55,6 +55,11 @@ assumed rate), and rewrote the address bar to
 `?vol=25000&tm=18&orh=45&tok=14000&tp=4.5&rt=0.22&fail=0.1&aud=0.25&atm=8&rwm=25&srh=160&pen=250` —
 all twelve keys, fixed order, so two people comparing links get byte-identical URLs.
 
+The total-delivered-cost page also declares what it cannot answer: seven figures that need the ERP, the
+TMS, the broker's entry file or the bank, rendered as `excluded` on the engine result — a field distinct
+from `refusals`, because a caveat about the arithmetic and a question the page does not answer at all are
+different promises. `check-engines` fails if that list empties or stops naming a system of record.
+
 `product-cta.ts` needed no change: every category the new engines sit under already maps to a PRO
 app, and the engine pages carry their own bridge inside the island rather than through the page CTA.
 
@@ -145,9 +150,12 @@ a default, or removed:
 
 ### 2.4 TDC: two duty-base errors
 
-- **MPF/HMF = 0.4714% is per-entry with a floor ($32.71) and cap ($634.62).** At 20,000 units per
-  entry neither binds, so per-unit math is fine — but the page must say the entry size it assumed,
-  and flag when `duty+MPF` computed per unit falls under `$32.71 / units-per-entry`.
+- **MPF/HMF = 0.4714% is per-entry with a floor ($32.71) and a cap ($634.62), and at these defaults the
+  CAP binds** — 20,000 units make the fee $872.93, so the effective rate is 0.2518%, not 0.3464%. The
+  first build had this backwards: it compared the per-unit fee to the per-unit share of the floor and
+  therefore reported "under the floor" on the largest possible entry. The engine now clamps per entry
+  and names whichever bound binds; both directions are fixture-tested (1 unit → floor, 2,000 → neither,
+  20,000 → cap).
 - **Incoterm does not change the US duty base.** US customs assesses on transaction value (FOB +
   assists) and excludes international freight, so on a `CIF`/`DDP` input the engine must *strip* the
   freight it added for landed cost before applying duty, or it will overstate duty by ~13% of the
@@ -400,9 +408,10 @@ Needs the dated duty/MPF module and the Incoterm matrix (§2.4).
 - **Outputs:** the waterfall steps (FOB, customs assist, duty+301+MPF, freight, carrying, cost-to-serve,
   RMA), `landedCost`, `tdc`, `contributionMargin` in $ and %, `dutyShareOfTdc`, `freightBasis`
   (cube-limited vs weight-limited), MPF-floor flag
-- **Fixture (defaults):** assist $1.10 · customs value $12.60 · duty+301+MPF **$4.0284 (8.95% of
-  price)** · freight $1.5882 · landed $18.2166 · carrying $0.6813 · RMA $1.2525 · **TDC $23.6504 ·
-  contribution $21.3496 (47.4%)** · duty is **17.0%** of TDC
+- **Fixture (defaults):** assist $1.10 · customs value $12.60 · duty+301+MPF **$4.0165 (8.9% of price)**
+  · freight $1.5882 · landed $18.2047 · carrying $0.6808 · RMA $1.2523 · **TDC $23.6378 · contribution
+  $21.3622 (47.5%)** · duty is **17.0%** of TDC. MPF is $872.93 for the entry, so the **$634.62 ceiling
+  binds** and the effective rate is 0.2518%, not 0.3464%.
 - **KPIs:** `Contribution margin` ($ and %) · `Duty + tariff per unit` · `TDC per unit`
 - **Canvas:** horizontal price-to-TDC waterfall from $45 to contribution, each step labelled with its
   per-unit cost; toggle cube-out/weight-out flashing `--eng-friction` when volume binds first.
@@ -560,9 +569,9 @@ README.md                              tools section — outstanding
 | IRA | σ_eff | 243.02 | √(130.90² + 204.75²) |
 | IRA | dead cash | 11,066,900 | (399.75 − 215.30) × 2500 × 24 |
 | IRA | phantom cost | 5,368,629 | 9,321 × 18 × 2 × 16 |
-| TDC | duty + 301 + MPF | 4.0284 | 12.60 × (0.065 + 0.25 + 0.004714) |
-| TDC | landed | 18.2166 | 11.50 + 1.10 + 4.0284 + 1.5882 |
-| TDC | TDC | 23.6504 | 18.2166 + 0.6813 + 3.50 + 1.2525 |
+| TDC | duty + 301 + MPF | 4.0165 | 12.60 × (0.065 + 0.25 + 0.00125) + min(max(872.93, 32.71), 634.62)/20,000 |
+| TDC | landed | 18.2047 | 11.50 + 1.10 + 4.0165 + 1.5882 |
+| TDC | TDC | 23.6378 | 18.2047 + 0.6808 + 3.50 + 1.2523 |
 | Parcel | DIM @139 | 22 lb | ⌈18×14×12 / 139⌉ |
 | Parcel | recoverable @166 | 183,600 /yr | (22 − 19) × 0.68 × 7,500 × 12 |
 | Parcel | recoverable @166 −2" | 367,200 /yr | (22 − 16) × 0.68 × 7,500 × 12 |

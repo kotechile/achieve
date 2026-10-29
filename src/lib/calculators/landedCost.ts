@@ -27,7 +27,7 @@
  * · a per-unit MPF below the per-entry floor without saying so;
  * · a duty base built on freight without saying which way the incoterm moved it.
  */
-import { CBP, MPF_HMF_COMBINED, customsAssumptions } from './assumptions2026.ts';
+import { CBP, customsAssumptions } from './assumptions2026.ts';
 import type { AssumptionLine, EngineResultBase, EngineVerdict, ExcludedItem } from './engineTypes.ts';
 
 export type Incoterm = 'FOB' | 'EXW' | 'CIF';
@@ -156,8 +156,12 @@ export interface LandedCostResult extends EngineResultBase {
 	/** Which container limit binds first at these inputs. */
 	freightBasis: 'cube' | 'weight';
 	unitsPerContainer: number;
+	/** Merchandise Processing Fee actually charged per unit, after the per-entry floor and ceiling. */
 	mpfPerUnit: number;
+	/** Ad-valorem MPF for the whole entry, before the floor and ceiling are applied. */
+	mpfPerEntry: number;
 	mpfFloorBinding: boolean;
+	mpfCapBinding: boolean;
 	steps: WaterfallStep[];
 	assumptions: AssumptionLine[];
 }
@@ -205,9 +209,19 @@ export function computeLandedCost(input: LandedCostState): LandedCostResult {
 			? Math.max(0, state.unitFobCost - freightPerUnit) + assist
 			: state.unitFobCost + assist + inland;
 
-	const dutyCharged = dutyBase * (state.baseDutyRate + state.punitiveTariffRate + MPF_HMF_COMBINED);
-	const mpfPerUnit = (dutyBase * CBP.MPF_RATE) / state.unitsPerEntry;
-	const mpfFloorBinding = mpfPerUnit < CBP.MPF_MIN_PER_ENTRY / state.unitsPerEntry;
+	// MPF is charged per entry, not per unit, and carries both a floor and a ceiling. Applying the
+	// ad-valorem rate per unit and comparing it to the floor scaled per unit got the direction wrong
+	// on a large entry: 20,000 units makes the fee huge, so the ceiling binds, not the floor.
+	const mpfPerEntry = dutyBase * state.unitsPerEntry * CBP.MPF_RATE;
+	const mpfChargedPerEntry = Math.min(
+		Math.max(mpfPerEntry, CBP.MPF_MIN_PER_ENTRY),
+		CBP.MPF_MAX_PER_ENTRY
+	);
+	const mpfPerUnit = mpfChargedPerEntry / state.unitsPerEntry;
+	const mpfFloorBinding = mpfPerEntry < CBP.MPF_MIN_PER_ENTRY;
+	const mpfCapBinding = mpfPerEntry > CBP.MPF_MAX_PER_ENTRY;
+	const dutyCharged =
+		dutyBase * (state.baseDutyRate + state.punitiveTariffRate + CBP.HMF_RATE) + mpfPerUnit;
 
 	// Landed cost: freight is already inside a CIF price, so it is not charged again.
 	const freightLine = state.incoterm === 'CIF' ? 0 : freightPerUnit;
@@ -255,7 +269,12 @@ export function computeLandedCost(input: LandedCostState): LandedCostResult {
 	}
 	if (mpfFloorBinding) {
 		refusals.push(
-			`At ${state.unitsPerEntry.toLocaleString('en-US')} units per entry the ad-valorem MPF falls under the $${CBP.MPF_MIN_PER_ENTRY.toFixed(2)} per-entry floor, so this per-unit figure understates the fee.`
+			`At ${state.unitsPerEntry.toLocaleString('en-US')} units per entry the ad-valorem MPF falls under the $${CBP.MPF_MIN_PER_ENTRY.toFixed(2)} floor, so the fee is charged at the floor and this figure understates it.`
+		);
+	}
+	if (mpfCapBinding) {
+		refusals.push(
+			`The entry's ad-valorem MPF of $${mpfPerEntry.toLocaleString('en-US', { maximumFractionDigits: 0 })} is capped at $${CBP.MPF_MAX_PER_ENTRY.toFixed(2)}, so the effective rate here is ${(mpfPerUnit / dutyBase * 100).toFixed(3)}% rather than 0.3464%.`
 		);
 	}
 	if (state.punitiveTariffRate === 0) {
@@ -284,7 +303,9 @@ export function computeLandedCost(input: LandedCostState): LandedCostResult {
 		freightBasis,
 		unitsPerContainer,
 		mpfPerUnit,
+		mpfPerEntry,
 		mpfFloorBinding,
+		mpfCapBinding,
 		steps,
 		assumptions: customsAssumptions(),
 		excluded: LANDED_COST_EXCLUDED,

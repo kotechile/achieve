@@ -181,22 +181,22 @@ check('ira clean records still positive', cleanRecords.extraUnitsPerSku >= 0, tr
 const landed = computeLandedCost(DEFAULT_LANDED_COST_STATE);
 check('tdc assist/unit', money(landed.customsAssistPerUnit), 1.1);
 check('tdc duty base', money(landed.dutyBase), 12.6);
-check('tdc duty charged', money(landed.dutyCharged), 4.0284, 0.0001);
+check('tdc duty charged', money(landed.dutyCharged), 4.0165, 0.0002);
 check('tdc freight per cbm', money(landed.freightPerCbm), 88.2353, 0.0001);
 check('tdc freight/unit', money(landed.freightPerUnit), 1.5882, 0.0001);
-check('tdc landed', money(landed.landedCost), 18.2166, 0.0001);
-check('tdc carrying', money(landed.carryingCost), 0.6812, 0.0002);
+check('tdc landed', money(landed.landedCost), 18.2047, 0.0001);
+check('tdc carrying', money(landed.carryingCost), 0.6808, 0.0002);
 check('tdc carrying days', landed.carryingDays, 105);
-check('tdc returns', money(landed.returnsCost), 1.2525, 0.0002);
-check('tdc cost to serve', money(landed.costToServe), 4.7525, 0.0002);
-check('tdc total', money(landed.tdc), 23.6503, 0.0002);
-check('tdc contribution', money(landed.contribution), 21.3497, 0.0002);
-check('tdc contribution pct', money(landed.contributionPct), 47.4438, 0.002);
-check('tdc duty share', money(landed.dutyShareOfTdc), 17.0333, 0.002);
+check('tdc returns', money(landed.returnsCost), 1.2523, 0.0002);
+check('tdc cost to serve', money(landed.costToServe), 4.7523, 0.0002);
+check('tdc total', money(landed.tdc), 23.6378, 0.0003);
+check('tdc contribution', money(landed.contribution), 21.3622, 0.0003);
+check('tdc contribution pct', money(landed.contributionPct), 47.4715, 0.002);
+check('tdc duty share', money(landed.dutyShareOfTdc), 16.9918, 0.002);
 check('tdc freight basis', landed.freightBasis, 'cube');
 check('tdc units per container', landed.unitsPerContainer, 3777);
 check('tdc waterfall steps', landed.steps.length, 8);
-check('tdc waterfall lands on contribution', money(landed.steps[landed.steps.length - 1].running), 21.3497, 0.0002);
+check('tdc waterfall lands on contribution', money(landed.steps[landed.steps.length - 1].running), 21.3622, 0.0003);
 
 // Invariants: a punitive tariff must reduce contribution; a dutiable assist must raise duty.
 const noTariff = computeLandedCost({ ...DEFAULT_LANDED_COST_STATE, punitiveTariffRate: 0 });
@@ -218,10 +218,28 @@ const exw = computeLandedCost({ ...DEFAULT_LANDED_COST_STATE, incoterm: 'EXW' })
 check('tdc exw duty rises', exw.dutyCharged > landed.dutyCharged, true);
 check('tdc exw landed rises', exw.landedCost > landed.landedCost, true);
 
-// MPF: a small entry hits the per-entry floor and the page has to say so.
+// MPF is per entry, with a floor and a ceiling — and the two bind in opposite directions.
+// One unit per entry: $0.04 of ad-valorem MPF, so the $32.71 floor is charged instead.
 const smallEntry = computeLandedCost({ ...DEFAULT_LANDED_COST_STATE, unitsPerEntry: 1 });
 check('tdc mpf floor flagged', smallEntry.mpfFloorBinding, true);
+check('tdc mpf floor not capped', smallEntry.mpfCapBinding, false);
+check('tdc mpf floor charged', money(smallEntry.mpfPerUnit), 32.71, 0.0001);
 check('tdc mpf floor refusal', smallEntry.refusals.some((line) => line.includes('floor')), true);
+
+// The default 20,000-unit entry is the opposite case: $872.93 of ad-valorem MPF, capped at $634.62.
+check('tdc mpf default is capped', landed.mpfCapBinding, true);
+check('tdc mpf default not floored', landed.mpfFloorBinding, false);
+check('tdc mpf per entry', Math.round(landed.mpfPerEntry), 873, 1);
+check('tdc mpf per unit after cap', landed.mpfPerUnit, 0.031731, 0.000001);
+check('tdc mpf cap refusal names the cap', landed.refusals.some((line) => line.includes('capped at')), true);
+check('tdc mpf refusal is not the floor', landed.refusals.some((line) => line.includes('floor')), false);
+
+// A mid-sized entry sits between the two bounds and is charged the plain ad-valorem rate.
+const midEntry = computeLandedCost({ ...DEFAULT_LANDED_COST_STATE, unitsPerEntry: 2000 });
+check('tdc mpf mid entry uncapped', midEntry.mpfCapBinding, false);
+check('tdc mpf mid entry unfloored', midEntry.mpfFloorBinding, false);
+check('tdc mpf mid entry is ad valorem', money(midEntry.mpfPerUnit), money(12.6 * 0.003464), 0.000001);
+check('tdc mpf mid entry says nothing', midEntry.refusals.some((line) => line.includes('MPF')), false);
 
 /* ── Parcel DIM Weight ────────────────────────────────────────────────────────────────────── */
 // Carton A: 18×14×12 = 3,024 in³ / 139 = 21.76 → 22 lb billed against 9.2 lb scale weight.
