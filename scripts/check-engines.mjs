@@ -281,6 +281,21 @@ const reverseDivisor = computeParcelDim({
 check('parcel reverse divisor saves nothing', reverseDivisor.recoverableDivisorAnnual, 0);
 check('parcel reverse divisor refused', reverseDivisor.refusals.some((line) => line.includes('no carrier agrees')), true);
 
+// Exclusions are part of the contract for engines that declare them: a list that silently empties would
+// leave the page claiming a precision the model does not have.
+const tdcExcluded = landed.excluded ?? [];
+check('tdc declares exclusions', tdcExcluded.length >= 5, true);
+check(
+	'tdc exclusions name a system of record',
+	tdcExcluded.every((item) => /ERP|TMS|ledger|broker|bank|customs entry/.test(item.why)),
+	true
+);
+check(
+	'tdc exclusions are labelled and explained',
+	tdcExcluded.every((item) => item.label.length > 3 && item.why.length > 20),
+	true
+);
+
 /* ── every engine returns the shared contract ─────────────────────────────────────────────── */
 const engines = { agentic, slotting, inventory, landed, parcel };
 for (const [name, result] of Object.entries(engines)) {

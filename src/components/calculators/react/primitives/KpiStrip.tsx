@@ -7,7 +7,7 @@
  * returned — nothing here is computed in JSX.
  */
 import React from 'react';
-import type { EngineTone, EngineVerdict } from '../../../../lib/calculators/engineTypes';
+import type { EngineTone, EngineVerdict, ExcludedItem } from '../../../../lib/calculators/engineTypes';
 
 export interface Kpi {
 	label: string;
@@ -55,6 +55,32 @@ export function Refusals({ lines }: { lines: string[] }) {
 				<li key={line}>{line}</li>
 			))}
 		</ul>
+	);
+}
+
+/**
+ * What the model does not answer, and which system holds the answer.
+ *
+ * Deliberately not folded into `Refusals`: a refusal is a caveat about the arithmetic ("payback is
+ * undiscounted"), an exclusion is a question the page is not answering at all ("we did not read your
+ * ledger"). A reader who skims one paragraph for caveats should not find the two mixed.
+ */
+export function Excluded({ items, heading }: { items: ExcludedItem[]; heading: string }) {
+	if (!items.length) return null;
+	return (
+		<section className="en-excluded" aria-labelledby="en-excluded-heading">
+			<p className="en-excluded__label" id="en-excluded-heading">
+				{heading}
+			</p>
+			<dl className="en-excluded__list">
+				{items.map((item) => (
+					<div className="en-excluded__item" key={item.label}>
+						<dt className="en-excluded__term">{item.label}</dt>
+						<dd className="en-excluded__why">{item.why}</dd>
+					</div>
+				))}
+			</dl>
+		</section>
 	);
 }
 

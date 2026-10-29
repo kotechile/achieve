@@ -92,6 +92,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"planning-ai-buys-capability-not-autonomy",
 	"prefill-decode-two-pool-gap",
 	"prior-disclosure-clock-cuts-penalty",
+	"promo-spike-is-a-loan",
 	"rack-power-density-ceiling-build-before-you-buy",
 	"rack-ride-through-two-second-duty",
 	"remediator-recovers-46-percent",
@@ -262,4 +263,4 @@ export const FOREIGN_TARGETS = {
 	"zapier-notion-integration-calculate-your-tinkering-tax": "https://giniloh.com"
 };
 export const GENERATED_FOR = "aichieve.net";
-export const GENERATED_AT = "2026-10-29T13:01:32.549Z";
+export const GENERATED_AT = "2026-10-29T15:53:19.007Z";

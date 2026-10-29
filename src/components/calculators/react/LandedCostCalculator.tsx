@@ -17,7 +17,7 @@ import {
 import { BarRows, ChartFrame } from './primitives/Charts';
 import { EngineLayout } from './primitives/EngineLayout';
 import { Group, NumberField, SegmentedField } from './primitives/Fields';
-import { KpiStrip, ProBridge, Refusals, ResetButton, Verdict } from './primitives/KpiStrip';
+import { Excluded, KpiStrip, ProBridge, Refusals, ResetButton, Verdict } from './primitives/KpiStrip';
 import { useUrlState, type UrlSpec } from './primitives/useUrlState';
 
 const SPEC: UrlSpec<LandedCostState> = {
@@ -411,6 +411,8 @@ export default function LandedCostCalculator() {
 					]}
 				/>
 			</ChartFrame>
+
+			<Excluded items={result.excluded ?? []} heading="Not in this total — needs your ERP" />
 
 			<Refusals lines={result.refusals} />
 

@@ -28,7 +28,7 @@
  * · a duty base built on freight without saying which way the incoterm moved it.
  */
 import { CBP, MPF_HMF_COMBINED, customsAssumptions } from './assumptions2026.ts';
-import type { AssumptionLine, EngineResultBase, EngineVerdict } from './engineTypes.ts';
+import type { AssumptionLine, EngineResultBase, EngineVerdict, ExcludedItem } from './engineTypes.ts';
 
 export type Incoterm = 'FOB' | 'EXW' | 'CIF';
 
@@ -97,6 +97,45 @@ export interface WaterfallStep {
 	running: number;
 	tone: WaterfallTone;
 }
+
+/**
+ * What this calculator does not answer, because the answer lives in a system it does not read.
+ *
+ * Every line is a figure a buyer will assume is in the total — "duty drawback", "what we actually paid
+ * for freight" — and every one needs the ERP, the TMS, the broker's entry file or the bank. Naming the
+ * system is the point: it tells the reader which team to ask and stops the model being credited with a
+ * precision it does not have.
+ */
+export const LANDED_COST_EXCLUDED: ExcludedItem[] = [
+	{
+		label: 'Duty drawback and refunds',
+		why: 'Recovering duty on re-exported goods needs entry summaries and proof of export, which sit in the ERP and with the broker.'
+	},
+	{
+		label: 'Freight as actually invoiced',
+		why: 'This prices a per-CBM average. Per-shipment freight, detention and demurrage are billed later and live in the TMS and the payables ledger.'
+	},
+	{
+		label: 'Exchange rate at settlement',
+		why: 'One currency and one rate. The purchase-order rate against the rate the bank settled is a treasury figure, not a model input.'
+	},
+	{
+		label: 'Days of stock actually held',
+		why: 'Stock days are typed in from your own knowledge. Real turns by SKU come from the inventory ledger, and they are rarely the number a buyer guesses.'
+	},
+	{
+		label: 'Duty by classification line',
+		why: 'One blended rate is applied to the whole unit. Per-HTS rates, exclusions and Chapter 99 treatment live on the customs entry itself.'
+	},
+	{
+		label: 'Returns and write-offs per SKU',
+		why: 'A single return rate is applied. RMA actuals, refurbishment cost and write-off approvals are recorded in the ERP after the fact.'
+	},
+	{
+		label: 'Payment terms as cash',
+		why: 'The early-payment discount is priced. Days payable, and what the cash conversion cycle does to funding, are ledger figures.'
+	}
+];
 
 export interface LandedCostResult extends EngineResultBase {
 	customsAssistPerUnit: number;
@@ -248,6 +287,7 @@ export function computeLandedCost(input: LandedCostState): LandedCostResult {
 		mpfFloorBinding,
 		steps,
 		assumptions: customsAssumptions(),
+		excluded: LANDED_COST_EXCLUDED,
 		verdict: buildVerdict({ state, tdc, contribution, contributionPct, dutyCharged, assist }),
 		refusals
 	};

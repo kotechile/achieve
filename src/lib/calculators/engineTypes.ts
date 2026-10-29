@@ -34,6 +34,20 @@ export interface EngineResultBase {
 	verdict: EngineVerdict;
 	/** Caveats the page must print. Empty is legitimate; silent is not the same as empty. */
 	refusals: string[];
+	/**
+	 * Figures this model deliberately does not produce because they need a system of record it cannot
+	 * read — an ERP, a TMS, a customs broker's entry file. Distinct from `refusals`, which are caveats
+	 * about the arithmetic: these are questions the page is not answering at all, and naming the system
+	 * is what stops a reader assuming the number already includes them.
+	 */
+	excluded?: ExcludedItem[];
+}
+
+export interface ExcludedItem {
+	/** What is missing, in the reader's terms. */
+	label: string;
+	/** The system it lives in, and why the model cannot reach it. */
+	why: string;
 }
 
 /** A constant the model used, with the date it was read and where it came from. */
