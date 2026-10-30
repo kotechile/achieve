@@ -502,8 +502,8 @@ function InteractiveBadge({ value, min, max, step = 1, unit, prefix, onChange }:
 				value={inputValue}
 				onChange={handleInputChange}
 				onBlur={handleBlur}
-				className="w-auto min-w-[3.5rem] bg-transparent text-right font-mono tabular-nums text-sm font-bold text-[#8A5A12] focus:outline-none border-none p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-				style={{ width: `calc(${Math.max(3, inputValue.length)}ch + 1.7rem)` }}
+				className="w-auto min-w-[4rem] bg-transparent text-right font-mono tabular-nums text-sm font-bold text-[#8A5A12] focus:outline-none border-none p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+				style={{ width: `calc(${Math.max(3, inputValue.length)}ch + 2.4rem)` }}
 			/>
 			{unit && <span className="text-xs text-gray-400 font-mono tabular-nums font-bold uppercase">{unit}</span>}
 		</div>
@@ -736,19 +736,19 @@ export default function LocalVsCloudGpuCalculator() {
 			{/* Gutter: the bay is a light surface mounted in a dark panel, so it needs its own air. */}
 			<div className="px-5 py-7 sm:px-8 sm:py-10">
 			{/* Answer first: the verdict, before any control */}
-			<div className="mb-8 bg-[#0E1116] px-6 py-7 text-white sm:px-8 sm:py-9">
+			<div className="verdict-band mb-8 bg-[#0E1116] px-6 py-7 text-white sm:px-8 sm:py-9">
 				<div className="flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
 					<div className="min-w-0">
-						<p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-white/50">
+						<p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] vb-dim">
 							Verdict · {timePeriodMonths} month horizon
 						</p>
 						<p className="mt-3 text-[30px] font-bold leading-none tracking-tight sm:text-[40px]">
-							<span className="text-white/55">{calculations.localWins ? 'Owning saves' : 'Renting saves'}</span>{' '}
+							<span className="vb-soft">{calculations.localWins ? 'Owning saves' : 'Renting saves'}</span>{' '}
 							<span className={calculations.localWins ? 'text-emerald-400' : 'text-[#F0B457]'}>
 								<AnimatedCounter value={calculations.netSavings} formatter={formatCurrency} />
 							</span>
 						</p>
-						<p className="mt-3 max-w-xl text-sm leading-6 text-white/60">
+						<p className="mt-3 max-w-xl text-sm leading-6 vb-soft">
 							{calculations.localWins
 								? Number.isFinite(calculations.breakEvenMonths)
 									? `Break-even lands at month ${calculations.breakEvenMonths}. Every month past it is margin.`
@@ -763,14 +763,14 @@ export default function LocalVsCloudGpuCalculator() {
 								{ label: 'Rented', value: calculations.cloudTco, tone: 'bg-cyan-400' }
 							].map((row) => (
 								<div key={row.label} className="flex items-center gap-3">
-									<span className="w-14 shrink-0 font-mono text-[10px] uppercase tracking-[0.16em] text-white/45">{row.label}</span>
+									<span className="w-14 shrink-0 font-mono text-[10px] uppercase tracking-[0.16em] vb-dim">{row.label}</span>
 									<div className="h-1.5 min-w-0 flex-1 bg-white/[0.08]">
 										<div
 											className={`${row.tone} transition-[width] duration-500 ease-out`}
 											style={{ width: `${Math.min(100, (row.value / Math.max(1, Math.max(calculations.netLocalTco, calculations.cloudTco))) * 100)}%`, height: '100%' }}
 										/>
 									</div>
-									<span className="w-24 shrink-0 text-right font-mono tabular-nums text-[11px] font-bold text-white/80">
+									<span className="w-24 shrink-0 text-right font-mono tabular-nums text-[11px] font-bold vb-bright">
 										{formatCurrency(row.value)}
 									</span>
 								</div>
@@ -791,7 +791,7 @@ export default function LocalVsCloudGpuCalculator() {
 							}
 						].map((stat) => (
 							<div key={stat.label}>
-								<p className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/45">{stat.label}</p>
+								<p className="font-mono text-[9px] uppercase tracking-[0.18em] vb-dim">{stat.label}</p>
 								<p className="mt-1 font-mono tabular-nums text-lg font-bold text-white">{stat.value}</p>
 							</div>
 						))}
@@ -844,14 +844,12 @@ export default function LocalVsCloudGpuCalculator() {
 				</div>
 			</div>
 
-			<div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-10">
-				{/* Left Column: User Controls & Sliders */}
-				<div className="space-y-6">
+			<div className="space-y-6">
 					{/* Usage Pattern Card */}
 					<div className="bg-white border border-[#E3E3E7] rounded-lg p-6 sm:p-7 space-y-7">
 						<div className="flex items-center gap-3 border-b border-[#E3E3E7] pb-4">
 							<SlidersHorizontal className="h-4 w-4 shrink-0 text-[#111114]" strokeWidth={1.75} />
-							<h3 className="text-[12px] font-mono font-bold uppercase tracking-[0.18em] text-[#111114]">Your Usage Pattern</h3>
+							<h3 className="text-[12px] font-mono font-bold uppercase tracking-[0.18em] text-[#111114]">Your workload · both sides</h3>
 						</div>
 
 						{/* Hours per Day Slider */}
@@ -972,390 +970,412 @@ export default function LocalVsCloudGpuCalculator() {
 						</div>
 					</div>
 
-					{/* Select GPU Card */}
-					<div className="bg-white border border-[#E3E3E7] rounded-lg p-6 sm:p-7 space-y-7">
-						<div className="flex items-center gap-3 border-b border-[#E3E3E7] pb-4">
-							<Cpu className="h-4 w-4 shrink-0 text-[#111114]" strokeWidth={1.75} />
-							<h3 className="text-[12px] font-mono font-bold uppercase tracking-[0.18em] text-[#111114]">Select Local GPU</h3>
-						</div>
-
-						<div>
-							<label htmlFor="gpu-select" className="sr-only">GPU Model Option</label>
-							<select
-								id="gpu-select"
-								value={selectedGpuId}
-								onChange={(e) => setSelectedGpuId(e.target.value)}
-								className="w-full rounded-lg border border-[#E3E3E7] bg-white px-4 py-3 text-sm font-bold text-[#111114] outline-none focus:border-[#8A5A12] cursor-pointer"
-							>
-								{Object.entries(TIER_LABELS).map(([tier, label]) => {
-									const models = GPU_MODELS.filter(g => g.tier === tier);
-									if (models.length === 0) return null;
-									return (
-										<optgroup key={tier} label={label}>
-											{models.map(g => (
-												<option key={g.id} value={g.id}>{g.name}</option>
-											))}
-										</optgroup>
-									);
-								})}
-							</select>
-						</div>
-
-						{/* Street price vs launch list, carried from the 2026 valuation */}
-						<div className="grid grid-cols-2 gap-4">
-							<div className="rounded-lg border border-[#E3E3E7] bg-[#FAFAFA] p-4">
-								<p className="text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-[#71717A]">Street Cost</p>
-								<p className="text-lg font-black text-emerald-600 mt-1 font-mono tabular-nums">{formatCurrency(activeGpu.cost)}</p>
-								<p className="text-[11px] font-mono tabular-nums text-[#8C8C8C] mt-1">
-									{activeGpu.msrp ? `List ${formatCurrency(activeGpu.msrp)}` : 'No published list price'}
-								</p>
+				{/* The two paths, side by side. Each column owns its own inputs. */}
+				<div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
+					<div className="space-y-6">
+						{/* Track 1 — what owning costs */}
+						<div className="rounded-lg border border-[#D6E4DB] border-l-4 border-l-emerald-600 bg-[#F6FAF7] px-4 py-3 flex items-end justify-between gap-4">
+							<div className="min-w-0">
+								<p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-800">Own it · on-premise</p>
+								<p className="mt-1 text-xs font-medium leading-5 text-[#52525B]">Capital, power, maintenance and licences — paid whether or not a job runs.</p>
 							</div>
-							<div className="rounded-lg border border-[#E3E3E7] bg-[#FAFAFA] p-4">
-								<p className="text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-[#71717A]">Street vs List</p>
-								<p className={`text-lg font-black mt-1 font-mono tabular-nums ${
-									calculations.streetPremiumPct === null
-										? 'text-[#716F6F]'
-										: calculations.streetPremiumPct > 0 ? 'text-red-600' : 'text-emerald-600'
-								}`}>
-									{calculations.streetPremiumPct === null
-										? 'n/a'
-										: `${calculations.streetPremiumPct > 0 ? '+' : ''}${calculations.streetPremiumPct.toFixed(0)}%`}
-								</p>
-								<p className="text-[11px] font-mono tabular-nums text-[#8C8C8C] mt-1">consumer tier averages +28%</p>
-							</div>
-							<div className="rounded-lg border border-[#E3E3E7] bg-[#FAFAFA] p-4">
-								<p className="text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-[#71717A]">Power Draw (TDP)</p>
-								<p className="text-lg font-black text-amber-600 mt-1 font-mono tabular-nums">{activeGpu.tdp}W</p>
-								<p className="text-[11px] font-mono tabular-nums text-[#8C8C8C] mt-1">+250W chassis base</p>
-							</div>
-							<div className="rounded-lg border border-[#E3E3E7] bg-[#FAFAFA] p-4">
-								<p className="text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-[#71717A]">VRAM / Bandwidth</p>
-								<p className="text-lg font-black text-[#111114] mt-1 font-mono tabular-nums">{activeGpu.vram}</p>
-								<p className="text-[11px] font-mono tabular-nums text-[#8C8C8C] mt-1">{activeGpu.bandwidth || 'not published'}</p>
-							</div>
-						</div>
-
-						{activeGpu.marketNote && (
-							<p className="text-xs font-semibold text-[#5A7A8F] bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
-								{activeGpu.marketNote}
+							<p className="shrink-0 font-mono text-lg font-bold tabular-nums text-[#111114]">
+								${calculations.localCostPerHour.toFixed(2)}<span className="text-[11px] font-semibold text-[#52525B]">/hr</span>
 							</p>
-						)}
+						</div>
+						{/* Select GPU Card */}
+						<div className="bg-white border border-[#E3E3E7] rounded-lg p-6 sm:p-7 space-y-7 border-l-4 border-l-emerald-600">
+							<div className="flex items-center gap-3 border-b border-[#E3E3E7] pb-4">
+								<Cpu className="h-4 w-4 shrink-0 text-[#111114]" strokeWidth={1.75} />
+								<h3 className="text-[12px] font-mono font-bold uppercase tracking-[0.18em] text-[#111114]">On-premise hardware</h3>
+							</div>
 
-						{/* Sub card: 3-Year Resale Value % Slider */}
-						<div className="bg-white border border-[#E3E3E7] rounded-lg p-5 sm:p-6 space-y-3.5">
-							<div className="flex justify-between items-center text-[13px] font-semibold text-[#3F3F46]">
-								<span>3-Year Hardware Resale Value (%)</span>
-								<InteractiveBadge
-									value={resalePercent}
+							<div>
+								<label htmlFor="gpu-select" className="sr-only">GPU Model Option</label>
+								<select
+									id="gpu-select"
+									value={selectedGpuId}
+									onChange={(e) => setSelectedGpuId(e.target.value)}
+									className="w-full rounded-lg border border-[#E3E3E7] bg-white px-4 py-3 text-sm font-bold text-[#111114] outline-none focus:border-[#8A5A12] cursor-pointer"
+								>
+									{Object.entries(TIER_LABELS).map(([tier, label]) => {
+										const models = GPU_MODELS.filter(g => g.tier === tier);
+										if (models.length === 0) return null;
+										return (
+											<optgroup key={tier} label={label}>
+												{models.map(g => (
+													<option key={g.id} value={g.id}>{g.name}</option>
+												))}
+											</optgroup>
+										);
+									})}
+								</select>
+							</div>
+
+							{/* Street price vs launch list, carried from the 2026 valuation */}
+							<div className="grid grid-cols-2 gap-4">
+								<div className="rounded-lg border border-[#E3E3E7] bg-[#FAFAFA] p-4">
+									<p className="text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-[#71717A]">Street Cost</p>
+									<p className="text-lg font-black text-emerald-600 mt-1 font-mono tabular-nums">{formatCurrency(activeGpu.cost)}</p>
+									<p className="text-[11px] font-mono tabular-nums text-[#8C8C8C] mt-1">
+										{activeGpu.msrp ? `List ${formatCurrency(activeGpu.msrp)}` : 'No published list price'}
+									</p>
+								</div>
+								<div className="rounded-lg border border-[#E3E3E7] bg-[#FAFAFA] p-4">
+									<p className="text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-[#71717A]">Street vs List</p>
+									<p className={`text-lg font-black mt-1 font-mono tabular-nums ${
+										calculations.streetPremiumPct === null
+											? 'text-[#716F6F]'
+											: calculations.streetPremiumPct > 0 ? 'text-red-600' : 'text-emerald-600'
+									}`}>
+										{calculations.streetPremiumPct === null
+											? 'n/a'
+											: `${calculations.streetPremiumPct > 0 ? '+' : ''}${calculations.streetPremiumPct.toFixed(0)}%`}
+									</p>
+									<p className="text-[11px] font-mono tabular-nums text-[#8C8C8C] mt-1">consumer tier averages +28%</p>
+								</div>
+								<div className="rounded-lg border border-[#E3E3E7] bg-[#FAFAFA] p-4">
+									<p className="text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-[#71717A]">Power Draw (TDP)</p>
+									<p className="text-lg font-black text-amber-600 mt-1 font-mono tabular-nums">{activeGpu.tdp}W</p>
+									<p className="text-[11px] font-mono tabular-nums text-[#8C8C8C] mt-1">+250W chassis base</p>
+								</div>
+								<div className="rounded-lg border border-[#E3E3E7] bg-[#FAFAFA] p-4">
+									<p className="text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-[#71717A]">VRAM / Bandwidth</p>
+									<p className="text-lg font-black text-[#111114] mt-1 font-mono tabular-nums">{activeGpu.vram}</p>
+									<p className="text-[11px] font-mono tabular-nums text-[#8C8C8C] mt-1">{activeGpu.bandwidth || 'not published'}</p>
+								</div>
+							</div>
+
+							{activeGpu.marketNote && (
+								<p className="text-xs font-semibold text-[#5A7A8F] bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
+									{activeGpu.marketNote}
+								</p>
+							)}
+
+							{/* Sub card: 3-Year Resale Value % Slider */}
+							<div className="bg-white border border-[#E3E3E7] rounded-lg p-5 sm:p-6 space-y-3.5">
+								<div className="flex justify-between items-center text-[13px] font-semibold text-[#3F3F46]">
+									<span>3-Year Hardware Resale Value (%)</span>
+									<InteractiveBadge
+										value={resalePercent}
+										min={0}
+										max={50}
+										step={5}
+										unit="%"
+										onChange={setResalePercent}
+									/>
+								</div>
+								<CustomSlider
 									min={0}
 									max={50}
 									step={5}
-									unit="%"
+									value={resalePercent}
 									onChange={setResalePercent}
 								/>
+								<div className="flex justify-between text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-[#71717A] font-mono tabular-nums">
+									<span>0% (Full loss)</span>
+									<span>20% (Default)</span>
+									<span>50% (High return)</span>
+								</div>
+								<p className="text-xs font-semibold text-emerald-700 font-mono tabular-nums mt-1 pt-1 border-t border-[#E3E3E7]">
+									Estimated Salvage Recovery: {formatCurrency(calculations.resaleValue)} after 36 months
+								</p>
 							</div>
-							<CustomSlider
-								min={0}
-								max={50}
-								step={5}
-								value={resalePercent}
-								onChange={setResalePercent}
-							/>
-							<div className="flex justify-between text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-[#71717A] font-mono tabular-nums">
-								<span>0% (Full loss)</span>
-								<span>20% (Default)</span>
-								<span>50% (High return)</span>
-							</div>
-							<p className="text-xs font-semibold text-emerald-700 font-mono tabular-nums mt-1 pt-1 border-t border-[#E3E3E7]">
-								Estimated Salvage Recovery: {formatCurrency(calculations.resaleValue)} after 36 months
-							</p>
-						</div>
 
-						{/* Sub card: Annual Cost of Capital / Opportunity Cost (%) Slider */}
-						<div className="bg-white border border-[#E3E3E7] rounded-lg p-5 sm:p-6 space-y-3.5">
-							<div className="flex justify-between items-center text-[13px] font-semibold text-[#3F3F46]">
-								<span>Cost of Capital / Interest Rate (%/yr)</span>
-								<InteractiveBadge
-									value={costOfCapitalPercent}
+							{/* Sub card: Annual Cost of Capital / Opportunity Cost (%) Slider */}
+							<div className="bg-white border border-[#E3E3E7] rounded-lg p-5 sm:p-6 space-y-3.5">
+								<div className="flex justify-between items-center text-[13px] font-semibold text-[#3F3F46]">
+									<span>Cost of Capital / Interest Rate (%/yr)</span>
+									<InteractiveBadge
+										value={costOfCapitalPercent}
+										min={0}
+										max={15}
+										step={0.5}
+										unit="%"
+										onChange={setCostOfCapitalPercent}
+									/>
+								</div>
+								<CustomSlider
 									min={0}
 									max={15}
 									step={0.5}
-									unit="%"
+									value={costOfCapitalPercent}
 									onChange={setCostOfCapitalPercent}
 								/>
+								<div className="flex justify-between text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-[#71717A] font-mono tabular-nums">
+									<span>0% (Cash/Zero cost)</span>
+									<span>5% (Treasury Yield)</span>
+									<span>15% (High Debt/WACC)</span>
+								</div>
+								<p className="text-xs font-semibold text-amber-700 font-mono tabular-nums mt-1 pt-1 border-t border-[#E3E3E7]">
+									Opportunity Cost of Locked CapEx: +{formatCurrency(calculations.opportunityCost)} over {timePeriodMonths} mo
+								</p>
 							</div>
-							<CustomSlider
-								min={0}
-								max={15}
-								step={0.5}
-								value={costOfCapitalPercent}
-								onChange={setCostOfCapitalPercent}
-							/>
-							<div className="flex justify-between text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-[#71717A] font-mono tabular-nums">
-								<span>0% (Cash/Zero cost)</span>
-								<span>5% (Treasury Yield)</span>
-								<span>15% (High Debt/WACC)</span>
-							</div>
-							<p className="text-xs font-semibold text-amber-700 font-mono tabular-nums mt-1 pt-1 border-t border-[#E3E3E7]">
-								Opportunity Cost of Locked CapEx: +{formatCurrency(calculations.opportunityCost)} over {timePeriodMonths} mo
-							</p>
-						</div>
 
-						{/* Sub card: System components price slider */}
-						<div className="bg-white border border-[#E3E3E7] rounded-lg p-5 sm:p-6 space-y-3.5">
-							<div className="flex justify-between items-center text-[13px] font-semibold text-[#3F3F46]">
-								<span>System components (CPU, RAM, Motherboard, etc.)</span>
-								<InteractiveBadge
-									value={systemCost}
+							{/* Sub card: System components price slider */}
+							<div className="bg-white border border-[#E3E3E7] rounded-lg p-5 sm:p-6 space-y-3.5">
+								<div className="flex justify-between items-center text-[13px] font-semibold text-[#3F3F46]">
+									<span>System components (CPU, RAM, Motherboard, etc.)</span>
+									<InteractiveBadge
+										value={systemCost}
+										min={0}
+										max={5000}
+										step={50}
+										prefix="$"
+										onChange={setSystemCost}
+									/>
+								</div>
+								<CustomSlider
 									min={0}
 									max={5000}
 									step={50}
-									prefix="$"
+									value={systemCost}
 									onChange={setSystemCost}
 								/>
+								<div className="flex justify-between text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-[#71717A] font-mono tabular-nums">
+									<span>$0</span>
+									<span>$5,000</span>
+								</div>
 							</div>
-							<CustomSlider
-								min={0}
-								max={5000}
-								step={50}
-								value={systemCost}
-								onChange={setSystemCost}
-							/>
-							<div className="flex justify-between text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-[#71717A] font-mono tabular-nums">
-								<span>$0</span>
-								<span>$5,000</span>
-							</div>
-						</div>
 
-						{/* Sub card: Electricity Rate Slider */}
-						<div className="bg-white border border-[#E3E3E7] rounded-lg p-5 sm:p-6 space-y-3.5">
-							<div className="flex justify-between items-center text-[13px] font-semibold text-[#3F3F46]">
-								<span>Local Electricity Rate</span>
-								<InteractiveBadge
-									value={electricityRate}
+							{/* Sub card: Electricity Rate Slider */}
+							<div className="bg-white border border-[#E3E3E7] rounded-lg p-5 sm:p-6 space-y-3.5">
+								<div className="flex justify-between items-center text-[13px] font-semibold text-[#3F3F46]">
+									<span>Local Electricity Rate</span>
+									<InteractiveBadge
+										value={electricityRate}
+										min={0.05}
+										max={0.60}
+										step={0.01}
+										prefix="$"
+										unit="/kWh"
+										onChange={setElectricityRate}
+									/>
+								</div>
+								<CustomSlider
 									min={0.05}
 									max={0.60}
 									step={0.01}
-									prefix="$"
-									unit="/kWh"
+									value={electricityRate}
 									onChange={setElectricityRate}
 								/>
-							</div>
-							<CustomSlider
-								min={0.05}
-								max={0.60}
-								step={0.01}
-								value={electricityRate}
-								onChange={setElectricityRate}
-							/>
-							<div className="flex justify-between text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-[#71717A] font-mono tabular-nums">
-								<span>$0.05/kWh</span>
-								<span>$0.60/kWh</span>
-							</div>
-						</div>
-					</div>
-
-					{/* Select Cloud Provider Card */}
-					<div className="bg-white border border-[#E3E3E7] rounded-lg p-6 sm:p-7 space-y-7">
-						<div className="flex items-center gap-3 border-b border-[#E3E3E7] pb-4">
-							<Cloud className="h-4 w-4 shrink-0 text-[#111114]" strokeWidth={1.75} />
-							<h3 className="text-[12px] font-mono font-bold uppercase tracking-[0.18em] text-[#111114]">Select Cloud Provider &amp; GPU</h3>
-						</div>
-
-						<div>
-							<label htmlFor="cloud-provider-select" className="sr-only">Compare Cloud Provider & GPU</label>
-							<select
-								id="cloud-provider-select"
-								value={selectedProviderId}
-								onChange={(e) => setSelectedProviderId(e.target.value)}
-								className="w-full rounded-lg border border-[#E3E3E7] bg-white px-4 py-3 text-sm font-bold text-[#111114] outline-none focus:border-[#8A5A12] cursor-pointer"
-							>
-								{CLOUD_PROVIDERS_EXPLORER.map(provider => (
-									<optgroup key={provider.id} label={provider.name}>
-										{provider.gpus.map((gpu) => {
-											const presetId = `${provider.id}-${gpu.gpuModel.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
-											return (
-												<option key={presetId} value={presetId}>
-													{gpu.gpuModel} ({gpu.vram}) — ${gpu.rate.toFixed(2)}/hr
-												</option>
-											);
-										})}
-									</optgroup>
-								))}
-							</select>
-						</div>
-
-						{/* Multi-GPU Cloud Quantity Selector & Storage size slider */}
-						<div className="bg-white border border-[#E3E3E7] rounded-lg p-5 space-y-5">
-							<div className="space-y-2">
-								<div className="flex justify-between items-center text-[13px] font-semibold text-[#3F3F46]">
-									<span>Number of Cloud GPUs to Rent</span>
-									<div className="flex gap-2">
-										{[1, 2, 4, 8].map((qty) => (
-											<button
-												key={qty}
-												type="button"
-												onClick={() => setCloudGpuCount(qty)}
-												className={`px-3 py-1 rounded-lg text-xs font-mono tabular-nums font-extrabold transition cursor-pointer ${
-													cloudGpuCount === qty
-														? 'bg-[#111114] text-white'
-														: 'bg-white border border-[#D6D6DB] text-[#716F6F] hover:text-[#111114]'
-												}`}
-											>
-												{qty}x
-											</button>
-										))}
-									</div>
+								<div className="flex justify-between text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-[#71717A] font-mono tabular-nums">
+									<span>$0.05/kWh</span>
+									<span>$0.60/kWh</span>
 								</div>
-								<p className="text-xs font-semibold text-cyan-700 font-mono tabular-nums">
-									Effective Hourly Rate: {cloudGpuCount}x @ ${activeProvider.rate.toFixed(2)} = ${calculations.effectiveCloudRate.toFixed(2)}/hr
+							</div>
+						</div>
+
+						{/* Operating cost model card */}
+						<div className="bg-white border border-[#E3E3E7] rounded-lg p-6 space-y-5 border-l-4 border-l-cyan-600">
+							<div className="flex items-center gap-3 border-b border-[#E3E3E7] pb-4">
+								<Receipt className="h-4 w-4 shrink-0 text-[#111114]" strokeWidth={1.75} />
+								<h3 className="text-[12px] font-mono font-bold uppercase tracking-[0.18em] text-[#111114]">On-premise running cost</h3>
+							</div>
+
+							{/* NVIDIA AI Enterprise licensing */}
+							<label className="flex items-start gap-3 cursor-pointer">
+								<input
+									type="checkbox"
+									checked={softwareLicensingOn}
+									onChange={(e) => setSoftwareLicensingOn(e.target.checked)}
+									className="mt-0.5 h-4 w-4 shrink-0 accent-[#111114] cursor-pointer"
+								/>
+								<span className="min-w-0">
+									<span className="block text-sm font-bold text-[#111114]">NVIDIA AI Enterprise licence</span>
+									<span className="mt-0.5 block text-xs font-medium text-[#716F6F] leading-5">
+										{needsNvaie(activeGpu)
+											? `${formatCurrency(nvaiePrice.rate)}/GPU/yr at the ${nvaiePrice.label} tier × ${activeGpu.gpus} GPU${activeGpu.gpus > 1 ? 's' : ''} in this system.`
+											: 'Not required by this part. The toggle bills NVIDIA data-center and certified workstation accelerators only.'}
+									</span>
+								</span>
+							</label>
+
+							{/* Fleet size drives the volume tier */}
+							<div className="flex justify-between items-center gap-3 text-[13px] font-semibold text-[#3F3F46]">
+								<span className="leading-5">GPUs under management<span className="block text-[11px] font-mono tabular-nums font-semibold text-[#8C8C8C]">sets the NVAIE volume tier</span></span>
+								<InteractiveBadge
+									value={fleetGpuCount}
+									min={1}
+									max={5000}
+									step={1}
+									unit="gpus"
+									onChange={setFleetGpuCount}
+								/>
+							</div>
+							<p className="text-[11px] font-mono tabular-nums font-semibold text-[#3F3F46] bg-[#FAFAFA] border border-[#E3E3E7] rounded-lg px-3 py-2">
+								Tier in force: {nvaiePrice.label} — {formatCurrency(nvaiePrice.rate)}/GPU/yr. Volume tiers start at 100 GPUs.
+							</p>
+
+							<div className="border-t border-[#E3E3E7] pt-4 space-y-3">
+								<div className="flex justify-between items-center gap-3 text-[13px] font-semibold text-[#3F3F46]">
+									<span className="leading-5">Maintenance reserve<span className="block text-[11px] font-mono tabular-nums font-semibold text-[#8C8C8C]">% of hardware cost per year</span></span>
+									<InteractiveBadge
+										value={maintenanceRatePercent}
+										min={0}
+										max={20}
+										step={0.5}
+										unit="%"
+										onChange={setMaintenanceRatePercent}
+									/>
+								</div>
+								<CustomSlider
+									min={0}
+									max={20}
+									step={0.5}
+									value={maintenanceRatePercent}
+									onChange={setMaintenanceRatePercent}
+								/>
+								<p className="text-[11px] font-mono tabular-nums font-semibold text-[#8C8C8C]">
+									Extended 3-year OEM coverage prices at ~8% of system cost; claim rates are climbing.
 								</p>
 							</div>
 
 							<div className="border-t border-[#E3E3E7] pt-4 space-y-3">
-								<div className="flex justify-between items-center text-[13px] font-semibold text-[#3F3F46]">
-									<span>Cloud Storage Size</span>
+								<div className="flex justify-between items-center gap-3 text-[13px] font-semibold text-[#3F3F46]">
+									<span className="leading-5">Rack commissioning<span className="block text-[11px] font-mono tabular-nums font-semibold text-[#8C8C8C]">one-time facility & integration</span></span>
 									<InteractiveBadge
-										value={storageSizeGb}
-										min={10}
-										max={1200}
-										step={10}
-										unit="GB"
-										onChange={setStorageSizeGb}
+										value={facilityCost}
+										min={0}
+										max={50000}
+										step={250}
+										prefix="$"
+										onChange={setFacilityCost}
 									/>
 								</div>
 								<CustomSlider
-									min={10}
-									max={1200}
-									step={10}
-									value={storageSizeGb}
-									onChange={setStorageSizeGb}
-								/>
-								<div className="flex justify-between text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-[#71717A] font-mono tabular-nums">
-									<span>10 GB</span>
-									<span>1,200 GB</span>
-								</div>
-							</div>
-						</div>
-
-						<div className="rounded-lg border border-[#E3E3E7] bg-[#FAFAFA] p-4 sm:p-5 space-y-3.5">
-							<div className="flex justify-between text-sm">
-								<span className="font-semibold text-[#8C8C8C]">Provider:</span>
-								<span className="font-bold text-[#111114]">{activeProvider.providerName}</span>
-							</div>
-							<div className="flex justify-between text-sm">
-								<span className="font-semibold text-[#8C8C8C]">Billing Model:</span>
-								<span className="font-bold text-slate-800">
-									{CLOUD_PROVIDERS_EXPLORER.find(p => p.id === activeProvider.providerId)?.billingUnit}
-								</span>
-							</div>
-							<div className="flex justify-between text-sm">
-								<span className="font-semibold text-[#8C8C8C]">Network Egress:</span>
-								<span className="font-bold text-emerald-600">
-									{CLOUD_PROVIDERS_EXPLORER.find(p => p.id === activeProvider.providerId)?.egress}
-								</span>
-							</div>
-							<div className="flex justify-between text-sm">
-								<span className="font-semibold text-[#8C8C8C]">Storage rate:</span>
-								<span className="font-bold font-mono tabular-nums text-[#111114]">
-									${activeProvider.storageRate.toFixed(2)}/GB/mo
-								</span>
-							</div>
-						</div>
-					</div>
-				</div>
-
-				{/* Right Column: Output / Verdict Panels */}
-				<div className="space-y-6">
-					{/* Operating cost model card */}
-					<div className="bg-white border border-[#E3E3E7] rounded-lg p-6 space-y-5">
-						<div className="flex items-center gap-3 border-b border-[#E3E3E7] pb-4">
-							<Receipt className="h-4 w-4 shrink-0 text-[#111114]" strokeWidth={1.75} />
-							<h3 className="text-[12px] font-mono font-bold uppercase tracking-[0.18em] text-[#111114]">Operating Cost Model</h3>
-						</div>
-
-						{/* NVIDIA AI Enterprise licensing */}
-						<label className="flex items-start gap-3 cursor-pointer">
-							<input
-								type="checkbox"
-								checked={softwareLicensingOn}
-								onChange={(e) => setSoftwareLicensingOn(e.target.checked)}
-								className="mt-0.5 h-4 w-4 shrink-0 accent-[#111114] cursor-pointer"
-							/>
-							<span className="min-w-0">
-								<span className="block text-sm font-bold text-[#111114]">NVIDIA AI Enterprise licence</span>
-								<span className="mt-0.5 block text-xs font-medium text-[#716F6F] leading-5">
-									{needsNvaie(activeGpu)
-										? `${formatCurrency(nvaiePrice.rate)}/GPU/yr at the ${nvaiePrice.label} tier × ${activeGpu.gpus} GPU${activeGpu.gpus > 1 ? 's' : ''} in this system.`
-										: 'Not required by this part. The toggle bills NVIDIA data-center and certified workstation accelerators only.'}
-								</span>
-							</span>
-						</label>
-
-						{/* Fleet size drives the volume tier */}
-						<div className="flex justify-between items-center gap-3 text-[13px] font-semibold text-[#3F3F46]">
-							<span className="leading-5">GPUs under management<span className="block text-[11px] font-mono tabular-nums font-semibold text-[#8C8C8C]">sets the NVAIE volume tier</span></span>
-							<InteractiveBadge
-								value={fleetGpuCount}
-								min={1}
-								max={5000}
-								step={1}
-								unit="gpus"
-								onChange={setFleetGpuCount}
-							/>
-						</div>
-						<p className="text-[11px] font-mono tabular-nums font-semibold text-[#3F3F46] bg-[#FAFAFA] border border-[#E3E3E7] rounded-lg px-3 py-2">
-							Tier in force: {nvaiePrice.label} — {formatCurrency(nvaiePrice.rate)}/GPU/yr. Volume tiers start at 100 GPUs.
-						</p>
-
-						<div className="border-t border-[#E3E3E7] pt-4 space-y-3">
-							<div className="flex justify-between items-center gap-3 text-[13px] font-semibold text-[#3F3F46]">
-								<span className="leading-5">Maintenance reserve<span className="block text-[11px] font-mono tabular-nums font-semibold text-[#8C8C8C]">% of hardware cost per year</span></span>
-								<InteractiveBadge
-									value={maintenanceRatePercent}
-									min={0}
-									max={20}
-									step={0.5}
-									unit="%"
-									onChange={setMaintenanceRatePercent}
-								/>
-							</div>
-							<CustomSlider
-								min={0}
-								max={20}
-								step={0.5}
-								value={maintenanceRatePercent}
-								onChange={setMaintenanceRatePercent}
-							/>
-							<p className="text-[11px] font-mono tabular-nums font-semibold text-[#8C8C8C]">
-								Extended 3-year OEM coverage prices at ~8% of system cost; claim rates are climbing.
-							</p>
-						</div>
-
-						<div className="border-t border-[#E3E3E7] pt-4 space-y-3">
-							<div className="flex justify-between items-center gap-3 text-[13px] font-semibold text-[#3F3F46]">
-								<span className="leading-5">Rack commissioning<span className="block text-[11px] font-mono tabular-nums font-semibold text-[#8C8C8C]">one-time facility & integration</span></span>
-								<InteractiveBadge
-									value={facilityCost}
 									min={0}
 									max={50000}
 									step={250}
-									prefix="$"
+									value={facilityCost}
 									onChange={setFacilityCost}
 								/>
+								<p className="text-[11px] font-mono tabular-nums font-semibold text-[#8C8C8C]">
+									Commissioning runs $4,950–$7,500 per rack. Liquid-cooling retrofits are excluded.
+								</p>
 							</div>
-							<CustomSlider
-								min={0}
-								max={50000}
-								step={250}
-								value={facilityCost}
-								onChange={setFacilityCost}
-							/>
-							<p className="text-[11px] font-mono tabular-nums font-semibold text-[#8C8C8C]">
-								Commissioning runs $4,950–$7,500 per rack. Liquid-cooling retrofits are excluded.
+
+						</div>
+					</div>
+					<div className="space-y-6">
+						{/* Track 2 — what renting costs */}
+						<div className="rounded-lg border border-[#CFE3EA] border-l-4 border-l-cyan-600 bg-[#F5FAFC] px-4 py-3 flex items-end justify-between gap-4">
+							<div className="min-w-0">
+								<p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-cyan-800">Rent it · cloud</p>
+								<p className="mt-1 text-xs font-medium leading-5 text-[#52525B]">Rate × hours, plus storage and licence surcharges.</p>
+							</div>
+							<p className="shrink-0 font-mono text-lg font-bold tabular-nums text-[#111114]">
+								${calculations.cloudCostPerHour.toFixed(2)}<span className="text-[11px] font-semibold text-[#52525B]">/hr</span>
 							</p>
 						</div>
+						{/* Select Cloud Provider Card */}
+						<div className="bg-white border border-[#E3E3E7] rounded-lg p-6 sm:p-7 space-y-7 border-l-4 border-l-emerald-600">
+							<div className="flex items-center gap-3 border-b border-[#E3E3E7] pb-4">
+								<Cloud className="h-4 w-4 shrink-0 text-[#111114]" strokeWidth={1.75} />
+								<h3 className="text-[12px] font-mono font-bold uppercase tracking-[0.18em] text-[#111114]">Rented capacity</h3>
+							</div>
 
+							<div>
+								<label htmlFor="cloud-provider-select" className="sr-only">Compare Cloud Provider & GPU</label>
+								<select
+									id="cloud-provider-select"
+									value={selectedProviderId}
+									onChange={(e) => setSelectedProviderId(e.target.value)}
+									className="w-full rounded-lg border border-[#E3E3E7] bg-white px-4 py-3 text-sm font-bold text-[#111114] outline-none focus:border-[#8A5A12] cursor-pointer"
+								>
+									{CLOUD_PROVIDERS_EXPLORER.map(provider => (
+										<optgroup key={provider.id} label={provider.name}>
+											{provider.gpus.map((gpu) => {
+												const presetId = `${provider.id}-${gpu.gpuModel.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+												return (
+													<option key={presetId} value={presetId}>
+														{gpu.gpuModel} ({gpu.vram}) — ${gpu.rate.toFixed(2)}/hr
+													</option>
+												);
+											})}
+										</optgroup>
+									))}
+								</select>
+							</div>
+
+							{/* Multi-GPU Cloud Quantity Selector & Storage size slider */}
+							<div className="bg-white border border-[#E3E3E7] rounded-lg p-5 space-y-5">
+								<div className="space-y-2">
+									<div className="flex justify-between items-center text-[13px] font-semibold text-[#3F3F46]">
+										<span>Number of Cloud GPUs to Rent</span>
+										<div className="flex gap-2">
+											{[1, 2, 4, 8].map((qty) => (
+												<button
+													key={qty}
+													type="button"
+													onClick={() => setCloudGpuCount(qty)}
+													className={`px-3 py-1 rounded-lg text-xs font-mono tabular-nums font-extrabold transition cursor-pointer ${
+														cloudGpuCount === qty
+															? 'bg-[#111114] text-white'
+															: 'bg-white border border-[#D6D6DB] text-[#716F6F] hover:text-[#111114]'
+													}`}
+												>
+													{qty}x
+												</button>
+											))}
+										</div>
+									</div>
+									<p className="text-xs font-semibold text-cyan-700 font-mono tabular-nums">
+										Effective Hourly Rate: {cloudGpuCount}x @ ${activeProvider.rate.toFixed(2)} = ${calculations.effectiveCloudRate.toFixed(2)}/hr
+									</p>
+								</div>
+
+								<div className="border-t border-[#E3E3E7] pt-4 space-y-3">
+									<div className="flex justify-between items-center text-[13px] font-semibold text-[#3F3F46]">
+										<span>Cloud Storage Size</span>
+										<InteractiveBadge
+											value={storageSizeGb}
+											min={10}
+											max={1200}
+											step={10}
+											unit="GB"
+											onChange={setStorageSizeGb}
+										/>
+									</div>
+									<CustomSlider
+										min={10}
+										max={1200}
+										step={10}
+										value={storageSizeGb}
+										onChange={setStorageSizeGb}
+									/>
+									<div className="flex justify-between text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-[#71717A] font-mono tabular-nums">
+										<span>10 GB</span>
+										<span>1,200 GB</span>
+									</div>
+								</div>
+							</div>
+
+							<div className="rounded-lg border border-[#E3E3E7] bg-[#FAFAFA] p-4 sm:p-5 space-y-3.5">
+								<div className="flex justify-between text-sm">
+									<span className="font-semibold text-[#8C8C8C]">Provider:</span>
+									<span className="font-bold text-[#111114]">{activeProvider.providerName}</span>
+								</div>
+								<div className="flex justify-between text-sm">
+									<span className="font-semibold text-[#8C8C8C]">Billing Model:</span>
+									<span className="font-bold text-slate-800">
+										{CLOUD_PROVIDERS_EXPLORER.find(p => p.id === activeProvider.providerId)?.billingUnit}
+									</span>
+								</div>
+								<div className="flex justify-between text-sm">
+									<span className="font-semibold text-[#8C8C8C]">Network Egress:</span>
+									<span className="font-bold text-emerald-600">
+										{CLOUD_PROVIDERS_EXPLORER.find(p => p.id === activeProvider.providerId)?.egress}
+									</span>
+								</div>
+								<div className="flex justify-between text-sm">
+									<span className="font-semibold text-[#8C8C8C]">Storage rate:</span>
+									<span className="font-bold font-mono tabular-nums text-[#111114]">
+										${activeProvider.storageRate.toFixed(2)}/GB/mo
+									</span>
+								</div>
+							</div>
+						</div>
 						<div className="border-t border-[#E3E3E7] pt-4">
 							<label className="flex items-start gap-3 cursor-pointer">
 								<input
@@ -1373,6 +1393,10 @@ export default function LocalVsCloudGpuCalculator() {
 							</label>
 						</div>
 					</div>
+
+					</div>
+				</div>
+				<div className="space-y-6">
 
 					{/* Cost Analysis Card Styled like a Digital Receipt */}
 					<div className="bg-slate-50 border border-slate-200 rounded-lg p-6 space-y-6 relative overflow-hidden">
@@ -1648,8 +1672,6 @@ export default function LocalVsCloudGpuCalculator() {
 						</div>
 					</div>
 				</div>
-			</div>
-
 			{/* Interactive Break-Even & Renting vs Owning Chart Section */}
 			<div className="mt-12 bg-white border border-[#E3E3E7] rounded-lg p-6 sm:p-8 lg:p-10 space-y-7">
 				<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

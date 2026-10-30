@@ -556,14 +556,32 @@ img {
    re-pinned by *literal colour*, not by label role, so an element that states its own
    accent (the cyan-100 chip's text-cyan-800) keeps it.
    ───────────────────────────────────────────────────────────────────────────── */
-.instrument-surface [class*="text-[#8C8C8C]"],
-.instrument-surface .section-eyebrow,
-.instrument-surface .font-mono.text-xs,
-.instrument-surface .font-mono.text-\[0\.65rem\],
-.instrument-surface .font-mono.text-\[0\.68rem\],
-.instrument-surface .font-mono.text-\[0\.72rem\],
-.instrument-surface .font-mono.text-\[10px\] {
+/* The paper policy below darkens small mono type so it reads on white. Two kinds of
+   element must be exempt: anything that declares its own light ink (text-white and friends,
+   which is how a chip swaps to a dark selected state), and the dark verdict band, whose ink
+   is composed against #0E1116 rather than white. Without both exemptions the selected
+   horizon chip rendered #5f6b76 on #111114 — 3.46:1, under AA — because .font-mono.text-xs
+   matched it and !important beat the utility. */
+.instrument-surface :is([class*="text-[#8C8C8C]"], .section-eyebrow, .font-mono.text-xs,
+	.font-mono.text-\[0\.65rem\], .font-mono.text-\[0\.68rem\], .font-mono.text-\[0\.72rem\],
+	.font-mono.text-\[10px\]):not(.verdict-band, .verdict-band *, [class*="text-white"]) {
 	color: #5f6b76 !important; /* 5.45:1 on white, 4.86:1 on the cyan-100 chip */
+}
+
+/* Verdict band ink. The pin `.instrument-surface p { color: var(--paper-ink-2) }` is (0,1,1) and
+   would beat any Tailwind colour utility, so these are three classes deep and !important, like
+   every other ink rule that lands on a <p> in this file. Measured against #0E1116:
+     .vb-dim     #AEB6BF   8.8:1   captions, KPI labels
+     .vb-soft    #C9D0D6  11.8:1   body copy, the lead-in word
+     .vb-bright  #E7EBF0  14.0:1   figures inside the two comparison bars */
+.instrument-surface .verdict-band .vb-dim {
+	color: #aeb6bf !important;
+}
+.instrument-surface .verdict-band .vb-soft {
+	color: #c9d0d6 !important;
+}
+.instrument-surface .verdict-band .vb-bright {
+	color: #e7ebf0 !important;
 }
 
 /* Accent fills that carry white ink. Base and hover are both darkened, so the hover

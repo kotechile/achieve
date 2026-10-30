@@ -694,12 +694,12 @@ a {
   font-weight: 900 !important; /* font-black */
   font-family: var(--font-sans) !important;
 }
-:is(.paper, .instrument-surface) :is(h4, .text-xl, .text-lg) {
+:is(.paper, .instrument-surface) :is(h4, .text-xl, .text-lg):not(.verdict-band *) {
   color: #262626 !important; /* Charcoal dark gray */
   font-weight: 700 !important; /* font-bold */
   font-family: var(--font-sans) !important;
 }
-:is(.paper, .instrument-surface) :is(p, .text-base, .text-sm) {
+:is(.paper, .instrument-surface) :is(p, .text-base, .text-sm):not(.verdict-band *) {
   color: #716F6F !important;
   font-weight: 400 !important; /* font-normal */
 }
@@ -711,11 +711,14 @@ h1, .text-5xl, .text-6xl { font-weight: 800 !important; } /* font-extrabold */
 h2, h3, .text-3xl, .text-4xl { font-weight: 900 !important; } /* font-black */
 h4, .text-xl, .text-lg { font-weight: 700 !important; } /* font-bold */
 .section-eyebrow,
-.font-mono.text-xs,
-.font-mono.text-\[0\.65rem\],
-.font-mono.text-\[0\.68rem\],
-.font-mono.text-\[0\.72rem\],
-.font-mono.text-\[10px\] {
+/* Small mono type is grey by default — except where the element declares its own light ink,
+   which is how a chip renders its selected state on a dark ground. Without this exemption the
+   selected horizon chip painted #8C8C8C over #111114 and read as disabled. */
+.font-mono.text-xs:not([class*="text-white"]),
+.font-mono.text-\[0\.65rem\]:not([class*="text-white"]),
+.font-mono.text-\[0\.68rem\]:not([class*="text-white"]),
+.font-mono.text-\[0\.72rem\]:not([class*="text-white"]),
+.font-mono.text-\[10px\]:not([class*="text-white"]) {
   color: #8C8C8C !important;
   font-weight: 700 !important; /* font-bold */
   text-transform: uppercase !important;
