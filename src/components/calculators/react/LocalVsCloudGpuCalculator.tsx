@@ -563,7 +563,11 @@ export default function LocalVsCloudGpuCalculator() {
 
 	// Operating-cost model carried from the 2026 valuation report
 	const [softwareLicensingOn, setSoftwareLicensingOn] = useState<boolean>(true);
-	const [fleetGpuCount, setFleetGpuCount] = useState<number>(1);
+	// The owned count is asked for once (systems to buy, in the hardware card). Everything owned
+	// scales with it. This second field is only for GPUs managed outside this comparison, so the
+	// licence tier can be read off the whole estate without asking the same question twice.
+	const [ownedSystemCount, setOwnedSystemCount] = useState<number>(1);
+	const [fleetGpuCount, setFleetGpuCount] = useState<number>(0);
 	const [maintenanceRatePercent, setMaintenanceRatePercent] = useState<number>(5);
 	const [facilityCost, setFacilityCost] = useState<number>(0);
 	const [cloudNvaieSurcharge, setCloudNvaieSurcharge] = useState<boolean>(false);
@@ -588,7 +592,12 @@ export default function LocalVsCloudGpuCalculator() {
 	const activeGpu = useMemo(() => GPU_MODELS.find(g => g.id === selectedGpuId) || GPU_MODELS[0], [selectedGpuId]);
 	const activeProvider = useMemo(() => PRESET_FLAT_LIST.find(p => p.id === selectedProviderId) || PRESET_FLAT_LIST[0], [selectedProviderId]);
 
-	const nvaiePrice = useMemo(() => nvaieTier(fleetGpuCount), [fleetGpuCount]);
+	// One number, used everywhere: cards per system x systems bought.
+	const ownedGpus = ownedSystemCount * activeGpu.gpus;
+	// The licence tier is read off the whole estate, but seats are billed per owned GPU, so the
+	// estate can never be smaller than the build on screen.
+	const estateGpuCount = ownedGpus + fleetGpuCount;
+	const nvaiePrice = useMemo(() => nvaieTier(estateGpuCount), [estateGpuCount]);
 	const licensingApplies = softwareLicensingOn && needsNvaie(activeGpu);
 
 	// Quick Preset Handler
@@ -613,14 +622,18 @@ export default function LocalVsCloudGpuCalculator() {
 		const years = timePeriodMonths / 12;
 
 		// Local Cost Calculations. Facility integration sits in capex because it is paid once, at rack-in.
-		const gpuCost = activeGpu.cost;
-		const hardwareCost = gpuCost + systemCost + facilityCost;
-		const totalPowerDrawKw = (activeGpu.tdp + 250) / 1000; // 250W base system draw
+		// You are buying a SKU and a count, so every owned line carries the count: accelerators,
+		// chassis components, the power they draw, the seats they need. Commissioning does not,
+		// because it is a facility cost the reader sets for the room, not for one box.
+		const gpuCost = activeGpu.cost * ownedSystemCount;
+		const systemCostTotal = systemCost * ownedSystemCount;
+		const hardwareCost = gpuCost + systemCostTotal + facilityCost;
+		const totalPowerDrawKw = ((activeGpu.tdp + 250) * ownedSystemCount) / 1000; // 250W chassis base each
 		const electricityCost = totalHours * totalPowerDrawKw * electricityRate;
-		const maintenanceCost = (gpuCost + systemCost) * (maintenanceRatePercent / 100) * years;
+		const maintenanceCost = (gpuCost + systemCostTotal) * (maintenanceRatePercent / 100) * years;
 
 		// NVIDIA AI Enterprise is licensed per GPU per year, so an 8-GPU node bills eight seats.
-		const licensingCost = licensingApplies ? nvaiePrice.rate * activeGpu.gpus * years : 0;
+		const licensingCost = licensingApplies ? nvaiePrice.rate * ownedGpus * years : 0;
 
 		// Cost of Capital / Opportunity Cost of Upfront CapEx
 		const opportunityCost = hardwareCost * (costOfCapitalPercent / 100) * years;
@@ -644,9 +657,9 @@ export default function LocalVsCloudGpuCalculator() {
 		// Monthly rates for time series & break-even calculation
 		const monthlyLocalPowerAndMaint =
 			(monthlyHours * totalPowerDrawKw * electricityRate) +
-			((gpuCost + systemCost) * (maintenanceRatePercent / 100) / 12) +
+			((gpuCost + systemCostTotal) * (maintenanceRatePercent / 100) / 12) +
 			(hardwareCost * (costOfCapitalPercent / 100) / 12) +
-			(licensingApplies ? (nvaiePrice.rate * activeGpu.gpus) / 12 : 0);
+			(licensingApplies ? (nvaiePrice.rate * ownedGpus) / 12 : 0);
 		const monthlyCloudTotal = (monthlyHours * effectiveCloudRate) + (storageSizeGb * activeProvider.storageRate);
 
 		// Search for Break-Even month up to 84 months (7 years)
@@ -720,7 +733,7 @@ export default function LocalVsCloudGpuCalculator() {
 			chartMaxMonths,
 			streetPremiumPct: activeGpu.msrp ? ((gpuCost - activeGpu.msrp) / activeGpu.msrp) * 100 : null,
 			licensingShareOfCapex: hardwareCost > 0 ? (licensingCost / hardwareCost) * 100 : 0,
-			licensedSeats: licensingApplies ? activeGpu.gpus : 0,
+			licensedSeats: licensingApplies ? ownedGpus : 0,
 			composition: [
 				{ key: 'hardware', label: 'Hardware', value: hardwareCost, swatch: 'bg-[#111114]' },
 				{ key: 'licences', label: 'Licences', value: licensingCost, swatch: 'bg-[#8A5A12]' },
@@ -729,7 +742,7 @@ export default function LocalVsCloudGpuCalculator() {
 				{ key: 'capital', label: 'Capital', value: opportunityCost, swatch: 'bg-[#D4D4D8]' }
 			]
 		};
-	}, [hoursPerDay, daysPerMonth, timePeriodMonths, electricityRate, storageSizeGb, systemCost, facilityCost, activeGpu, activeProvider, cloudGpuCount, resalePercent, costOfCapitalPercent, maintenanceRatePercent, licensingApplies, nvaiePrice, cloudNvaieSurcharge]);
+	}, [hoursPerDay, daysPerMonth, timePeriodMonths, electricityRate, storageSizeGb, systemCost, ownedSystemCount, ownedGpus, facilityCost, activeGpu, activeProvider, cloudGpuCount, resalePercent, costOfCapitalPercent, maintenanceRatePercent, licensingApplies, nvaiePrice, cloudNvaieSurcharge]);
 
 	return (
 		<>
@@ -1046,6 +1059,28 @@ export default function LocalVsCloudGpuCalculator() {
 								</div>
 							</div>
 
+							{/* The owned count, asked for once. Accelerators, chassis, power and seats all scale
+							   with it, and the licence tier further down reads off it — nothing asks twice. */}
+							<div className="mt-3 rounded-lg border border-[#D6D6DB] bg-white px-4 py-3 space-y-2">
+								<div className="flex items-baseline justify-between gap-4">
+									<span className="text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-[#71717A]">
+										Systems to buy
+									</span>
+									<InteractiveBadge
+										value={ownedSystemCount}
+										min={1}
+										max={64}
+										step={1}
+										unit="rigs"
+										onChange={setOwnedSystemCount}
+									/>
+								</div>
+								<p className="text-[11px] font-mono tabular-nums font-semibold text-[#52525B]">
+									{ownedGpus} × {activeGpu.vram} · {formatCurrency(activeGpu.cost * ownedSystemCount)} of accelerators
+									{licensingApplies ? ` · ${ownedGpus} NVAIE seat${ownedGpus > 1 ? 's' : ''}` : ''}
+								</p>
+							</div>
+
 							{activeGpu.marketNote && (
 								<p className="text-xs font-semibold text-[#5A7A8F] bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
 									{activeGpu.marketNote}
@@ -1185,7 +1220,7 @@ export default function LocalVsCloudGpuCalculator() {
 									<span className="block text-sm font-bold text-[#111114]">NVIDIA AI Enterprise licence</span>
 									<span className="mt-0.5 block text-xs font-medium text-[#716F6F] leading-5">
 										{needsNvaie(activeGpu)
-											? `${formatCurrency(nvaiePrice.rate)}/GPU/yr at the ${nvaiePrice.label} tier × ${activeGpu.gpus} GPU${activeGpu.gpus > 1 ? 's' : ''} in this system.`
+											? `${formatCurrency(nvaiePrice.rate)}/GPU/yr at the ${nvaiePrice.label} tier × ${ownedGpus} GPU${ownedGpus > 1 ? 's' : ''} in this build.`
 											: 'Not required by this part. The toggle bills NVIDIA data-center and certified workstation accelerators only.'}
 									</span>
 								</span>
@@ -1193,10 +1228,10 @@ export default function LocalVsCloudGpuCalculator() {
 
 							{/* Fleet size drives the volume tier */}
 							<div className="flex justify-between items-center gap-3 text-[13px] font-semibold text-[#3F3F46]">
-								<span className="leading-5">GPUs under management<span className="block text-[11px] font-mono tabular-nums font-semibold text-[#8C8C8C]">sets the NVAIE volume tier</span></span>
+								<span className="leading-5">GPUs elsewhere<span className="block text-[11px] font-mono tabular-nums font-semibold text-[#8C8C8C]">managed outside this build · tier reads {estateGpuCount}</span></span>
 								<InteractiveBadge
 									value={fleetGpuCount}
-									min={1}
+									min={0}
 									max={5000}
 									step={1}
 									unit="gpus"
@@ -1204,7 +1239,7 @@ export default function LocalVsCloudGpuCalculator() {
 								/>
 							</div>
 							<p className="text-[11px] font-mono tabular-nums font-semibold text-[#3F3F46] bg-[#FAFAFA] border border-[#E3E3E7] rounded-lg px-3 py-2">
-								Tier in force: {nvaiePrice.label} — {formatCurrency(nvaiePrice.rate)}/GPU/yr. Volume tiers start at 100 GPUs.
+								Tier in force: {nvaiePrice.label} — {formatCurrency(nvaiePrice.rate)}/GPU/yr, read off {estateGpuCount} GPU{estateGpuCount === 1 ? '' : 's'}.{fleetGpuCount > 0 ? ` That is ${ownedGpus} here plus ${fleetGpuCount} elsewhere.` : ' Volume tiers start at 100 GPUs.'}
 							</p>
 
 							<div className="border-t border-[#E3E3E7] pt-4 space-y-3">
@@ -1412,7 +1447,7 @@ export default function LocalVsCloudGpuCalculator() {
 						{/* Local Hardware Breakdown */}
 						<div className="space-y-3.5 pb-6 border-b border-dashed border-slate-250">
 							<p className="text-xs font-mono tabular-nums font-bold text-[#8C8C8C] uppercase tracking-[0.2em]">
-								LOCAL HARDWARE ({activeGpu.gpus > 1 ? `${activeGpu.gpus} GPUs · ${activeGpu.vram} total` : `1x ${activeGpu.vram}`})
+								LOCAL HARDWARE ({ownedSystemCount > 1 ? `${ownedSystemCount} systems · ${ownedGpus} GPUs · ${activeGpu.vram} each` : ownedGpus > 1 ? `${ownedGpus} GPUs · ${activeGpu.vram} each` : `1x ${activeGpu.vram}`})
 							</p>
 							
 							<div className="flex justify-between items-center text-sm text-[#716F6F]">
