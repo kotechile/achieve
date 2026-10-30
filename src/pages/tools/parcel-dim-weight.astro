@@ -1,5 +1,6 @@
 ---
 import CalculatorShell from '../../components/calculators/CalculatorShell.astro';
+import YouTubeEmbed from '../../components/YouTubeEmbed.astro';
 import RelatedArticleCard from '../../components/calculators/RelatedArticleCard.astro';
 import ParcelDimCalculator from '../../components/calculators/react/ParcelDimCalculator';
 import JsonLd from '../../components/JsonLd.astro';
@@ -44,6 +45,35 @@ const post = await fetchPostBySlug('parcelproof-stop-bleeding-28-on-carrier-invo
 	{schema ? <JsonLd slot="head" data={schema} /> : null}
 
 	<CalculatorShell eyebrow="Logistics" title="Parcel DIM-Weight Calculator" description={description}>
+		<div slot="film" class="mt-10">
+			<div class="ai-panel">
+				<div
+					class="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--ai-line)] px-4 py-3 font-mono text-[0.62rem] uppercase tracking-[0.2em] text-[var(--ai-ink-4)]"
+				>
+					<span>Launch film · the divisor and the carton</span>
+					<span class="flex items-center gap-2">
+						<span class="ai-lamp" aria-hidden="true"></span>
+						24s · 1920×1080 · narrated
+					</span>
+				</div>
+				<YouTubeEmbed
+					id="4M-gaFxNGtU"
+					poster="/media/tool-videos/parcel-dim-weight-brag-poster.jpg"
+					label="Parcel DIM Weight — 24s"
+					seconds={24}
+				/>
+				<div class="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--ai-line)] px-4 py-3">
+					<p class="max-w-xl text-xs leading-6 text-[var(--ai-ink-2)]">
+						A 9.2 lb box bills at 22 lb. Only the divisor and the carton come back; the surcharges do not.
+					</p>
+					<span class="flex items-center gap-5 font-mono text-[0.62rem] uppercase tracking-[0.2em]">
+						<a class="text-[var(--ai-link)] hover:underline" href="https://youtu.be/4M-gaFxNGtU" target="_blank" rel="noopener">YouTube</a>
+						<a class="text-[var(--ai-ink-3)] hover:text-[var(--ai-signal)]" href="#calculator">Model your own numbers ↓</a>
+					</span>
+				</div>
+			</div>
+		</div>
+
 		<div slot="calculator">
 			<ParcelDimCalculator client:load />
 		</div>

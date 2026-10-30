@@ -1,5 +1,6 @@
 ---
 import CalculatorShell from '../../components/calculators/CalculatorShell.astro';
+import YouTubeEmbed from '../../components/YouTubeEmbed.astro';
 import RelatedArticleCard from '../../components/calculators/RelatedArticleCard.astro';
 import AgenticBreakevenCalculator from '../../components/calculators/react/AgenticBreakevenCalculator';
 import JsonLd from '../../components/JsonLd.astro';
@@ -51,6 +52,35 @@ const post = await fetchPostBySlug('your-retrieval-misses-57');
 		title="Agentic Workflow Breakeven Calculator"
 		description={description}
 	>
+		<div slot="film" class="mt-10">
+			<div class="ai-panel">
+				<div
+					class="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--ai-line)] px-4 py-3 font-mono text-[0.62rem] uppercase tracking-[0.2em] text-[var(--ai-ink-4)]"
+				>
+					<span>Launch film · the invoice, not the token price</span>
+					<span class="flex items-center gap-2">
+						<span class="ai-lamp" aria-hidden="true"></span>
+						25s · 1920×1080 · narrated
+					</span>
+				</div>
+				<YouTubeEmbed
+					id="FO8VNoODY9E"
+					poster="/media/tool-videos/agentic-workflow-breakeven-brag-poster.jpg"
+					label="Agentic Workflow Breakeven — 25s"
+					seconds={25}
+				/>
+				<div class="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--ai-line)] px-4 py-3">
+					<p class="max-w-xl text-xs leading-6 text-[var(--ai-ink-2)]">
+						At the published defaults the agent costs $19.90 a run against $13.50 by hand. Every figure on screen is this calculator's own output.
+					</p>
+					<span class="flex items-center gap-5 font-mono text-[0.62rem] uppercase tracking-[0.2em]">
+						<a class="text-[var(--ai-link)] hover:underline" href="https://youtu.be/FO8VNoODY9E" target="_blank" rel="noopener">YouTube</a>
+						<a class="text-[var(--ai-ink-3)] hover:text-[var(--ai-signal)]" href="#calculator">Model your own numbers ↓</a>
+					</span>
+				</div>
+			</div>
+		</div>
+
 		<div slot="calculator">
 			<AgenticBreakevenCalculator client:load />
 		</div>
