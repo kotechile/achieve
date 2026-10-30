@@ -1,16 +1,11 @@
-TITLE
-Your stock records are 65% wrong. That is $11.1m of buffer
+TITLE (62 chars)
+65% of your stock records are wrong. That is $11.1m of buffer.
 
 DESCRIPTION
-The engine's own output, in 24.1 seconds. Every figure is the calculator's default scenario —
-change the inputs on the page and the answer moves with them.
+Safety stock gets sized against demand and lead time, almost never against the error in the records the system reads. At 65% record variance that error adds 184 units per SKU: $11.1m of working capital, $2.4m a year to hold, and $5.4m of margin lost where the shelf is empty and the ERP says it is not.
 
 Run it: https://aichieve.net/tools/inventory-record-accuracy/
-
 Free, runs entirely in your browser. Nothing is uploaded and nothing is estimated on your behalf.
 
 TAGS
-inventory accuracy, safety stock, phantom inventory
-
-VOICE / MUSIC
-Kokoro af_nova · happy-beats-business-moves-vol-11
+inventory record accuracy, safety stock calculator, phantom inventory, working capital buffer, inventory accuracy rate

@@ -1,16 +1,11 @@
-TITLE
-A $45 unit delivers at $23.64. Here is every step
+TITLE (52 chars)
+A $45 unit delivers at $23.64. Here is every dollar.
 
 DESCRIPTION
-The engine's own output, in 22.7 seconds. Every figure is the calculator's default scenario —
-change the inputs on the page and the answer moves with them.
+Goods at FOB, the customs assist nobody counts, duty plus 301 plus MPF and HMF, ocean freight, capital in transit, returns and cost to serve. What is left is $21.36 of contribution — and the $22,000 tool you paid offshore is dutiable on every unit it makes.
 
 Run it: https://aichieve.net/tools/total-delivered-cost/
-
 Free, runs entirely in your browser. Nothing is uploaded and nothing is estimated on your behalf.
 
 TAGS
-landed cost, total delivered cost, customs assist, section 301
-
-VOICE / MUSIC
-Kokoro am_adam · happy-beats-business-moves-vol-12
+landed cost calculator, total delivered cost, customs assist, section 301 tariff, contribution margin import

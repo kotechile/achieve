@@ -1,16 +1,11 @@
-TITLE
-A 9.2 lb box bills at 22 lb. Twelve pounds is air
+TITLE (50 chars)
+A 9.2 lb box bills at 22 lb. Twelve pounds is air.
 
 DESCRIPTION
-The engine's own output, in 23.5 seconds. Every figure is the calculator's default scenario —
-change the inputs on the page and the answer moves with them.
+The divisor is the whole argument: 139 published, 166 negotiated, and one carton two inches shorter recovers $367k a year. The $931k of residential and delivery-area surcharge never comes back at all — this keeps the recoverable money and the structural cost in separate lines.
 
 Run it: https://aichieve.net/tools/parcel-dim-weight/
-
 Free, runs entirely in your browser. Nothing is uploaded and nothing is estimated on your behalf.
 
 TAGS
-dim weight, parcel surcharge, carrier invoice, billable weight
-
-VOICE / MUSIC
-Kokoro bf_isabella · happy-beats-business-moves-vol-10
+dim weight calculator, parcel surcharge audit, billable weight divisor, carton right sizing, carrier invoice leakage
