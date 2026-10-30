@@ -226,6 +226,7 @@ export const FOREIGN_POST_SLUGS_GENERATED = [
 	"your-llc-bill-75-until-2028",
 	"your-raise-dies-at-51-5-hours",
 	"your-screen-gap-999-vs-99",
+	"your-stock-gift-26180-never-taxed",
 	"zapier-notion-integration-calculate-your-tinkering-tax"
 ];
 export const FOREIGN_TARGETS = {
@@ -272,7 +273,8 @@ export const FOREIGN_TARGETS = {
 	"your-llc-bill-75-until-2028": "https://giniloh.com",
 	"your-raise-dies-at-51-5-hours": "https://giniloh.com",
 	"your-screen-gap-999-vs-99": "https://giniloh.com",
+	"your-stock-gift-26180-never-taxed": "https://giniloh.com",
 	"zapier-notion-integration-calculate-your-tinkering-tax": "https://giniloh.com"
 };
 export const GENERATED_FOR = "aichieve.net";
-export const GENERATED_AT = "2026-10-30T13:47:42.979Z";
+export const GENERATED_AT = "2026-10-30T17:22:49.034Z";
