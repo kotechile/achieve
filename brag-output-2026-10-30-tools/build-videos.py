@@ -67,7 +67,7 @@ FILMS = [
             "Tokens are eight cents. The audit and the rework are nineteen eighty-two.",
             "That puts the cliff at three point two percent failure.",
             "Above it, every point of failure costs more than the labour it removed.",
-            "AI-chieve dot net. Every number yours.",
+            "Ay-Eye-Cheeve dot net. Every number yours.",
         ],
     },
     {
@@ -96,7 +96,7 @@ FILMS = [
             "Re-slotting recovers two hundred eight thousand a year, with no capital.",
             "The vendor counts it twice, and leaves out maintenance and integration.",
             "Credited to the layout, the free re-slot takes most of the saving the machine is sold on.",
-            "AI-chieve dot net. Every number yours.",
+            "Ay-Eye-Cheeve dot net. Every number yours.",
         ],
     },
     {
@@ -125,7 +125,7 @@ FILMS = [
             "Demand explains two fifteen. The records add a hundred eighty-five.",
             "Phantom stock costs five point four million a year in margin.",
             "The buffer covers the record gap, not the demand.",
-            "AI-chieve dot net. Every number yours.",
+            "Ay-Eye-Cheeve dot net. Every number yours.",
         ],
     },
     {
@@ -157,7 +157,7 @@ FILMS = [
             "Twenty-two thousand of tooling is one dollar ten per unit, dutiable.",
             "The entry fee is eight hundred seventy-three, capped at six thirty-four.",
             "Cube, capital and returns each take a per-unit share.",
-            "AI-chieve dot net. Every number yours.",
+            "Ay-Eye-Cheeve dot net. Every number yours.",
         ],
     },
     {
@@ -187,7 +187,7 @@ FILMS = [
             "One thirty-nine published. One sixty-six negotiated.",
             "Three sixty-seven thousand comes back from a smaller box.",
             "Only the divisor and the carton come back. Residential and delivery-area fees never do.",
-            "AI-chieve dot net. Every number yours.",
+            "Ay-Eye-Cheeve dot net. Every number yours.",
         ],
     },
 ]
