@@ -1,0 +1,16 @@
+TITLE
+Your stock records are 65% wrong. That is $11.1m of buffer
+
+DESCRIPTION
+The engine's own output, in 24.1 seconds. Every figure is the calculator's default scenario —
+change the inputs on the page and the answer moves with them.
+
+Run it: https://aichieve.net/tools/inventory-record-accuracy/
+
+Free, runs entirely in your browser. Nothing is uploaded and nothing is estimated on your behalf.
+
+TAGS
+inventory accuracy, safety stock, phantom inventory
+
+VOICE / MUSIC
+Kokoro af_nova · happy-beats-business-moves-vol-11

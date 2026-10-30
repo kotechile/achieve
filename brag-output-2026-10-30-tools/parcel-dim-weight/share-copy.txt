@@ -1,0 +1,16 @@
+TITLE
+A 9.2 lb box bills at 22 lb. Twelve pounds is air
+
+DESCRIPTION
+The engine's own output, in 23.5 seconds. Every figure is the calculator's default scenario —
+change the inputs on the page and the answer moves with them.
+
+Run it: https://aichieve.net/tools/parcel-dim-weight/
+
+Free, runs entirely in your browser. Nothing is uploaded and nothing is estimated on your behalf.
+
+TAGS
+dim weight, parcel surcharge, carrier invoice, billable weight
+
+VOICE / MUSIC
+Kokoro bf_isabella · happy-beats-business-moves-vol-10

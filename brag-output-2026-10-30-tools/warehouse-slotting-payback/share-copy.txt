@@ -1,0 +1,16 @@
+TITLE
+Warehouse automation payback: 9.93 years, not 3.13
+
+DESCRIPTION
+The engine's own output, in 23.7 seconds. Every figure is the calculator's default scenario —
+change the inputs on the page and the answer moves with them.
+
+Run it: https://aichieve.net/tools/warehouse-slotting-payback/
+
+Free, runs entirely in your browser. Nothing is uploaded and nothing is estimated on your behalf.
+
+TAGS
+warehouse automation payback, slotting roi, asrs business case
+
+VOICE / MUSIC
+Kokoro bf_emma · happy-beats-business-moves-vol-9

@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+@font-face { font-family: Inter; src: url(assets/fonts/inter-latin-400-normal.woff2) format('woff2'); font-weight: 400; }
+@font-face { font-family: Inter; src: url(assets/fonts/inter-latin-700-normal.woff2) format('woff2'); font-weight: 700; }
+@font-face { font-family: Inter; src: url(assets/fonts/inter-latin-800-normal.woff2) format('woff2'); font-weight: 800; }
+@font-face { font-family: JetBrains; src: url(assets/fonts/jetbrains-mono-latin-400-normal.woff2) format('woff2'); font-weight: 400; }
+@font-face { font-family: JetBrains; src: url(assets/fonts/jetbrains-mono-latin-500-normal.woff2) format('woff2'); font-weight: 500; }
+@font-face { font-family: JetBrains; src: url(assets/fonts/jetbrains-mono-latin-700-normal.woff2) format('woff2'); font-weight: 700; }
+
+#root { position: relative; width: 100%; height: 100%; background: #0a0c10; overflow: hidden;
+  font-family: Inter, system-ui, sans-serif; color: #e9eef4; }
+.grid { position: absolute; inset: 0;
+  background-image: repeating-linear-gradient(to right, rgba(255,255,255,.028) 0 1px, transparent 1px 48px),
+                    repeating-linear-gradient(to bottom, rgba(255,255,255,.028) 0 1px, transparent 1px 48px); }
+.glow { position: absolute; width: 1100px; height: 1100px; left: 620px; top: -420px;
+  background: radial-gradient(circle, rgba(232,163,61,.10), transparent 62%); }
+
+.clip { position: absolute; inset: 0; }
+.pad { position: absolute; inset: 0; padding: 176px 132px 96px; box-sizing: border-box;
+  display: flex; flex-direction: column; justify-content: center; }
+
+.hdr { position: absolute; left: 132px; right: 132px; top: 60px; display: flex; align-items: baseline;
+  justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,.11); padding-bottom: 14px; }
+.hdr-l { display: flex; gap: 18px; align-items: baseline; }
+.mark { font-family: JetBrains, monospace; font-size: 30px; font-weight: 700; letter-spacing: .34em;
+  text-transform: uppercase; color: #e8a33d; }
+.hdr-sub { font-family: JetBrains, monospace; font-size: 28px; letter-spacing: .22em;
+  text-transform: uppercase; color: #94a3b8; }
+.hdr-r { font-family: JetBrains, monospace; font-size: 28px; letter-spacing: .18em;
+  text-transform: uppercase; color: #b9c6d3; }
+
+.eyebrow { font-family: JetBrains, monospace; font-size: 30px; font-weight: 700; letter-spacing: .3em;
+  text-transform: uppercase; color: #e8a33d; }
+.h1 { font-size: 86px; font-weight: 800; letter-spacing: -.03em; line-height: 1.02; margin: 0; }
+.hook-fig { font-family: JetBrains, monospace; font-size: 210px; font-weight: 700; letter-spacing: -.04em;
+  line-height: .92; font-variant-numeric: tabular-nums; }
+.hook-unit { font-family: JetBrains, monospace; font-size: 40px; letter-spacing: .2em; text-transform: uppercase;
+  color: #94a3b8; margin-left: 22px; }
+.claim { font-size: 46px; font-weight: 700; line-height: 1.24; color: #e9eef4; max-width: 1280px; }
+.rule { height: 4px; width: 132px; background: #e8a33d; }
+
+.panel { border: 1px solid rgba(255,255,255,.11); background: rgba(20,25,32,.92); }
+.split { display: grid; grid-template-columns: 560px 1fr; gap: 44px; }
+.rail { padding: 26px 28px; }
+.rail-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0;
+  border-bottom: 1px dashed rgba(255,255,255,.07); }
+.rail-lab { font-size: 28px; color: #b9c6d3; font-weight: 400; }
+.rail-val { font-family: JetBrains, monospace; font-size: 28px; font-weight: 700; padding: 5px 11px;
+  border: 1px solid rgba(255,255,255,.16); background: #0e1116; font-variant-numeric: tabular-nums; }
+.rail-h { font-family: JetBrains, monospace; font-size: 28px; letter-spacing: .24em; text-transform: uppercase;
+  color: #94a3b8; margin-bottom: 6px; }
+
+.kpis { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid rgba(255,255,255,.11);
+  background: rgba(20,25,32,.92); }
+.kpi { padding: 18px 22px; border-left: 1px solid rgba(255,255,255,.07); }
+.kpi:first-child { border-left: 0; }
+.kpi-l { font-family: JetBrains, monospace; font-size: 28px; font-weight: 700; letter-spacing: .18em;
+  text-transform: uppercase; color: #94a3b8; }
+.kpi-v { font-family: JetBrains, monospace; font-size: 50px; font-weight: 700; letter-spacing: -.03em;
+  margin-top: 10px; font-variant-numeric: tabular-nums; }
+.kpi-n { font-size: 28px; color: #94a3b8; margin-top: 6px; }
+
+.bars { margin-top: 34px; }
+.bar-row { padding: 10px 0; border-top: 1px solid rgba(255,255,255,.06); }
+.bar-top { display: flex; justify-content: space-between; align-items: baseline; }
+.bar-lab { font-size: 30px; color: #b9c6d3; }
+.bar-val { font-family: JetBrains, monospace; font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.bar-track { height: 10px; background: rgba(255,255,255,.07); margin-top: 8px; }
+.bar-fill { height: 100%; width: 100%; }
+.bar-fill.base { background: #8fc4e0; }
+.bar-fill.friction { background: #e8a33d; }
+.bar-fill.erosion { background: #e07a6e; }
+.bar-fill.positive { background: #7fc7b1; }
+.bar-fill.muted { background: #64748b; }
+
+.verdict { border: 1px solid rgba(255,255,255,.11); border-left: 6px solid #a33b32; padding: 40px 44px;
+  background: rgba(163,59,50,.07); }
+.verdict[data-tone="base"] { border-left-color: #0e7490; background: rgba(14,116,144,.07); }
+.verdict[data-tone="positive"] { border-left-color: #1c6b4f; background: rgba(28,107,79,.07); }
+.verdict-call { font-family: JetBrains, monospace; font-size: 28px; font-weight: 700; letter-spacing: .24em;
+  text-transform: uppercase; color: #94a3b8; }
+.verdict-head { font-size: 62px; font-weight: 800; line-height: 1.1; letter-spacing: -.02em; margin-top: 16px;
+  max-width: 1400px; }
+.verdict-body { font-size: 30px; line-height: 1.4; color: #b9c6d3; margin-top: 20px; max-width: 1250px; }
+
+.outro-url { font-family: JetBrains, monospace; font-size: 30px; letter-spacing: .04em; color: #e8a33d; }
+.outro-note { font-size: 28px; letter-spacing: 0; text-transform: none; line-height: 1.4;
+  color: #b9c6d3; max-width: 1180px; }
+.tag { align-self: flex-start; display: inline-block; font-family: JetBrains, monospace; font-size: 28px; font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase; color: #e8a33d; border: 1px solid rgba(232,163,61,.6);
+  padding: 7px 13px; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="clip-inventory-record-accuracy" data-width="1920" data-height="1080" data-fps="30" data-duration="24.05">
+  <div class="grid"></div>
+  <div class="glow"></div>
+
+  <header id="hdr" class="hdr clip" data-start="0" data-duration="24.05">
+    <div class="hdr-l"><span class="mark">AIChieve</span><span class="hdr-sub">Tool register</span></div>
+    <span class="hdr-r">Inventory Record Accuracy</span>
+  </header>
+
+  <section id="s1" class="clip" data-start="0.00" data-duration="5.58">
+    <div class="pad">
+      <div class="eyebrow" id="s1-eyebrow">Supply chain</div>
+      <div id="s1-fig" style="margin-top:52px; display:flex; align-items:flex-end;">
+        <span class="hook-fig">$11.1m</span>
+        <span class="hook-unit">dead cash</span>
+      </div>
+      <div class="rule" id="s1-rule" style="margin-top:44px"></div>
+      <div class="claim" id="s1-claim" style="margin-top:34px">buffer stock covering a record, not a demand</div>
+    </div>
+  </section>
+
+  <section id="s2" class="clip" data-start="5.58" data-duration="8.69">
+    <div class="pad">
+      <div class="split">
+        <div class="panel rail" id="s2-rail">
+          <div class="rail-h">Inputs</div>
+          <div class="rail-row"><span class="rail-lab">Selling price</span><span class="rail-val">$45.00</span></div>
+          <div class="rail-row"><span class="rail-lab">Failure rate</span><span class="rail-val">0.057</span></div>
+          <div class="rail-row"><span class="rail-lab">Audit sample</span><span class="rail-val">0.25</span></div>
+          <div class="rail-row"><span class="rail-lab">Divisor billed</span><span class="rail-val">139</span></div>
+          <div class="rail-row" style="border-bottom:0"><span class="rail-lab">Record accuracy</span><span class="rail-val">65% wrong</span></div>
+          <div class="rail-h" style="margin-top:22px">Nothing leaves the page</div>
+        </div>
+        <div>
+          <div class="kpis" id="s2-kpis"><div class="kpi"><div class="kpi-l">Dead cash</div><div class="kpi-v kpi-v-0" style="color:#e07a6e">$11.1m</div><div class="kpi-n">$2.4m a year to hold</div></div><div class="kpi"><div class="kpi-l">Phantom stockouts</div><div class="kpi-v kpi-v-1" style="color:#e8a33d">$5.4m</div><div class="kpi-n">margin a year</div></div><div class="kpi"><div class="kpi-l">Units per SKU</div><div class="kpi-v kpi-v-2" style="color:#8fc4e0">184.4</div><div class="kpi-n">215 with clean records</div></div></div>
+          <div class="bars" id="s2-bars"><div class="bar-row"><div class="bar-top"><span class="bar-lab">Stock held against the records</span><span class="bar-val">$11.1m</span></div><div class="bar-track"><div class="bar-fill erosion bar-0" data-w="100"></div></div></div><div class="bar-row"><div class="bar-top"><span class="bar-lab">Holding cost a year</span><span class="bar-val">$2.4m</span></div><div class="bar-track"><div class="bar-fill friction bar-1" data-w="22"></div></div></div><div class="bar-row"><div class="bar-top"><span class="bar-lab">Margin lost to phantom stock</span><span class="bar-val">$5.4m</span></div><div class="bar-track"><div class="bar-fill friction bar-2" data-w="48"></div></div></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="s3" class="clip" data-start="14.28" data-duration="3.47">
+    <div class="pad">
+      <div class="verdict" id="s3-verdict" data-tone="erosion">
+        <div class="verdict-call">Buffer stock against a data error</div>
+        <div class="verdict-head">$11.1m dead cash · $5.4m margin</div>
+        <div class="verdict-body">The buffer covers the records, not the demand.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="s4" class="clip" data-start="17.75" data-duration="6.30">
+    <div class="pad" style="display:flex; flex-direction:column; justify-content:center;">
+      <div class="tag" id="s4-tag">Free · runs in your browser</div>
+      <h1 class="h1" id="s4-h1" style="margin-top:34px; font-size:104px">Every number<br>yours.</h1>
+      <div class="outro-url" id="s4-url" style="margin-top:38px">aichieve.net/tools/inventory-record-accuracy</div>
+      <div class="outro-note" id="s4-note" style="margin-top:20px">CaseProof stress-tests the storage vendor's ROI on your own costs.</div>
+    </div>
+  </section>
+
+    <audio id="music" data-start="0" data-duration="24.05" data-track-index="10" data-volume="0.3" src="assets/music/happy-beats-business-moves-vol-11-by-ende-dot-app.mp3"></audio>
+  <audio id="vo-1" data-start="0.40" data-duration="5.03" data-track-index="30" data-volume="1" src="assets/voice/vo-1.wav"></audio>
+  <audio id="vo-2" data-start="5.83" data-duration="4.18" data-track-index="31" data-volume="1" src="assets/voice/vo-2.wav"></audio>
+  <audio id="vo-3" data-start="10.42" data-duration="3.71" data-track-index="32" data-volume="1" src="assets/voice/vo-3.wav"></audio>
+  <audio id="vo-4" data-start="14.53" data-duration="3.07" data-track-index="33" data-volume="1" src="assets/voice/vo-4.wav"></audio>
+  <audio id="vo-5" data-start="18.00" data-duration="3.05" data-track-index="34" data-volume="1" src="assets/voice/vo-5.wav"></audio>
+  <audio id="sfx-1" data-start="0.15" data-duration="0.20" data-track-index="11" data-volume="0.66" src="assets/sfx/interface/drop_002.ogg"></audio>
+  <audio id="sfx-2" data-start="5.48" data-duration="0.12" data-track-index="12" data-volume="0.50" src="assets/sfx/interface/drop_001.ogg"></audio>
+  <audio id="sfx-3" data-start="5.73" data-duration="0.12" data-track-index="13" data-volume="0.52" src="assets/sfx/interface/click_001.ogg"></audio>
+  <audio id="sfx-4" data-start="14.23" data-duration="0.18" data-track-index="14" data-volume="0.58" src="assets/sfx/impact/impactSoft_medium_001.ogg"></audio>
+  <audio id="sfx-5" data-start="17.90" data-duration="0.70" data-track-index="15" data-volume="0.55" src="assets/sfx/impact/impactBell_heavy_000.ogg"></audio>
+</div>
+
+<script>
+  const tl = gsap.timeline({ paused: true });
+
+  // The console breathes for the whole film: subtle, finite, and it means no stretch is dead.
+  tl.fromTo("#root .glow", { opacity: 0.55 }, { opacity: 1, duration: 2.1, repeat: 14, yoyo: true, ease: "sine.inOut" }, 0);
+
+  // Scene 1 — the number lands first, the claim follows it.
+  tl.fromTo("#s1-eyebrow", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45 }, 0.20);
+  tl.fromTo("#s1-fig", { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: 0.60 }, 0.34);
+  tl.fromTo("#s1-rule", { scaleX: 0, transformOrigin: "left center" }, { scaleX: 1, duration: 0.45 }, 0.86);
+  tl.fromTo("#s1-claim", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.50 }, 1.02);
+
+  // Scene 2 — the instrument: rail, then the strip, then the bars fill.
+  const s2 = 5.58;
+  tl.fromTo("#s2-rail", { opacity: 0, x: -26 }, { opacity: 1, x: 0, duration: 0.55 }, s2 + 0.10);
+  tl.fromTo("#s2-kpis", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.50 }, s2 + 0.32);
+  tl.fromTo("#s2-kpis .kpi", { opacity: 0 }, { opacity: 1, duration: 0.35, stagger: 0.10 }, s2 + 0.40);
+  tl.fromTo("#s2-bars .bar-row", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.34, stagger: 0.12 }, s2 + 0.85);
+  document.querySelectorAll("#s2-bars .bar-fill").forEach((el, i) => {
+    tl.fromTo(el, { scaleX: 0, transformOrigin: "left center" },
+      { scaleX: el.dataset.w / 100, duration: 0.55, ease: "power2.out" }, s2 + 0.95 + i * 0.12);
+  });
+
+  // Scene 3 — the verdict.
+  const s3 = 14.28;
+  tl.fromTo("#s3-verdict", { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.55 }, s3 + 0.10);
+  tl.fromTo("#s3-verdict .verdict-head", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45 }, s3 + 0.30);
+  tl.fromTo("#s3-verdict .verdict-body", { opacity: 0 }, { opacity: 1, duration: 0.45 }, s3 + 0.55);
+
+  // Scene 4 — the sign-off, then three seconds of music on the held frame.
+  const s4 = 17.75;
+  tl.fromTo("#s4-tag", { opacity: 0 }, { opacity: 1, duration: 0.30 }, s4 + 0.15);
+  tl.fromTo("#s4-h1", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.55 }, s4 + 0.28);
+  tl.fromTo("#s4-url", { opacity: 0 }, { opacity: 1, duration: 0.40 }, s4 + 0.70);
+  tl.fromTo("#s4-note", { opacity: 0 }, { opacity: 1, duration: 0.40 }, s4 + 0.90);
+
+  window.__timelines["clip-inventory-record-accuracy"] = tl;
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+TITLE
+AI agent cost per run: $19.90 vs $13.50 by hand
+
+DESCRIPTION
+The engine's own output, in 24.9 seconds. Every figure is the calculator's default scenario —
+change the inputs on the page and the answer moves with them.
+
+Run it: https://aichieve.net/tools/agentic-workflow-breakeven/
+
+Free, runs entirely in your browser. Nothing is uploaded and nothing is estimated on your behalf.
+
+TAGS
+agentic workflow breakeven, ai agent cost, human in the loop, token cost
+
+VOICE / MUSIC
+Kokoro am_michael · happy-beats-business-moves-vol-1
