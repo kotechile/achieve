@@ -106,6 +106,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"self-hosted-ai-when-to-buy-vs-rent-gpus",
 	"shippers-stuck-in-the-gap",
 	"silent-leak-bypasses-your-filter",
+	"skus-fail-the-1-32-cut",
 	"sla-credit-is-not-insurance",
 	"slow-movers-hold-your-stock",
 	"stale-grants-travel-the-graph",
@@ -149,6 +150,8 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"your-ai-fine-is-3-percent",
 	"your-cache-pays-125x-for-nothing",
 	"your-carbon-report-skips-2-lines",
+	"your-carriers-750000-doesnt-cover-cargo",
+	"your-chargeback-misses-40-of-the-bill",
 	"your-charger-gap-buys-16-robots",
 	"your-chip-stopped-deciding",
 	"your-ci-bill-232-hours",
@@ -170,6 +173,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"your-retrieval-misses-57",
 	"your-routes-5x-stop-gap",
 	"your-runtime-has-six-months",
+	"your-sandbox-boot-tax-110x-then-nothing",
 	"your-seller-wont-stay",
 	"your-sso-bill-125-a-connection",
 	"your-tool-boundary-costs-3-engineers",
@@ -192,6 +196,7 @@ export const FOREIGN_POST_SLUGS_GENERATED = [
 	"lease-break-calculator-save-1850-in-3-steps",
 	"negotiate-job-offer-with-giniloh-visualizer",
 	"nvidia-rtx-pro-groundbreaking-performance-but-does-the-math-check",
+	"one-rate-overruns-your-cap-5934",
 	"pi-5-price-jump-older-kit-wins",
 	"post-termination-option-clock-tax",
 	"replace-laptop-screen-let-this-decision-engine-do-the-math",
@@ -204,6 +209,7 @@ export const FOREIGN_POST_SLUGS_GENERATED = [
 	"the-giniloh-money-flow-simulator-explained",
 	"three-forms-cost-more-than-tax",
 	"why-70-of-startup-options-go-unexercised",
+	"why-one-share-outvotes-5300-staff",
 	"why-your-fridge-upgrade-pays-12-50",
 	"why-your-swap-died-at-25",
 	"your-125-exam-costs-122-hours",
@@ -211,6 +217,7 @@ export const FOREIGN_POST_SLUGS_GENERATED = [
 	"your-26-week-cliff-kills-4-years",
 	"your-350000-passport-isnt-europe",
 	"your-61-day-window-costs-the-position",
+	"your-buyback-gap-39-8b-to-zero",
 	"your-cheap-part-a-599-bill",
 	"your-disks-35-dead-by-year-six",
 	"your-home-servers-45-day-patch-gap",
@@ -218,6 +225,7 @@ export const FOREIGN_POST_SLUGS_GENERATED = [
 	"your-ipo-payday-tax-bill",
 	"your-llc-bill-75-until-2028",
 	"your-raise-dies-at-51-5-hours",
+	"your-screen-gap-999-vs-99",
 	"zapier-notion-integration-calculate-your-tinkering-tax"
 ];
 export const FOREIGN_TARGETS = {
@@ -234,6 +242,7 @@ export const FOREIGN_TARGETS = {
 	"lease-break-calculator-save-1850-in-3-steps": "https://giniloh.com",
 	"negotiate-job-offer-with-giniloh-visualizer": "https://giniloh.com",
 	"nvidia-rtx-pro-groundbreaking-performance-but-does-the-math-check": "https://giniloh.com",
+	"one-rate-overruns-your-cap-5934": "https://giniloh.com",
 	"pi-5-price-jump-older-kit-wins": "https://giniloh.com",
 	"post-termination-option-clock-tax": "https://giniloh.com",
 	"replace-laptop-screen-let-this-decision-engine-do-the-math": "https://giniloh.com",
@@ -246,6 +255,7 @@ export const FOREIGN_TARGETS = {
 	"the-giniloh-money-flow-simulator-explained": "https://giniloh.com",
 	"three-forms-cost-more-than-tax": "https://giniloh.com",
 	"why-70-of-startup-options-go-unexercised": "https://giniloh.com",
+	"why-one-share-outvotes-5300-staff": "https://giniloh.com",
 	"why-your-fridge-upgrade-pays-12-50": "https://giniloh.com",
 	"why-your-swap-died-at-25": "https://giniloh.com",
 	"your-125-exam-costs-122-hours": "https://giniloh.com",
@@ -253,6 +263,7 @@ export const FOREIGN_TARGETS = {
 	"your-26-week-cliff-kills-4-years": "https://giniloh.com",
 	"your-350000-passport-isnt-europe": "https://giniloh.com",
 	"your-61-day-window-costs-the-position": "https://giniloh.com",
+	"your-buyback-gap-39-8b-to-zero": "https://giniloh.com",
 	"your-cheap-part-a-599-bill": "https://giniloh.com",
 	"your-disks-35-dead-by-year-six": "https://giniloh.com",
 	"your-home-servers-45-day-patch-gap": "https://giniloh.com",
@@ -260,7 +271,8 @@ export const FOREIGN_TARGETS = {
 	"your-ipo-payday-tax-bill": "https://giniloh.com",
 	"your-llc-bill-75-until-2028": "https://giniloh.com",
 	"your-raise-dies-at-51-5-hours": "https://giniloh.com",
+	"your-screen-gap-999-vs-99": "https://giniloh.com",
 	"zapier-notion-integration-calculate-your-tinkering-tax": "https://giniloh.com"
 };
 export const GENERATED_FOR = "aichieve.net";
-export const GENERATED_AT = "2026-10-29T15:53:19.007Z";
+export const GENERATED_AT = "2026-10-30T13:47:42.979Z";
