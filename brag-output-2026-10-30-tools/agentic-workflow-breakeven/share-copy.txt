@@ -1,11 +1,2 @@
-TITLE (56 chars)
-Your AI agent costs $19.90 a run. The task costs $13.50.
-
-DESCRIPTION
-$19.90 a run against $13.50 by hand: tokens are eight cents, while the human audit, rework and escaped defects come to $19.82. At the failure rate in the deck the agent loses — the cliff where it stops being cheaper sits at 3.2%, below the 5.7% being assumed. Set your own inputs and watch the curve move.
-
-Run it: https://aichieve.net/tools/agentic-workflow-breakeven/
-Free, runs entirely in your browser. Nothing is uploaded and nothing is estimated on your behalf.
-
-TAGS
-agentic workflow cost, ai agent roi, human in the loop, verification cliff, token cost per task, agentic ai economics
+Agentic Workflow Breakeven — $19.90 per run. against $13.50 handled by a person
+aichieve.net/tools/agentic-workflow-breakeven

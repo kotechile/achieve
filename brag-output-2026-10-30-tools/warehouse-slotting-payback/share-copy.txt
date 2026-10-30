@@ -1,11 +1,2 @@
-TITLE (57 chars)
-The vendor says 3.1-year payback. Your baseline says 9.9.
-
-DESCRIPTION
-Re-slotting the fast movers recovers $208k a year and needs no capital — and it is the same walk time the automation is being sold to recover. Price the free fix first, then the machine, with the maintenance contract, the WMS integration and the downtime the quote leaves out.
-
-Run it: https://aichieve.net/tools/warehouse-slotting-payback/
-Free, runs entirely in your browser. Nothing is uploaded and nothing is estimated on your behalf.
-
-TAGS
-warehouse automation payback, slotting roi, asrs business case, pick path labour, warehouse capex
+Slotting & Automation Payback — 9.93 years. on your baseline. The vendor quotes 3.13.
+aichieve.net/tools/warehouse-slotting-payback

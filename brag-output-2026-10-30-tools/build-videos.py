@@ -31,6 +31,10 @@ KOKORO_PY = pathlib.Path.home() / ".venvs/kokoro/bin/python"
 RUN = pathlib.Path(__file__).parent
 TAIL_SECONDS = 3.0
 
+# Master resolution multiplier. 2 = 3840x2160 upload; the design is authored at 1920x1080 and the
+# stage is scaled, so every font size, hairline and bar keeps its authored proportions.
+SCALE = 2
+
 # ── the films ────────────────────────────────────────────────────────────────────────────────
 # Numbers are the engines' own defaults, recomputed in scripts/check-engines.mjs. Nothing here is
 # invented for the film: if a figure changes in the model, this file is wrong and the page is right.
@@ -40,7 +44,7 @@ FILMS = [
         "slug": "agentic-workflow-breakeven",
         "voice": "am_michael",
         "music": "happy-beats-business-moves-vol-1-by-ende-dot-app.mp3",
-        "music_volume": 0.30,
+        "music_volume": 0.18,
         "eyebrow": "Agentic operations",
         "title": "Agentic Workflow Breakeven",
         "hook": {"figure": "$19.90", "unit": "per run", "claim": "against $13.50 handled by a person"},
@@ -59,18 +63,18 @@ FILMS = [
         "verdict": ("Above the verification cliff", "Above 3.2% failure, every point costs more."),
         "bridge": "SpendProof audits the invoice this estimate takes on trust.",
         "beats": [
-            "Eighteen minutes of a person costs thirteen fifty. The agent, nineteen ninety.",
-            "Tokens cost eight cents. Audit and rework cost nineteen eighty-two.",
-            "So the cliff sits at three point two percent failure.",
-            "Above three point two percent failure, every point costs more than the labour it removed.",
-            "AIChieve dot net. Every number yours.",
+            ("Eighteen minutes of human time costs thirteen fifty. The agent costs nineteen ninety.", 1.02),
+            "Tokens are eight cents. The audit and the rework are nineteen eighty-two.",
+            "That puts the cliff at three point two percent failure.",
+            "Above it, every point of failure costs more than the labour it removed.",
+            "AI-chieve dot net. Every number yours.",
         ],
     },
     {
         "slug": "warehouse-slotting-payback",
         "voice": "bf_emma",
         "music": "happy-beats-business-moves-vol-9-by-ende-dot-app.mp3",
-        "music_volume": 0.30,
+        "music_volume": 0.18,
         "eyebrow": "Warehouse and CAPEX",
         "title": "Slotting & Automation Payback",
         "hook": {"figure": "9.93", "unit": "years", "claim": "on your baseline. The vendor quotes 3.13."},
@@ -92,14 +96,14 @@ FILMS = [
             "Re-slotting recovers two hundred eight thousand a year, with no capital.",
             "The vendor counts it twice, and leaves out maintenance and integration.",
             "Credited to the layout, the free re-slot takes most of the saving the machine is sold on.",
-            "AIChieve dot net. Every number yours.",
+            "AI-chieve dot net. Every number yours.",
         ],
     },
     {
         "slug": "inventory-record-accuracy",
         "voice": "af_nova",
         "music": "happy-beats-business-moves-vol-11-by-ende-dot-app.mp3",
-        "music_volume": 0.30,
+        "music_volume": 0.18,
         "eyebrow": "Supply chain",
         "title": "Inventory Record Accuracy",
         "hook": {"figure": "$11.1m", "unit": "dead cash", "claim": "buffer stock covering a record, not a demand"},
@@ -121,14 +125,14 @@ FILMS = [
             "Demand explains two fifteen. The records add a hundred eighty-five.",
             "Phantom stock costs five point four million a year in margin.",
             "The buffer covers the record gap, not the demand.",
-            "AIChieve dot net. Every number yours.",
+            "AI-chieve dot net. Every number yours.",
         ],
     },
     {
         "slug": "total-delivered-cost",
         "voice": "am_adam",
         "music": "happy-beats-business-moves-vol-12-by-ende-dot-app.mp3",
-        "music_volume": 0.30,
+        "music_volume": 0.18,
         "eyebrow": "Supply chain",
         "title": "Total Delivered Cost",
         "hook": {"figure": "$23.64", "unit": "delivered", "claim": "to land a $45 unit. $21.36 is left."},
@@ -153,14 +157,14 @@ FILMS = [
             "Twenty-two thousand of tooling is one dollar ten per unit, dutiable.",
             "The entry fee is eight hundred seventy-three, capped at six thirty-four.",
             "Cube, capital and returns each take a per-unit share.",
-            "AIChieve dot net. Every number yours.",
+            "AI-chieve dot net. Every number yours.",
         ],
     },
     {
         "slug": "parcel-dim-weight",
         "voice": "bf_isabella",
         "music": "happy-beats-business-moves-vol-10-by-ende-dot-app.mp3",
-        "music_volume": 0.30,
+        "music_volume": 0.18,
         "eyebrow": "Logistics",
         "title": "Parcel DIM Weight",
         "hook": {"figure": "22 lb", "unit": "billed", "claim": "for a 9.2 lb box. Twelve of it is air."},
@@ -183,7 +187,7 @@ FILMS = [
             "One thirty-nine published. One sixty-six negotiated.",
             "Three sixty-seven thousand comes back from a smaller box.",
             "Only the divisor and the carton come back. Residential and delivery-area fees never do.",
-            "AIChieve dot net. Every number yours.",
+            "AI-chieve dot net. Every number yours.",
         ],
     },
 ]
@@ -209,6 +213,11 @@ CSS = """
 
 #root { position: relative; width: 100%; height: 100%; background: #0a0c10; overflow: hidden;
   font-family: Inter, system-ui, sans-serif; color: #e9eef4; }
+
+/* The authored canvas. Scaled by --s so a 4K master renders the same design at 2x pixels;
+   the transform is static and never tweened, so GSAP owns only the children. */
+.stage { position: absolute; top: 0; left: 0; width: 1920px; height: 1080px;
+  transform: scale(var(--s, 1)); transform-origin: top left; }
 .grid { position: absolute; inset: 0;
   background-image: repeating-linear-gradient(to right, rgba(255,255,255,.028) 0 1px, transparent 1px 48px),
                     repeating-linear-gradient(to bottom, rgba(255,255,255,.028) 0 1px, transparent 1px 48px); }
@@ -297,10 +306,10 @@ def wav_seconds(path: pathlib.Path) -> float:
         return handle.getnframes() / float(handle.getframerate())
 
 
-def synth(text: str, voice: str, out: pathlib.Path) -> float:
+def synth(text: str, voice: str, out: pathlib.Path, speed: float = 1.08) -> float:
     cmd = [
         "npx", "hyperframes", "tts", text,
-        "-o", str(out), "-v", voice, "-s", "1.08",
+        "-o", str(out), "-v", voice, "-s", f"{speed}",  # type: ignore[list-item]
     ]
     env = {
         "PATH": "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:" + str(pathlib.Path.home() / ".local/bin"),
@@ -332,11 +341,13 @@ def build(film: dict) -> dict:
     for rel in sfx:
         shutil.copy2(SKILL / "assets/sfx" / rel, comp / "assets/sfx" / rel)
 
-    # 1. narration, measured rather than assumed
+    # 1. narration, measured rather than assumed. A beat may be a string or (string, speed) —
+    #    a line the voice swallows is re-read slower rather than the whole film being slowed.
     durations = []
-    for index, text in enumerate(film["beats"], start=1):
+    for index, beat in enumerate(film["beats"], start=1):
+        text, speed = (beat, 1.08) if isinstance(beat, str) else beat
         wav = comp / "assets/voice" / f"vo-{index}.wav"
-        durations.append(synth(text, film["voice"], wav))
+        durations.append(synth(text, film["voice"], wav, speed))
 
     # 2. lay the film out from the real audio: a beat starts every (audio + breath)
     start, starts = 0.40, []
@@ -398,7 +409,8 @@ def build(film: dict) -> dict:
 <style>{CSS}</style>
 </head>
 <body>
-<div id="root" data-composition-id="{root_id}" data-width="1920" data-height="1080" data-fps="30" data-duration="{total}">
+<div id="root" data-composition-id="{root_id}" data-width="{1920 * SCALE}" data-height="{1080 * SCALE}" data-fps="30" data-duration="{total}" style="--s: {SCALE}">
+  <div class="stage">
   <div class="grid"></div>
   <div class="glow"></div>
 
@@ -457,6 +469,8 @@ def build(film: dict) -> dict:
       <div class="outro-note" id="s4-note" style="margin-top:20px">{film["bridge"]}</div>
     </div>
   </section>
+
+  </div>
 
   {chr(10).join("  " + tag for tag in audio)}
 </div>
