@@ -166,20 +166,31 @@ export const ORIGIN_BY_VERTICAL = ${JSON.stringify(originByVertical, null, '\t')
 // =================================================================================================
 // MODE: default  (derive the post list from live WordPress; runs as part of the build)
 // =================================================================================================
-const { slugs: MY_VERTICALS } = await loadVerticals();
+const { slugs: MY_VERTICALS, origins: ORIGIN_BY_VERTICAL } = await loadVerticals();
 const [posts, idToSlug] = await Promise.all([fetchPosts(), fetchTermMap()]);
 
 const derived = [];
 const untagged = [];
-const ambiguous = [];
+const crossSite = [];
+const multiVertical = [];
 const verticalsOf = new Map();
 
 for (const p of posts) {
 	const mine = (p.vertical || []).map((i) => idToSlug.get(i)).filter(Boolean);
 	verticalsOf.set(p.slug, mine);
 	if (!mine.length) { untagged.push(p.slug); continue; }
-	if (mine.length > 1) { ambiguous.push(p.slug); continue; }
-	if (MY_VERTICALS.has(mine[0])) derived.push(p.slug);
+
+	// OWNERSHIP IS PER SITE, NOT PER TERM.
+	// A post tagged with two verticals that both live on this site belongs here. The old rule
+	// ("more than one vertical -> ambiguous -> drop it") sent such a post to NO site at all, and
+	// because it then fell through to `foreign` it was 301'd from the sibling to a 404. That is
+	// how `the-agentic-rag-trap` (agentic_ai + multi_agent_enterprise_fabric, both aichieve.net)
+	// published into a hole. Only a tag spanning two DIFFERENT sites is a real conflict.
+	const sites = new Set(mine.map((v) => ORIGIN_BY_VERTICAL.get(v)).filter(Boolean));
+	if (sites.size > 1) { crossSite.push(`${p.slug} (${[...sites].sort().join(' + ')})`); continue; }
+	if (!mine.some((v) => MY_VERTICALS.has(v))) continue;
+	derived.push(p.slug);
+	if (mine.length > 1) multiVertical.push(p.slug);
 }
 derived.sort();
 
@@ -188,19 +199,19 @@ const foreign = posts.map((p) => p.slug).filter((s) => !derivedSet.has(s)).sort(
 
 // slug -> origin, so a 301 always points at the property that actually owns the post rather than
 // at a hardcoded sibling.
-const { origins: ORIGIN_BY_VERTICAL } = await loadVerticals();
 const foreignTargets = {};
 for (const s of foreign) {
 	const v = verticalsOf.get(s) ?? [];
-	const origin = v.length ? ORIGIN_BY_VERTICAL.get(v[0]) : '';
+	const origin = v.map((x) => ORIGIN_BY_VERTICAL.get(x)).find(Boolean) || '';
 	if (origin) foreignTargets[s] = origin;
 }
 
 console.log(
-	`routing: ${SITE_DOMAIN} — posts=${posts.length} verticals=${MY_VERTICALS.size} owned=${derived.length} foreign=${foreign.length} untagged=${untagged.length} ambiguous=${ambiguous.length}`
+	`routing: ${SITE_DOMAIN} — posts=${posts.length} verticals=${MY_VERTICALS.size} owned=${derived.length} foreign=${foreign.length} untagged=${untagged.length} cross-site=${crossSite.length}`
 );
 if (untagged.length) console.warn(`  WARNING untagged (publishes to NO site): ${untagged.join(', ')}`);
-if (ambiguous.length) console.warn(`  WARNING more than one vertical: ${ambiguous.join(', ')}`);
+if (crossSite.length) console.warn(`  WARNING tagged to more than one SITE (publishes to NO site until fixed): ${crossSite.join(', ')}`);
+if (multiVertical.length) console.log(`  note: several verticals, all owned here (published): ${multiVertical.join(', ')}`);
 
 // ---- --check: compare against the hand-written manifest ----------------------------------------
 if (process.argv.includes('--check')) {

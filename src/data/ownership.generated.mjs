@@ -114,6 +114,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"suez-returns-91-surcharge-doesnt",
 	"tariff-cliff-already-priced-in",
 	"tariff-split-reshoring-heavy-half",
+	"the-agentic-rag-trap",
 	"the-cloud-bill-break-even-when-renting-servers-stops-paying",
 	"the-sticker-price-lies-why-mexico-beats-china-on-total-landed-cost",
 	"token-price-record-low-budget-overrun",
@@ -180,6 +181,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"your-tool-surface-is-a-release-surface",
 	"your-tooling-assist-is-dutiable",
 	"your-trace-wont-prove-925-points",
+	"your-truck-mile-costs-2-2-driver-minutes",
 	"zet-scale-ev-truck-residual-value-risk"
 ];
 export const FOREIGN_POST_SLUGS_GENERATED = [
@@ -215,6 +217,7 @@ export const FOREIGN_POST_SLUGS_GENERATED = [
 	"your-125-exam-costs-122-hours",
 	"your-130000-cap-costs-the-credit",
 	"your-26-week-cliff-kills-4-years",
+	"your-3-year-rung-costs-15-9",
 	"your-350000-passport-isnt-europe",
 	"your-61-day-window-costs-the-position",
 	"your-buyback-gap-39-8b-to-zero",
@@ -222,6 +225,7 @@ export const FOREIGN_POST_SLUGS_GENERATED = [
 	"your-disks-35-dead-by-year-six",
 	"your-home-servers-45-day-patch-gap",
 	"your-homelab-heat-pays-back-45-cents",
+	"your-ink-plan-bills-20-cents",
 	"your-ipo-payday-tax-bill",
 	"your-llc-bill-75-until-2028",
 	"your-raise-dies-at-51-5-hours",
@@ -262,6 +266,7 @@ export const FOREIGN_TARGETS = {
 	"your-125-exam-costs-122-hours": "https://giniloh.com",
 	"your-130000-cap-costs-the-credit": "https://giniloh.com",
 	"your-26-week-cliff-kills-4-years": "https://giniloh.com",
+	"your-3-year-rung-costs-15-9": "https://giniloh.com",
 	"your-350000-passport-isnt-europe": "https://giniloh.com",
 	"your-61-day-window-costs-the-position": "https://giniloh.com",
 	"your-buyback-gap-39-8b-to-zero": "https://giniloh.com",
@@ -269,6 +274,7 @@ export const FOREIGN_TARGETS = {
 	"your-disks-35-dead-by-year-six": "https://giniloh.com",
 	"your-home-servers-45-day-patch-gap": "https://giniloh.com",
 	"your-homelab-heat-pays-back-45-cents": "https://giniloh.com",
+	"your-ink-plan-bills-20-cents": "https://giniloh.com",
 	"your-ipo-payday-tax-bill": "https://giniloh.com",
 	"your-llc-bill-75-until-2028": "https://giniloh.com",
 	"your-raise-dies-at-51-5-hours": "https://giniloh.com",
@@ -277,4 +283,4 @@ export const FOREIGN_TARGETS = {
 	"zapier-notion-integration-calculate-your-tinkering-tax": "https://giniloh.com"
 };
 export const GENERATED_FOR = "aichieve.net";
-export const GENERATED_AT = "2026-10-30T17:22:49.034Z";
+export const GENERATED_AT = "2026-10-31T02:59:30.255Z";
