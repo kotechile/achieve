@@ -167,6 +167,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"your-green-passes-hide-31-wrong",
 	"your-hidden-quantity-gap",
 	"your-label-bills-2500-series",
+	"your-machine-duty-180-days-still-unpriced",
 	"your-mexico-hedge-renewal-risk",
 	"your-miss-costs-9x-the-chargeback",
 	"your-platform-23-features-no-stop-rule",
@@ -210,6 +211,7 @@ export const FOREIGN_POST_SLUGS_GENERATED = [
 	"the-blueprint-behind-giniloh-money-flow",
 	"the-giniloh-money-flow-simulator-explained",
 	"three-forms-cost-more-than-tax",
+	"two-builds-one-vault",
 	"why-70-of-startup-options-go-unexercised",
 	"why-one-share-outvotes-5300-staff",
 	"why-your-fridge-upgrade-pays-12-50",
@@ -259,6 +261,7 @@ export const FOREIGN_TARGETS = {
 	"the-blueprint-behind-giniloh-money-flow": "https://giniloh.com",
 	"the-giniloh-money-flow-simulator-explained": "https://giniloh.com",
 	"three-forms-cost-more-than-tax": "https://giniloh.com",
+	"two-builds-one-vault": "https://giniloh.com",
 	"why-70-of-startup-options-go-unexercised": "https://giniloh.com",
 	"why-one-share-outvotes-5300-staff": "https://giniloh.com",
 	"why-your-fridge-upgrade-pays-12-50": "https://giniloh.com",
@@ -283,4 +286,4 @@ export const FOREIGN_TARGETS = {
 	"zapier-notion-integration-calculate-your-tinkering-tax": "https://giniloh.com"
 };
 export const GENERATED_FOR = "aichieve.net";
-export const GENERATED_AT = "2026-10-31T02:59:30.255Z";
+export const GENERATED_AT = "2026-10-31T11:41:54.876Z";

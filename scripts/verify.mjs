@@ -80,6 +80,7 @@ async function checkCoreRoutes() {
 	console.log('\nCore routes');
 	const routes = [
 		'/',
+		'/news/',
 		'/apps/',
 		'/tools/',
 		'/tools/gpu-compute/',

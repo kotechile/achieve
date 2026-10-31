@@ -1,0 +1,64 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import JsonLd from '../../components/JsonLd.astro';
+import DispatchLog from '../../components/DispatchLog.astro';
+import { fetchPostsByKind, byNewest } from '../../lib/wordpress';
+
+/**
+ * The news fleet: dated dispatches, newest first.
+ *
+ * This route exists because one reverse-chronological archive cannot serve two content lifecycles.
+ * 198 of the 222 posts on the shared CMS landed in October 2026 alone, and every one of them
+ * pushed the standing analysis further down a list that only knew how to sort by date. The news
+ * desk gets its own feed here; the backgrounders live at `/articles/`.
+ *
+ * Both lists are built from the same CMS tags (`news` / `evergreen` / `review`), so moving a post
+ * between them is a tagging decision in the CMS, not a code change.
+ */
+const posts = (await fetchPostsByKind('news', 500)).sort(byNewest);
+
+const siteOrigin = Astro.site?.toString().replace(/\/$/, '') || 'https://aichieve.net';
+const pageUrl = `${siteOrigin}/news/`;
+
+const newest = (() => {
+	const raw = posts[0]?.date;
+	if (!raw) return null;
+	const date = new Date(raw);
+	if (Number.isNaN(date.getTime())) return null;
+	return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+})();
+---
+
+<BaseLayout
+	title={`News desk — ${posts.length} dated dispatches | AIChieve`}
+	description="Dated AI, compute and supply-chain dispatches, newest first. The backgrounders that outlive the month they were written live in the article archive."
+>
+	<link slot="head" rel="canonical" href={pageUrl} />
+	<JsonLd
+		slot="head"
+		data={{
+			'@context': 'https://schema.org',
+			'@type': 'CollectionPage',
+			name: 'AIChieve news desk',
+			url: pageUrl,
+			numberOfItems: posts.length
+		}}
+	/>
+
+	<section class="pt-4">
+		<p class="ai-label ai-label--signal">News desk</p>
+		<h1 class="ai-display mt-4 max-w-3xl text-[2.2rem] sm:text-4xl lg:text-5xl">
+			{posts.length} dated dispatches
+		</h1>
+		<p class="ai-lede mt-5">
+			Each one answers a single question with a number and retires when the number moves.
+			{newest && <span> Most recent: {newest}.</span>}
+		</p>
+		<p class="ai-lede mt-3">
+			The backgrounders these dispatches sit on top of are kept in the
+			<a href="/articles/" class="ai-link">article archive</a>.
+		</p>
+	</section>
+
+	<DispatchLog posts={posts} eyebrow="News desk" title="Newest first" id="news-desk" scrollable={false} />
+</BaseLayout>

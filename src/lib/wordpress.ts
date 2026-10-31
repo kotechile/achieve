@@ -15,6 +15,8 @@ interface WordPressTerm {
 	id?: number;
 	name?: string;
 	slug?: string;
+	/** `category`, `post_tag`, `vertical`, … — the embed flattens all of them into one list. */
+	taxonomy?: string;
 }
 
 interface WordPressPostResponse {
@@ -41,6 +43,22 @@ interface WordPressCategoryResponse {
 	parent?: number;
 }
 
+/**
+ * The editorial fleet a post belongs to, carried by the CMS `post_tag` terms.
+ *
+ * Closed in code on purpose: WordPress `post_tag` is an open vocabulary, so the front end reads
+ * only these three slugs and ignores every other tag. See `docs/content-kinds-plan.md`.
+ */
+export type PostKind = 'news' | 'evergreen' | 'review';
+
+export const POST_KINDS: readonly PostKind[] = ['news', 'evergreen', 'review'];
+
+export const POST_KIND_LABELS: Record<PostKind, string> = {
+	news: 'News',
+	evergreen: 'Evergreen',
+	review: 'Review'
+};
+
 export interface WordPressPost {
 	id: number;
 	title: string;
@@ -51,14 +69,26 @@ export interface WordPressPost {
 	date: string | null;
 	modified: string | null;
 	featuredImage: string | null;
-	/** WordPress' own derivatives, smallest first. Empty when the payload carries no sizes. */
+	featuredImageAlt: string;
+	categoryLabel: string | null;
+	categorySlug: string | null;
+	/**
+	 * WordPress' own image derivatives, smallest first, from the featured media's media_details.
+	 *
+	 * Empty when the payload carries no sizes, in which case callers fall back to the single
+	 * source URL — never to a URL this code invented.
+	 */
 	featuredImageSizes: { url: string; width: number; height: number }[];
 	/** Intrinsic dimensions of the original, for width/height attributes. Null when unknown. */
 	featuredImageWidth: number | null;
 	featuredImageHeight: number | null;
-	featuredImageAlt: string;
-	categoryLabel: string | null;
-	categorySlug: string | null;
+	/**
+	 * Editorial fleet of this post, from its `post_tag` terms: `news`, `evergreen` or `review`.
+	 *
+	 * Empty when the post carries none — the caller decides where unfiled posts belong (see
+	 * `docs/content-kinds-plan.md`); this module never invents a kind.
+	 */
+	kinds: PostKind[];
 }
 
 export interface WordPressCategory {
@@ -128,7 +158,16 @@ function stripHtml(value: string | undefined) {
 
 function normalizePost(post: WordPressPostResponse): WordPressPost {
 	const terms = post._embedded?.['wp:term']?.flat() ?? [];
-	const category = terms.find((term) => term?.slug && term?.name);
+
+	// `wp:term` flattens EVERY taxonomy into one list — categories, post_tags and verticals.
+	// Picking the first term that had a slug used to be safe only because categories are
+	// registered first and no post carried a tag. Now that `news`/`evergreen`/`review` are real
+	// tags, that luck is gone: a post with no category would have been labelled with its fleet
+	// tag instead. Match on the taxonomy, and only fall back to a loose match for payloads that
+	// omit it.
+	const categoryTerm = terms.find((term) => term?.taxonomy === 'category' && term?.slug);
+	const category = categoryTerm ?? terms.find((term) => !term?.taxonomy && term?.slug && term?.name);
+	const kinds = POST_KINDS.filter((kind) => terms.some((term) => term?.slug === kind));
 	const featuredMedia = post._embedded?.['wp:featuredmedia']?.[0] as unknown as
 		| {
 				source_url?: string;
@@ -149,11 +188,12 @@ function normalizePost(post: WordPressPostResponse): WordPressPost {
 		featuredImage = `${apiBase}${featuredImage}`;
 	}
 
-	// Responsive sources from WordPress' own derivatives, already present in the payload. Before
-	// this, every card and hero on the site fetched the full-size original (typically 1344-1376px
-	// wide) to fill slots a fraction of that. Astro's remote-image optimisation was not an option:
-	// it needs network access per image per build, and this build must survive a restricted
-	// environment. When the payload carries no sizes the srcset is simply absent.
+	// Responsive sources straight from WordPress' own derivatives. Measured before adding: the
+	// featured originals are 1344x768 and 1376x768, and every card for every device was fetching
+	// that original to fill a slot at most 208 CSS pixels wide. Astro's remote-image optimisation
+	// was not an option here — it needs network access for every image on every build, and this
+	// build has to survive a restricted environment (AGENTS.md) — so this uses the data the
+	// response already carries and degrades to the plain src when it is absent.
 	const mediaDetails = featuredMedia?.media_details;
 	const absolute = (url: string) => (url.startsWith('/') && apiBase ? `${apiBase}${url}` : url);
 	const featuredImageSizes = Object.values(mediaDetails?.sizes ?? {})
@@ -203,9 +243,9 @@ function normalizePost(post: WordPressPostResponse): WordPressPost {
 	// Rewrite internal links so each one points at the property that actually OWNS its target.
 	//
 	// This used to rewrite every internal link to a site-relative path, which was correct while
-	// there was one site. After the 2026 split it silently produced broken links: an aichieve
-	// article linking to a giniloh article became `/that-slug/`, which does not exist here.
-	// Measured at split time: 30 live 404s on aichieve.net, 5 on giniloh.com, across 18 articles.
+	// there was one site. After the 2026 split it silently produced broken links: a giniloh
+	// article linking to an aichieve article became `/that-slug/`, which does not exist here.
+	// Measured at split time: 5 broken links here, 30 on aichieve.net, across 18 articles.
 	// The ownership rules live in lib/link-map.ts.
 	{
 		const hostPattern = INTERNAL_HOSTS.map((host) => host.replace(/\./g, '\\.')).join('|');
@@ -236,12 +276,13 @@ function normalizePost(post: WordPressPostResponse): WordPressPost {
 		date: post.date ?? null,
 		modified: post.modified ?? post.date ?? null,
 		featuredImage,
+		featuredImageAlt: featuredMedia?.alt_text || '',
 		featuredImageSizes,
 		featuredImageWidth,
 		featuredImageHeight,
-		featuredImageAlt: featuredMedia?.alt_text || '',
 		categoryLabel: category?.name ? stripHtml(category.name).replace(/:\s*$/, '').trim() : null,
-		categorySlug: category?.slug ?? null
+		categorySlug: category?.slug ?? null,
+		kinds
 	};
 }
 
@@ -330,10 +371,10 @@ function normaliseLegacyAppHost(markup: string): string {
 		.replace(/(?:www\.)?apps\.giniloh\.com/gi, hostOnly);
 }
 
-async function fetchWordPress(endpoint: string, query: Record<string, string | number | undefined>) {
+async function fetchWordPress<T>(endpoint: string, query: Record<string, string | number | undefined>) {
 	const baseUrl = getWordPressApiBase();
 	if (!baseUrl) {
-		return [];
+		return [] as T[];
 	}
 
 	const url = new URL(`${baseUrl}/wp-json/wp/v2/${endpoint}`);
@@ -356,14 +397,14 @@ async function fetchWordPress(endpoint: string, query: Record<string, string | n
 			signal: AbortSignal.timeout(8000)
 		});
 		if (!response.ok) {
-			return [];
+			return [] as T[];
 		}
 
-		const data = (await response.json()) as WordPressPostResponse[];
+		const data = (await response.json()) as T[];
 		return data;
 	} catch (error) {
 		console.error(`Failed to fetch WordPress data from ${url.toString()}`, error);
-		return [];
+		return [] as T[];
 	}
 }
 
@@ -411,10 +452,17 @@ async function fetchOwnedPosts(
 ): Promise<WordPressPost[]> {
 	const owned: WordPressPost[] = [];
 	const perPage = 100;
-	const maxPages = 4;
+
+	// The shared install carries both properties, so raw pages must exceed the owned target by
+	// roughly the ownership ratio. The old fixed 4-page ceiling capped every archive at ~200 owned
+	// posts and would have started truncating the archive silently — `/articles/` claims to list
+	// every article — within a month of daily publishing (198 posts landed in October alone).
+	// Scale the ceiling with the request, keep a hard floor for small grids, and a ceiling so a
+	// misbehaving CMS cannot page forever.
+	const maxPages = Math.min(20, Math.max(4, Math.ceil(limit / perPage) * 4));
 
 	for (let page = 1; page <= maxPages && owned.length < limit; page++) {
-		const batch = await fetchWordPress('posts', { _embed: 1, per_page: perPage, page, ...query });
+		const batch = await fetchWordPress<WordPressPostResponse>('posts', { _embed: 1, per_page: perPage, page, ...query });
 		if (!batch.length) {
 			break;
 		}
@@ -431,6 +479,79 @@ export async function fetchLatestPosts(limit = 6) {
 	return fetchOwnedPosts({}, limit);
 }
 
+/**
+ * slug -> term id for the three kind tags, resolved once per build.
+ *
+ * WHY THIS EXISTS AT ALL: the REST `tags` query parameter accepts term IDS only. `?tags=news`
+ * returns nothing; `?tags=43` returns the news fleet. Term ids are per-install state rather than
+ * a contract, so they are looked up from the slugs the CMS actually uses instead of being
+ * hardcoded here.
+ *
+ * A failure to resolve is reported and produces empty lists, never an unfiltered one: showing the
+ * whole archive under a "News" heading would be a silent lie about what the reader is seeing.
+ */
+const KIND_TERM_IDS = new Map<PostKind, number>();
+let kindTermRequest: Promise<void> | null = null;
+
+async function loadKindTermIds() {
+	if (kindTermRequest) return kindTermRequest;
+
+	kindTermRequest = (async () => {
+		const tags = await fetchWordPress<{ id?: number; slug?: string }>('tags', {
+			slug: POST_KINDS.join(','),
+			per_page: 100,
+			_fields: 'id,slug'
+		});
+
+		for (const tag of tags) {
+			const kind = POST_KINDS.find((candidate) => candidate === tag.slug);
+			if (kind && typeof tag.id === 'number') {
+				KIND_TERM_IDS.set(kind, tag.id);
+			}
+		}
+
+		const missing = POST_KINDS.filter((kind) => !KIND_TERM_IDS.has(kind));
+		if (missing.length) {
+			console.warn(`[wordpress] kind tag(s) missing from the CMS: ${missing.join(', ')}`);
+		}
+	})();
+
+	return kindTermRequest;
+}
+
+/** Every post in one editorial fleet, newest first. */
+export async function fetchPostsByKind(kind: PostKind, limit = 24) {
+	await loadKindTermIds();
+	const termId = KIND_TERM_IDS.get(kind);
+
+	if (!termId) {
+		console.warn(`[wordpress] cannot list "${kind}" — no term id resolved, returning nothing.`);
+		return [];
+	}
+
+	return fetchOwnedPosts({ tags: termId }, limit);
+}
+
+/**
+ * True for the durable library: a post tagged `evergreen`, plus any post that carries no kind tag
+ * at all.
+ *
+ * Unfiled posts land here deliberately. If they were dropped they would appear in no list and
+ * disappear from navigation without an error, which is the exact failure `vertical-taxonomy.php`
+ * guards against for ownership. `scripts/routing.mjs` names every one of them on every build, so
+ * the gap is visible until someone tags it.
+ */
+export function isDurablePost(post: WordPressPost) {
+	return post.kinds.includes('evergreen') || post.kinds.length === 0;
+}
+
+/** Newest first, by publish date. */
+export function byNewest(a: WordPressPost, b: WordPressPost) {
+	const ta = a.date ? new Date(a.date).getTime() : 0;
+	const tb = b.date ? new Date(b.date).getTime() : 0;
+	return tb - ta;
+}
+
 export async function fetchPostsByCategory(categoryId: number | number[] | string, limit = 12) {
 	const categoryParam = Array.isArray(categoryId) ? categoryId.join(',') : String(categoryId);
 	return fetchOwnedPosts({ categories: categoryParam }, limit);
@@ -445,7 +566,7 @@ export async function searchPosts(query: string, limit = 8) {
 }
 
 export async function fetchPostBySlug(slug: string) {
-	const posts = await fetchWordPress('posts', {
+	const posts = await fetchWordPress<WordPressPostResponse>('posts', {
 		_embed: 1,
 		slug
 	});
@@ -467,10 +588,10 @@ export async function fetchAllPosts(limit = 1000) {
 }
 
 export async function fetchAllCategories(limit = 100) {
-	const categories = (await fetchWordPress('categories', {
+	const categories = await fetchWordPress<WordPressCategoryResponse>('categories', {
 		per_page: limit,
 		hide_empty: 0
-	})) as WordPressCategoryResponse[];
+	});
 
 	return categories.map(normalizeCategory);
 }

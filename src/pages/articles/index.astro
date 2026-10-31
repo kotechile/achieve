@@ -3,10 +3,21 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import JsonLd from '../../components/JsonLd.astro';
 import DispatchLog from '../../components/DispatchLog.astro';
 import { getTopLevelCategories } from '../../lib/categories';
-import { fetchAllPosts } from '../../lib/wordpress';
-import { OWNED_POST_SLUGS } from '../../lib/site-content';
+import { fetchAllPosts, isDurablePost, byNewest } from '../../lib/wordpress';
 
-const [posts, topLevel] = await Promise.all([fetchAllPosts(), getTopLevelCategories()]);
+/**
+ * The durable library.
+ *
+ * This page used to list every dispatch newest-first, which meant a daily publishing fleet buried
+ * the standing analysis inside a month. It now lists only posts tagged `evergreen` in the CMS, plus
+ * any post carrying no kind tag at all — a post in neither list would vanish from navigation, and
+ * `scripts/routing.mjs` names those on every build instead of hiding them.
+ *
+ * The dated fleet lives at `/news/`. Domain pages (`/categories/<domain>/`) still hold everything
+ * filed under a domain, news and backgrounders together.
+ */
+const [allPosts, topLevel] = await Promise.all([fetchAllPosts(), getTopLevelCategories()]);
+const posts = allPosts.filter(isDurablePost).sort(byNewest);
 
 const domains = [
 	...topLevel.filter((category) => category.children.length === 0),
@@ -18,8 +29,8 @@ const pageUrl = `${siteOrigin}/articles/`;
 ---
 
 <BaseLayout
-	title={`Article archive — ${OWNED_POST_SLUGS.size} operations dispatches | AIChieve`}
-	description="Every AIChieve dispatch on AI stack economics, agentic workflow operations, compute infrastructure and supply-chain cost control."
+	title={`Article archive — ${posts.length} backgrounders | AIChieve`}
+	description="Standing AI, compute and supply-chain analysis: the backgrounders a dispatch sits on top of, filterable by domain."
 >
 	<link slot="head" rel="canonical" href={pageUrl} />
 	<JsonLd
@@ -36,11 +47,16 @@ const pageUrl = `${siteOrigin}/articles/`;
 	<section class="pt-4">
 		<p class="ai-label ai-label--signal">Archive</p>
 		<h1 class="ai-display mt-4 max-w-3xl text-[2.2rem] sm:text-4xl lg:text-5xl">
-			{posts.length} dispatches, newest first
+			{posts.length} backgrounders, newest first
 		</h1>
 		<p class="ai-lede mt-5">
-			Field notes on the cost mechanics of AI, compute and logistics — written from the model, not
-			from the press release. Filter by domain below or search the archive from the header.
+			These are the standing pieces a dispatch sits on top of: domain models, cost mechanics and
+			reference numbers that outlive the month they were written. Filter by domain below or search
+			the archive from the header.
+		</p>
+		<p class="ai-lede mt-3">
+			Dated dispatches, which retire when a number moves, are kept separately at the
+			<a href="/news/" class="ai-link">news desk</a>.
 		</p>
 	</section>
 
