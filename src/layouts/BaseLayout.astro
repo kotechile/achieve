@@ -57,6 +57,22 @@ const shareImage = image || new URL('/default-share-image.png', siteOrigin).toSt
 <!doctype html>
 <html lang="en">
 	<head>
+		<!--
+			Cookiebot consent banner. Deliberately the FIRST script in <head>: with
+			data-blockingmode="auto" it has to run before anything else that could set a cookie,
+			or the tag it is meant to gate has already fired by the time consent is known.
+			`is:inline` keeps Astro from bundling it — it must load from Cookiebot's own origin.
+			The banner and what it stores are described in /privacy/.
+		-->
+		<script
+			id="Cookiebot"
+			is:inline
+			src="https://consent.cookiebot.com/uc.js"
+			data-cbid="d8a2c756-3a01-4190-841d-cfaf14b65c89"
+			data-blockingmode="auto"
+			type="text/javascript"
+		></script>
+
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />

@@ -157,6 +157,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"your-agent-team-loses-28-points",
 	"your-ai-fine-is-3-percent",
 	"your-ai-roi-28-rising-28-stalled",
+	"your-backup-66-mw-permit-trap",
 	"your-cache-pays-125x-for-nothing",
 	"your-carbon-report-skips-2-lines",
 	"your-carriers-750000-doesnt-cover-cargo",
@@ -166,6 +167,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"your-chip-stopped-deciding",
 	"your-ci-bill-232-hours",
 	"your-cluster-hidden-clock",
+	"your-cold-chain-blind-spot",
 	"your-compaction-trap-87-forgeries-survive",
 	"your-dedupe-cut-f1-by-74",
 	"your-eta-misses-27-hours",
@@ -185,6 +187,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"your-miss-costs-9x-the-chargeback",
 	"your-plant-was-1n-and-blind",
 	"your-platform-23-features-no-stop-rule",
+	"your-pool-becomes-2000-connections",
 	"your-render-bill-multiplies-by-22-97",
 	"your-retrieval-misses-57",
 	"your-routes-5x-stop-gap",
@@ -304,4 +307,4 @@ export const FOREIGN_TARGETS = {
 	"zapier-notion-integration-calculate-your-tinkering-tax": "https://giniloh.com"
 };
 export const GENERATED_FOR = "aichieve.net";
-export const GENERATED_AT = "2026-11-03T17:46:49.971Z";
+export const GENERATED_AT = "2026-11-03T21:51:30.066Z";

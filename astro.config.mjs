@@ -60,7 +60,11 @@ export default defineConfig({
     // The byline moved off the sibling's consumer persona in the 2026 rebrand. Old author links
     // (in-reader bookmarks, and the JSON-LD we published for two months) land on the profile that
     // now holds the same body of work instead of a 404.
-    '/author/gini-loh': '/author/jorge-fernandez/'
+    '/author/gini-loh': '/author/jorge-fernandez/',
+    // The policy is linked from the footer and from third-party app reviews (LinkedIn). Both the
+    // hyphenated and the bare form resolve, because that is what gets typed by hand.
+    '/privacy-policy': '/privacy/',
+    '/privacy-policy/': '/privacy/'
   },
   integrations: [
     react(),
