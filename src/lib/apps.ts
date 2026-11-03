@@ -60,7 +60,7 @@ export const PRO_APPS: ProApp[] = [
 		slug: 'caseproof',
 		icon: 'matrix',
 		name: 'CaseProof',
-		tagline: 'Buyer-side audit of a warehouse-automation business case',
+		tagline: 'Algorithmic audit of a warehouse-automation business case',
 		input: "Vendor's quoted business case + your own cost assumptions",
 		output: 'A re-run of the vendor numbers on your loaded costs, plus what to confirm in writing',
 		failure: 'Warehouse automation deals signed on a vendor’s own payback model',

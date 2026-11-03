@@ -1,7 +1,8 @@
 ---
 import { getTopLevelCategories } from '../lib/categories';
 import { PRO_APPS } from '../lib/apps';
-import { SIBLING_SITE, OWNED_POST_SLUGS } from '../lib/site-content';
+import { calculators } from '../lib/calculators/metadata';
+import { SIBLING_SITE, SITE_AUTHOR, OWNED_POST_SLUGS } from '../lib/site-content';
 
 const domains = await getTopLevelCategories();
 const year = new Date().getFullYear();
@@ -11,16 +12,19 @@ const year = new Date().getFullYear();
 	<div class="ai-wrap">
 		<div class="grid gap-10 lg:grid-cols-12">
 			<div class="lg:col-span-5">
-				<p class="ai-label">AIChieve // Enterprise</p>
+				<p class="ai-label">AIChieve // Applied Lab</p>
 				<h2 class="mt-3 text-2xl font-extrabold tracking-tight text-[var(--ai-ink)]">
-					Cost control for the systems your business already runs on.
+					Deterministic models and human-in-the-loop research across supply chain, AI compute, and
+					enterprise operations.
 				</h2>
 				<p class="mt-3 max-w-md text-sm leading-relaxed text-[var(--ai-ink-2)]">
-					Deterministic engines and buyer-side audits for AI stack economics, agentic workflow
-					operations, and supply-chain spend.
+					An independent engineering project by
+					<a class="font-semibold text-[var(--ai-link)] transition hover:text-[var(--ai-signal)]" href={SITE_AUTHOR.href}
+						>{SITE_AUTHOR.name}</a
+					>. Client-side models, algorithmic audit prototypes, and operational dispatches.
 				</p>
 				<p class="mt-5 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-[var(--ai-ink-4)]">
-					{OWNED_POST_SLUGS.size} dispatches · {PRO_APPS.length} PRO apps · 2 engines
+					{OWNED_POST_SLUGS.size} dispatches · {PRO_APPS.length} PRO apps · {calculators.length} engines
 				</p>
 			</div>
 
@@ -31,7 +35,7 @@ const year = new Date().getFullYear();
 					<a class="text-[var(--ai-ink-2)] transition hover:text-[var(--ai-signal)]" href="/apps/">PRO Apps</a>
 					<a class="text-[var(--ai-ink-2)] transition hover:text-[var(--ai-signal)]" href="/articles/">Article archive</a>
 					<a class="text-[var(--ai-ink-2)] transition hover:text-[var(--ai-signal)]" href="/categories/">Domains</a>
-					<a class="text-[var(--ai-ink-2)] transition hover:text-[var(--ai-signal)]" href="/about/">About</a>
+					<a class="text-[var(--ai-ink-2)] transition hover:text-[var(--ai-signal)]" href="/about/">About the lab</a>
 				</div>
 			</nav>
 
@@ -71,7 +75,7 @@ const year = new Date().getFullYear();
 		<div
 			class="mt-12 flex flex-col gap-3 border-t border-[var(--ai-line-soft)] pt-6 font-mono text-[0.68rem] uppercase tracking-[0.16em] text-[var(--ai-ink-4)] sm:flex-row sm:items-center sm:justify-between"
 		>
-			<p>© {year} AIChieve. All rights reserved.</p>
+			<p>© {year} AIChieve · built by {SITE_AUTHOR.name}</p>
 			<p class="flex items-center gap-2">
 				<span class="ai-lamp" aria-hidden="true"></span>
 				<span>Deterministic engines · client-side</span>

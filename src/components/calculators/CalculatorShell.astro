@@ -1,4 +1,6 @@
 ---
+import { SITE_AUTHOR } from '../../lib/site-content';
+
 /**
  * Instrument bay.
  *
@@ -28,7 +30,7 @@ const { eyebrow, title, description } = Astro.props;
 			</span>
 			<span class="font-mono text-[0.62rem] uppercase tracking-[0.16em] text-[var(--ai-ink-4)]">
 				Audited by
-				<a href="/author/gini-loh/" class="text-[var(--ai-link)] transition hover:text-[var(--ai-signal)]">Gini Loh</a>
+				<a href={SITE_AUTHOR.href} class="text-[var(--ai-link)] transition hover:text-[var(--ai-signal)]">{SITE_AUTHOR.name}</a>
 			</span>
 		</div>
 	</div>

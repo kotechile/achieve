@@ -68,6 +68,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"inventory-cut-bets-against-prices",
 	"isolation-isnt-detection",
 	"kill-switch-misses-half-your-agents",
+	"kroger-direct-buy-retires-its-own-fine",
 	"kv-cache-is-the-concurrency-ceiling",
 	"last-mile-carbon-number-is-a-rate-table",
 	"local-ai-payback-cloud-gpu-spread",
@@ -110,6 +111,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"sla-credit-is-not-insurance",
 	"slow-movers-hold-your-stock",
 	"stale-grants-travel-the-graph",
+	"stop-blaming-demand-planning-for-stockouts",
 	"stripe-accounting-software-solving-the-payout-black-box-with",
 	"suez-returns-91-surcharge-doesnt",
 	"tariff-cliff-already-priced-in",
@@ -131,9 +133,11 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"your-15-air-rule-195-break-even",
 	"your-15-percent-raise-is-a-price-hike",
 	"your-180-day-model-is-already-wrong",
+	"your-192-sessions-stall-the-model-not-the-tools",
 	"your-24gb-card-is-4gb-short",
 	"your-3-0-0-feed-stuck-until-2027",
 	"your-30-exception-bill-is-wrong",
+	"your-30-inventory-cut-is-13-4",
 	"your-32-cards-spend-90-percent-talking",
 	"your-32gb-card-gone",
 	"your-480gb-card-wont-skip-the-memory-queue",
@@ -143,6 +147,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"your-61-point-growth-was-a-refill",
 	"your-68k-tokens-cost-every-step",
 	"your-783-silent-cap-breach",
+	"your-90-day-key-is-two-live-keys",
 	"your-90-restart-monitor-proves-nothing",
 	"your-98-fill-rate-18-dont-ship",
 	"your-agent-contract-gap-63-unmet",
@@ -154,6 +159,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"your-carriers-750000-doesnt-cover-cargo",
 	"your-chargeback-misses-40-of-the-bill",
 	"your-charger-gap-buys-16-robots",
+	"your-cheapest-part-needs-four-sigma",
 	"your-chip-stopped-deciding",
 	"your-ci-bill-232-hours",
 	"your-cluster-hidden-clock",
@@ -161,11 +167,13 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"your-eta-misses-27-hours",
 	"your-exception-log-owes-5-years",
 	"your-fleets-charger-gap",
+	"your-gateway-was-malicious-for-104-minutes",
 	"your-golden-zone-costs-10-miles",
 	"your-gpu-break-even-is-37-percent-busy",
 	"your-gpu-landlord-80-wont-survive",
 	"your-green-passes-hide-31-wrong",
 	"your-hidden-quantity-gap",
+	"your-inventory-bill-is-24-percent-prepaid",
 	"your-label-bills-2500-series",
 	"your-machine-duty-180-days-still-unpriced",
 	"your-mexico-hedge-renewal-risk",
@@ -181,8 +189,10 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"your-tool-boundary-costs-3-engineers",
 	"your-tool-surface-is-a-release-surface",
 	"your-tooling-assist-is-dutiable",
+	"your-trace-fails-as-an-alarm",
 	"your-trace-wont-prove-925-points",
 	"your-truck-mile-costs-2-2-driver-minutes",
+	"your-zone-deferral-is-worth-115-percent",
 	"zet-scale-ev-truck-residual-value-risk"
 ];
 export const FOREIGN_POST_SLUGS_GENERATED = [
@@ -232,6 +242,7 @@ export const FOREIGN_POST_SLUGS_GENERATED = [
 	"your-llc-bill-75-until-2028",
 	"your-raise-dies-at-51-5-hours",
 	"your-screen-gap-999-vs-99",
+	"your-standby-bill-hides-62-watts",
 	"your-stock-gift-26180-never-taxed",
 	"zapier-notion-integration-calculate-your-tinkering-tax"
 ];
@@ -282,8 +293,9 @@ export const FOREIGN_TARGETS = {
 	"your-llc-bill-75-until-2028": "https://giniloh.com",
 	"your-raise-dies-at-51-5-hours": "https://giniloh.com",
 	"your-screen-gap-999-vs-99": "https://giniloh.com",
+	"your-standby-bill-hides-62-watts": "https://giniloh.com",
 	"your-stock-gift-26180-never-taxed": "https://giniloh.com",
 	"zapier-notion-integration-calculate-your-tinkering-tax": "https://giniloh.com"
 };
 export const GENERATED_FOR = "aichieve.net";
-export const GENERATED_AT = "2026-10-31T11:41:54.876Z";
+export const GENERATED_AT = "2026-11-03T01:07:51.163Z";

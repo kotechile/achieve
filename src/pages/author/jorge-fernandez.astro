@@ -1,0 +1,102 @@
+---
+/**
+ * The author page for the person the property belongs to.
+ *
+ * This replaced `/author/gini-loh/`: bylining an applied-AI and supply-chain lab with the
+ * consumer persona from the sibling site made the two properties read as one brand with two
+ * skins. The name, role and profile URL come from SITE_AUTHOR so the byline on 200+ dispatches,
+ * the JSON-LD and this page can never disagree.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import JsonLd from '../../components/JsonLd.astro';
+import DispatchLog from '../../components/DispatchLog.astro';
+import { fetchAllPosts } from '../../lib/wordpress';
+import { SIBLING_SITE, SITE_AUTHOR } from '../../lib/site-content';
+import { calculators } from '../../lib/calculators/metadata';
+import { PRO_APPS } from '../../lib/apps';
+
+const posts = await fetchAllPosts();
+const siteOrigin = Astro.site?.toString().replace(/\/$/, '') || 'https://aichieve.net';
+const pageUrl = `${siteOrigin}${SITE_AUTHOR.href}`;
+
+const recent = posts.slice(0, 12);
+---
+
+<BaseLayout
+	title={`${SITE_AUTHOR.name} — systems architect, applied AI & operations | AIChieve`}
+	description={`${SITE_AUTHOR.name} builds the deterministic engines, human-in-the-loop pipelines and audit prototypes on AIChieve, working across supply chain, enterprise data and applied AI.`}
+>
+	<link slot="head" rel="canonical" href={pageUrl} />
+	<JsonLd
+		slot="head"
+		data={{
+			'@context': 'https://schema.org',
+			'@type': 'Person',
+			name: SITE_AUTHOR.name,
+			url: pageUrl,
+			jobTitle: SITE_AUTHOR.role,
+			worksFor: { '@type': 'Organization', name: 'AIChieve', url: `${siteOrigin}/` },
+			sameAs: [SIBLING_SITE.origin]
+		}}
+	/>
+
+	<section class="pt-4">
+		<p class="ai-label ai-label--signal">Author · builder of this lab</p>
+		<div class="mt-6 flex flex-col gap-6 sm:flex-row sm:items-center">
+			<div
+				class="grid h-20 w-20 shrink-0 place-items-center border border-[var(--ai-signal)] font-mono text-2xl font-bold text-[var(--ai-signal)]"
+				aria-hidden="true"
+			>
+				{SITE_AUTHOR.initials}
+			</div>
+			<div>
+				<h1 class="ai-display text-[2rem] sm:text-4xl">{SITE_AUTHOR.name}</h1>
+				<p class="mt-2 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-[var(--ai-ink-4)]">
+					{SITE_AUTHOR.role}
+				</p>
+			</div>
+		</div>
+	</section>
+
+	<section class="mt-10 grid gap-8 lg:grid-cols-[0.55fr_0.45fr]">
+		<div class="grid gap-5">
+			<p class="text-base leading-relaxed text-[var(--ai-ink-2)]">
+				I build the engines, pipelines and audit prototypes on AIChieve. My day job sits at the
+				intersection of supply chain operations, enterprise systems architecture, data and applied
+				AI, which is where most of the questions on this site come from.
+			</p>
+			<p class="text-base leading-relaxed text-[var(--ai-ink-2)]">
+				The method is consistent: take an expensive, emotionally-loaded decision, break it into its
+				actual components, price each one, and publish the arithmetic so somebody can challenge it.
+			</p>
+			<p class="text-base leading-relaxed text-[var(--ai-ink-2)]">
+				Agentic pipelines draft, I verify. Every dispatch here is checked against a primary source,
+				and every calculator is deterministic code rather than a model's estimate.
+			</p>
+			<p class="text-sm leading-relaxed text-[var(--ai-ink-2)]">
+				<a class="ai-link" href="/about/">How the lab and its guardrails work →</a>
+			</p>
+		</div>
+		<div class="grid gap-4 sm:grid-cols-2">
+			<div class="ai-panel p-5">
+				<p class="ai-kpi__value">{posts.length}</p>
+				<p class="ai-label mt-2">Dispatches</p>
+			</div>
+			<div class="ai-panel p-5">
+				<p class="ai-kpi__value">{calculators.length}</p>
+				<p class="ai-label mt-2">Engines maintained</p>
+			</div>
+			<div class="ai-panel p-5 sm:col-span-2">
+				<p class="ai-label">Also runs</p>
+				<a class="ai-link mt-3 text-sm" href={SIBLING_SITE.origin} rel="noopener" target="_blank">
+					{SIBLING_SITE.name} — personal &amp; career decisions <span aria-hidden="true">↗</span>
+				</a>
+				<p class="mt-3 font-mono text-[0.6rem] uppercase tracking-[0.14em] text-[var(--ai-ink-4)]">
+					{PRO_APPS.length} PRO audit prototypes · {posts.length} dispatches · one methodology
+				</p>
+			</div>
+		</div>
+	</section>
+
+	<DispatchLog posts={recent} eyebrow="Recent work" title="Latest dispatches" id="author-dispatches" />
+</BaseLayout>

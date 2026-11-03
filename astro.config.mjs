@@ -56,7 +56,11 @@ export default defineConfig({
     // Product host: the canonical app directory lives at /apps/ here. Old giniloh names for
     // the same destination collapse into it.
     '/showcase': '/apps/',
-    '/pro-apps': '/apps/'
+    '/pro-apps': '/apps/',
+    // The byline moved off the sibling's consumer persona in the 2026 rebrand. Old author links
+    // (in-reader bookmarks, and the JSON-LD we published for two months) land on the profile that
+    // now holds the same body of work instead of a 404.
+    '/author/gini-loh': '/author/jorge-fernandez/'
   },
   integrations: [
     react(),

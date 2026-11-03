@@ -46,6 +46,22 @@ export const SIBLING_SITE = {
 	origin: 'https://giniloh.com'
 } as const;
 
+/**
+ * Who this property credits its work to.
+ *
+ * It is deliberately NOT the sibling's author name. Both sites used to byline everything "Gini
+ * Loh", which put a consumer-finance persona on supply-chain and AI-governance articles and made
+ * the enterprise property read as a section of the other one. AIChieve is Jorge's own applied AI
+ * and operations lab, so it carries his name, his profile and his disclaimer.
+ */
+export const SITE_AUTHOR = {
+	name: 'Jorge Fernandez',
+	initials: 'JF',
+	role: 'Systems Architect · Supply Chain & Enterprise Data',
+	href: '/author/jorge-fernandez/'
+} as const;
+
+
 /** Top-level WordPress category slugs this site's navigation and index pages may show. */
 export const OWNED_CATEGORY_SLUGS = [
 	'supply-chain-operations',

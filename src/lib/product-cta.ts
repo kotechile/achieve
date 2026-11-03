@@ -33,7 +33,7 @@ const PRODUCTS = {
 	},
 	caseproof: {
 		name: 'CaseProof',
-		tagline: 'Buyer-side audit of a warehouse-automation business case',
+		tagline: 'Algorithmic audit of a warehouse-automation business case',
 		url: appUrl('/caseproof')
 	},
 	facturgate: {
@@ -82,7 +82,7 @@ const BY_SLUG: Record<string, { product: ProductSlug; why: string }> = {
 	},
 	'caseproof-stop-signing-3m-warehouse-automation-deals-on-a-vendors': {
 		product: 'caseproof',
-		why: 'This is the launch note for CaseProof — the buyer-side audit it describes runs on your own quote and cost assumptions.'
+		why: 'This is the launch note for CaseProof — the algorithmic audit it describes runs on your own quote and cost assumptions.'
 	},
 	'stripe-accounting-software-solving-the-payout-black-box-with': {
 		product: 'ledgerlink',

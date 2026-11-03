@@ -6,11 +6,14 @@
  * exactly the kind of near-miss copy ("supply chain leaders" bolted onto a personal-finance
  * page) that a dedicated site exists to avoid. Change the text here, deliberately.
  *
- * giniloh.com keeps reading `giniloh_overview.md`; this file is the enterprise voice.
+ * The voice is the lab's, not an agency's: this is one person's applied AI and operations
+ * sandbox. giniloh.com keeps reading `giniloh_overview.md`; this file is the engineering voice,
+ * attributed to Jorge Fernandez (see SITE_AUTHOR in `./site-content.ts`, the single place the
+ * byline name lives).
  */
-export interface AudienceSegment {
+export interface MethodSection {
 	title: string;
-	description: string;
+	body: string;
 }
 
 export interface OverviewContent {
@@ -19,50 +22,65 @@ export interface OverviewContent {
 	subheadline: string;
 	mission: string;
 	originStory: string;
-	audience: AudienceSegment[];
-	aboutSections: Array<{ title: string; body: string }>;
+	/** `// 01 THE LAB` — what the sandbox is and why it exists. */
+	lab: { title: string; body: string[] };
+	/** `// 02 THE METHODOLOGY` — the guardrails that keep the output out of slop territory. */
+	methodology: MethodSection[];
+	/** `// 03 THE ARCHITECT` — who builds it, and the independence disclaimer. */
+	architect: { title: string; body: string[]; disclaimer: string };
+	/** The compact architecture banner that sits beside the coverage board on the homepage. */
+	architecture: { kicker: string; body: string; steps: string[] };
 }
 
 export const OVERVIEW: OverviewContent = {
-	eyebrow: 'AIChieve // Enterprise Command Center',
-	headline: 'Model the spend before you approve it.',
+	eyebrow: 'AIChieve // Applied AI & Operations Lab',
+	headline: 'Where supply chain, enterprise data, and human-in-the-loop AI converge.',
 	subheadline:
-		'Deterministic engines and buyer-side audits for the people who approve AI compute, agentic workflows and supply-chain spend. Every model runs in your browser on your own numbers — nothing is estimated on your behalf.',
+		'An independent engineering sandbox by Jorge Fernandez. Exploring how human-in-the-loop (HITL) agentic workflows turn field data into operational dispatches, deterministic calculators, and file-based audit prototypes.',
 	mission:
-		'AIChieve exists so enterprise leaders can put a number on a systemic risk before they sign for it: what a GPU estate actually costs to own, what a vendor’s automation business case looks like when it is re-run on your loaded costs, and which line on an AI or carrier invoice has no basis.',
+		'The lab exists to put a number on a decision instead of a slide. What a GPU estate costs to own. What a vendor business case looks like re-run on loaded costs. Which invoice line has no basis. Each one is modelled, documented and published with the working shown.',
 	originStory:
-		'The property was split out of giniloh.com in 2026 because the audience is not the same. A reader here is spending a company’s money under an approval chain, an audit trail and a vendor contract; a reader on giniloh.com is spending their own. Mixing the two produced tools that were too soft for architects and too heavy for individuals, so the enterprise half moved here and kept the engine.',
-	audience: [
+		'AIChieve started in 2026 as the enterprise half of a split from giniloh.com. The consumer questions stayed on the other side; compute economics, agentic reliability and freight mechanics came here. It is now where I publish what the pipelines draft and what survives review.',
+	lab: {
+		title: 'An independent R&D sandbox',
+		body: [
+			'AIChieve is a personal lab, not an agency. I build the pipelines here, run them, and publish whatever holds up after a human pass.',
+			'The question under test: how much of a dispatch, a calculator or an audit model can a machine draft before the output stops being trustworthy? The answer is measured, not asserted.',
+			'Experiments ship in public with the arithmetic attached. A prototype that fails is documented as a failure rather than quietly deleted.'
+		]
+	},
+	methodology: [
 		{
-			title: 'The Enterprise IT Architect',
-			description:
-				'Deciding whether a workload belongs on an owned GPU estate or a rental contract, and what the break-even utilization actually is.'
+			title: 'Primary-source dispatches',
+			body:
+				'Every article starts from something checkable: SEC filings, carrier invoices, hardware benchmarks, operational telemetry. The pipeline drafts; I verify the figures, cut the padding, and sign the result.'
 		},
 		{
-			title: 'The AI Strategist',
-			description:
-				'Governing agentic workflows that fail in shapes the happy-path tests never cover — retry storms, stale grants, tiered state, timeout budgets.'
+			title: 'Deterministic client-side engines',
+			body:
+				'The standard calculators run entirely in your browser on transparent formulas. No number on this site comes from a language model guessing at arithmetic, and nothing you type is uploaded.'
 		},
 		{
-			title: 'The Supply Chain Manager',
-			description:
-				'Auditing money that moves by rule rather than by price: DIM-weight and fuel surcharges, demurrage clocks, duty refunds, carrying-cost rates.'
+			title: 'File-based audit prototypes (PRO)',
+			body:
+				'The PRO apps stress-test messy real-world files: carrier invoices, EU e-invoices, ledger exports, warehouse CAPEX cases. Each one names the lines that do not reconcile instead of summarising them.'
 		}
 	],
-	aboutSections: [
-		{
-			title: 'What AIChieve covers',
-			body: 'AI stack and tool TCO, agentic workflow operations, compute infrastructure (owned versus leased), supply chain and freight cost control, business automation and warehouse CAPEX, and the buyer-side auditing of vendor business cases.'
-		},
-		{
-			title: 'How the engines work',
-			body: 'Every model on this site is deterministic and runs entirely in the browser. Inputs are yours; nothing is uploaded, and no result is generated by a model that could be wrong in an unaccountable way. The engines produce a verdict and the arithmetic behind it, so the number can be defended in a review.'
-		},
-		{
-			title: 'Where the paid tools fit',
-			body: 'The engines here are free and stay free. When a decision needs work that only runs on a real file — a carrier invoice, a vendor quote, an AI provider bill, a Stripe payout export — the matching paid app is named on the page that raises the question.'
-		}
-	]
+	architect: {
+		title: 'Jorge Fernandez',
+		body: [
+			'I work at the intersection of supply chain operations, enterprise systems architecture, data and applied AI. The models here are the ones I needed and could not buy.',
+			'Everything on this site is built and maintained by one person, with agents doing the drafting and a human doing the verification.'
+		],
+		disclaimer:
+			'Independence Disclaimer: AIChieve.net is an independent personal research and software engineering project. All dispatches, mathematical models, prototypes and opinions published here are strictly my own and do not represent the views, strategies or endorsements of my employer or any enterprise client.'
+	},
+	architecture: {
+		kicker: 'System Architecture // Human-in-the-Loop',
+		body:
+			'AIChieve is a live engineering testbed for semi-autonomous research and tool generation. Multi-agent pipelines ingest primary research, supply chain telemetry and hardware benchmarks. They draft the dispatches and the deterministic models; a human systems architect then stress-tests, edits and verifies each output before it deploys.',
+		steps: ['Ingest', 'Draft', 'Human review', 'Deploy']
+	}
 };
 
 export async function getOverviewContent() {

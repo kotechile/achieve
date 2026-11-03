@@ -1,5 +1,5 @@
 import { filterOwnedPosts, belongsToSite, SIBLING_SITE } from './site-content';
-import { resolveInternalLink, INTERNAL_HOSTS } from './link-map';
+import { resolveInternalLink, stripSiblingLinks, INTERNAL_HOSTS } from './link-map';
 import { getAppsBase } from './apps';
 
 interface WordPressRenderedField {
@@ -264,6 +264,12 @@ function normalizePost(post: WordPressPostResponse): WordPressPost {
 	}
 
 	htmlContent = normaliseLegacyAppHost(htmlContent);
+
+	// Last, and after the rewrite above: any link that still points at the sibling property is
+	// removed from the body entirely. resolveInternalLink keeps those URLs absolute so they do not
+	// 404; this decides they should not be there at all. See stripSiblingLinks in lib/link-map.ts.
+	htmlContent = stripSiblingLinks(htmlContent);
+
 	htmlContent = formatArticleHook(htmlContent);
 
 	return {
