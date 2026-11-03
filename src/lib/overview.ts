@@ -87,7 +87,7 @@ export const OVERVIEW: OverviewContent = {
 			'I own the pipeline end to end: the agents do the monitoring, drafting and maintenance, and I do the verification and the judgement calls.'
 		],
 		disclaimer:
-			'Independence Disclaimer: AIChieve.net is an independent personal research and software engineering project. All dispatches, mathematical models, prototypes and opinions published here are strictly my own and do not represent the views, strategies or endorsements of my employer or any enterprise client.'
+			'AIChieve.net is an independent personal research and software engineering project. All dispatches, mathematical models, prototypes and opinions published here are strictly my own and do not represent the views, strategies or endorsements of my employer or any enterprise client.'
 	},
 	architecture: {
 		kicker: 'System Architecture // Human-in-the-Loop',

@@ -58,7 +58,8 @@ export const SITE_AUTHOR = {
 	name: 'Jorge Fernandez Ilufi',
 	/** Short form, for the schema `alternateName` only — never for the byline. */
 	shortName: 'Jorge Fernandez',
-	initials: 'JFI',
+	/** Monogram for the avatar tiles (/about, the profile page, the card under every dispatch). */
+	initials: 'JF',
 	role: 'Systems Architect · Supply Chain & Enterprise Data',
 	href: '/author/jorge-fernandez/',
 	/**

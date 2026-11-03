@@ -10,7 +10,7 @@
  */
 export const KIND_COUNTS = {
 	"news": 99,
-	"evergreen": 92,
+	"evergreen": 93,
 	"review": 0
 };
 
