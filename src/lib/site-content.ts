@@ -64,7 +64,14 @@ export const SITE_AUTHOR = {
 	 * on /about and the author page, and the JSON-LD `sameAs` that tells a search engine these
 	 * are the same person. A hardcoded copy in any of them would eventually drift.
 	 */
-	linkedin: 'https://www.linkedin.com/in/jorge-fernandez-ilufi-07b1236/'
+	linkedin: 'https://www.linkedin.com/in/jorge-fernandez-ilufi-07b1236/',
+	/**
+	 * The name on the LinkedIn profile, which carries the second surname. The byline stays the
+	 * short form (`name`) because that is the brand; `schemaName` is what machine-readable
+	 * identity should use, so a search engine can match the site and the profile as one person
+	 * instead of two "Jorge Fernandez" entries.
+	 */
+	schemaName: 'Jorge Fernandez Ilufi'
 } as const;
 
 
