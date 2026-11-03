@@ -55,9 +55,12 @@ const buildStamp = builtAt
 		<div>
 			<p class="ai-label ai-label--signal ai-rise">{OVERVIEW.eyebrow}</p>
 
+			{/* The headline is a full clause now (72 characters, not the old 40), so the hero scale
+			    steps down: at 4.25rem it ran to six lines in a 596px column and pushed the lede and
+			    the CTAs past the fold. 3.4rem holds it to four lines and keeps the block readable. */}
 			<h1
 				id="hero-heading"
-				class="ai-display ai-display--hero ai-rise ai-rise--2 mt-5 text-[2.6rem] sm:text-6xl lg:text-[4.25rem]"
+				class="ai-display ai-display--hero ai-rise ai-rise--2 mt-5 text-[2rem] sm:text-[2.75rem] lg:text-[3.4rem]"
 			>
 				{OVERVIEW.headline}
 			</h1>

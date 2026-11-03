@@ -37,20 +37,29 @@ const isActive = (href: string) =>
 				</span>
 			</a>
 
-			<nav class="ai-nav hidden lg:flex" aria-label="Primary navigation">
-				{navLinks.map((link) => (
-					<a
-						href={link.href}
-						class="ai-nav__link inline-flex items-center gap-1.5"
-						aria-current={isActive(link.href) ? 'page' : undefined}
-					>
-						<span>{link.label}</span>
-						{link.badge && (
-							<span class="ai-tag ai-tag--pro !px-1 !py-[1px] !text-[0.55rem]">{link.badge}</span>
-						)}
-					</a>
-				))}
-			</nav>
+			{/*
+				The `hidden lg:block` gate lives on this wrapper, not on <nav> itself.
+				`.ai-nav` sets `display: flex` in src/styles/aichieve.css, which is unlayered CSS and
+				therefore outranks the layered `hidden` utility no matter the specificity — on a phone
+				the six desktop links stayed visible, overflowed the viewport and pushed the mobile
+				menu button off-screen. A wrapper with no design-system class restores the gate.
+			*/}
+			<div class="hidden lg:block">
+				<nav class="ai-nav" aria-label="Primary navigation">
+					{navLinks.map((link) => (
+						<a
+							href={link.href}
+							class="ai-nav__link inline-flex items-center gap-1.5"
+							aria-current={isActive(link.href) ? 'page' : undefined}
+						>
+							<span>{link.label}</span>
+							{link.badge && (
+								<span class="ai-tag ai-tag--pro !px-1 !py-[1px] !text-[0.55rem]">{link.badge}</span>
+							)}
+						</a>
+					))}
+				</nav>
+			</div>
 
 			<div class="flex items-center gap-2">
 				<button type="button" data-search-open aria-label="Open search" class="ai-icon-btn">
