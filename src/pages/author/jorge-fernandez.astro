@@ -36,7 +36,7 @@ const recent = posts.slice(0, 12);
 			url: pageUrl,
 			jobTitle: SITE_AUTHOR.role,
 			worksFor: { '@type': 'Organization', name: 'AIChieve', url: `${siteOrigin}/` },
-			sameAs: [SIBLING_SITE.origin]
+			sameAs: [SITE_AUTHOR.linkedin, SIBLING_SITE.origin]
 		}}
 	/>
 
@@ -53,6 +53,12 @@ const recent = posts.slice(0, 12);
 				<h1 class="ai-display text-[2rem] sm:text-4xl">{SITE_AUTHOR.name}</h1>
 				<p class="mt-2 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-[var(--ai-ink-4)]">
 					{SITE_AUTHOR.role}
+				</p>
+				<p class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
+					<a class="ai-link" href={SITE_AUTHOR.linkedin} rel="me noopener" target="_blank">
+						LinkedIn <span aria-hidden="true">↗</span>
+					</a>
+					<a class="ai-link" href="/about/">How the lab works →</a>
 				</p>
 			</div>
 		</div>

@@ -24,7 +24,12 @@ const authorUrl = `${siteOrigin}${SITE_AUTHOR.href}`;
 			name: 'About AIChieve',
 			url: pageUrl,
 			description: OVERVIEW.subheadline,
-			author: { '@type': 'Person', name: SITE_AUTHOR.name, url: authorUrl }
+			author: {
+				'@type': 'Person',
+				name: SITE_AUTHOR.name,
+				url: authorUrl,
+				sameAs: [SITE_AUTHOR.linkedin]
+			}
 		}}
 	/>
 
@@ -145,9 +150,14 @@ const authorUrl = `${siteOrigin}${SITE_AUTHOR.href}`;
 						</p>
 					</div>
 				</div>
-				<a class="ai-link mt-5 inline-block text-sm" href={SITE_AUTHOR.href}>
-					Full profile <span aria-hidden="true">→</span>
-				</a>
+				<div class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+					<a class="ai-link" href={SITE_AUTHOR.href}>
+						Full profile <span aria-hidden="true">→</span>
+					</a>
+					<a class="ai-link" href={SITE_AUTHOR.linkedin} rel="me noopener" target="_blank">
+						LinkedIn <span aria-hidden="true">↗</span>
+					</a>
+				</div>
 			</div>
 
 			<div class="grid gap-5">

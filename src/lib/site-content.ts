@@ -58,7 +58,13 @@ export const SITE_AUTHOR = {
 	name: 'Jorge Fernandez',
 	initials: 'JF',
 	role: 'Systems Architect · Supply Chain & Enterprise Data',
-	href: '/author/jorge-fernandez/'
+	href: '/author/jorge-fernandez/',
+	/**
+	 * Public professional profile. Stored once because three places consume it: the visible link
+	 * on /about and the author page, and the JSON-LD `sameAs` that tells a search engine these
+	 * are the same person. A hardcoded copy in any of them would eventually drift.
+	 */
+	linkedin: 'https://www.linkedin.com/in/jorge-fernandez-ilufi-07b1236/'
 } as const;
 
 
