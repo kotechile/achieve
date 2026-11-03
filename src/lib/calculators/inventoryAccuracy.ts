@@ -146,6 +146,9 @@ export function computeInventoryAccuracy(input: InventoryAccuracyState): Invento
 	refusals.push(
 		'Dead cash is working capital tied up, not a one-off release. It is recovered once, and the holding cost is what it costs every year until the records are fixed.'
 	);
+	refusals.push(
+		'Run by class: blending $1 and $500 items into one average unit cost distorts dead cash and phantom risk.'
+	);
 
 	return {
 		meanOnHandPerSku: meanOnHand,

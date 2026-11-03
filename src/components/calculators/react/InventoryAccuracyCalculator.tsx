@@ -70,6 +70,7 @@ export default function InventoryAccuracyCalculator() {
 							step={1}
 							prefix="$"
 							decimals={2}
+							hint="Run by class: a single average distorts dead cash if $1 and $500 SKUs mix."
 						/>
 						<NumberField
 							label="Unit margin"

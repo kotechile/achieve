@@ -34,6 +34,11 @@ const faqItems = [
 		question: 'Why compare against a 5% baseline?',
 		answer:
 			'Because a cycle-counted location is expected to sit under five percent variance. The comparison is not zero error, it is the accuracy a counted warehouse already reaches.'
+	},
+	{
+		question: 'Should I run this across the entire warehouse at once?',
+		answer:
+			'No. A single average unit cost distorts dead cash when $1 hardware and $500 assemblies share space. Split your catalog into ABC classes or value bands and model each class separately.'
 	}
 ];
 
@@ -88,6 +93,12 @@ const post = await fetchPostBySlug('why-65-percent-of-stock-records-miss');
 				<li>4. Pick the service level you promise, then read the excess at that level rather than the total.</li>
 				<li>5. Compare the dead cash against the annual cost of counting, and fix the records before the storage.</li>
 			</ol>
+			<div class="mt-6 border-t border-[var(--ai-line-soft)] pt-4">
+				<p class="ai-label">Recommendation</p>
+				<p class="mt-2 text-xs leading-6 text-[var(--ai-ink-2)]">
+					<strong>Run by class, not as a blended building:</strong> A $1 fastener and a $500 assembly do not share the same cash exposure. Split SKUs into ABC tiers and run each class separately so counting targets real dollar risk.
+				</p>
+			</div>
 			<div class="mt-6 border-t border-[var(--ai-line-soft)] pt-4">
 				<p class="ai-label">Model logic</p>
 				<p class="mt-2 text-xs leading-6 text-[var(--ai-ink-2)]">
