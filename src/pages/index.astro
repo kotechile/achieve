@@ -35,7 +35,7 @@ const websiteSchema = {
 
 <BaseLayout
 	title="AIChieve — Applied AI, Supply Chain & Operations Lab"
-	description="An independent applied AI and operations lab by Jorge Fernandez. Human-in-the-loop research, deterministic client-side calculators and file-based audit prototypes for supply chain, AI compute and enterprise data."
+	description={`An independent applied AI and operations lab by ${SITE_AUTHOR.name}. Human-in-the-loop research, deterministic client-side calculators and file-based audit prototypes for supply chain, AI compute and enterprise data.`}
 >
 	<link slot="head" rel="canonical" href={`${siteOrigin}/`} />
 	<JsonLd slot="head" data={websiteSchema} />
@@ -184,7 +184,7 @@ const websiteSchema = {
 	<section class="mt-20 border-t border-[var(--ai-line)] pt-10">
 		<div class="grid gap-8 lg:grid-cols-[0.45fr_0.55fr]">
 			<div>
-				<p class="ai-label">Built by Jorge Fernandez · Two properties, one methodology</p>
+				<p class="ai-label">Built by {SITE_AUTHOR.name} · Two properties, one methodology</p>
 				<h2 class="ai-display mt-3 text-2xl sm:text-3xl">Looking for the personal side?</h2>
 			</div>
 			<div>

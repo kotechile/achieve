@@ -55,8 +55,10 @@ export const SIBLING_SITE = {
  * and operations lab, so it carries his name, his profile and his disclaimer.
  */
 export const SITE_AUTHOR = {
-	name: 'Jorge Fernandez',
-	initials: 'JF',
+	name: 'Jorge Fernandez Ilufi',
+	/** Short form, for the schema `alternateName` only — never for the byline. */
+	shortName: 'Jorge Fernandez',
+	initials: 'JFI',
 	role: 'Systems Architect · Supply Chain & Enterprise Data',
 	href: '/author/jorge-fernandez/',
 	/**
@@ -65,13 +67,6 @@ export const SITE_AUTHOR = {
 	 * are the same person. A hardcoded copy in any of them would eventually drift.
 	 */
 	linkedin: 'https://www.linkedin.com/in/jorge-fernandez-ilufi-07b1236/',
-	/**
-	 * The name on the LinkedIn profile, which carries the second surname. The byline stays the
-	 * short form (`name`) because that is the brand; `schemaName` is what machine-readable
-	 * identity should use, so a search engine can match the site and the profile as one person
-	 * instead of two "Jorge Fernandez" entries.
-	 */
-	schemaName: 'Jorge Fernandez Ilufi'
 } as const;
 
 

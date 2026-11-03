@@ -13,7 +13,7 @@ const authorUrl = `${siteOrigin}${SITE_AUTHOR.href}`;
 
 <BaseLayout
 	title="About the lab — applied AI & operations engineering | AIChieve"
-	description="AIChieve is an independent applied AI and operations lab by Jorge Fernandez: human-in-the-loop research, deterministic client-side engines and file-based audit prototypes."
+	description={`AIChieve is an independent applied AI and operations lab by ${SITE_AUTHOR.name}: human-in-the-loop research, deterministic client-side engines and file-based audit prototypes.`}
 >
 	<link slot="head" rel="canonical" href={pageUrl} />
 	<JsonLd
@@ -27,7 +27,7 @@ const authorUrl = `${siteOrigin}${SITE_AUTHOR.href}`;
 			author: {
 				'@type': 'Person',
 				name: SITE_AUTHOR.name,
-				alternateName: SITE_AUTHOR.schemaName,
+				alternateName: SITE_AUTHOR.shortName,
 				url: authorUrl,
 				sameAs: [SITE_AUTHOR.linkedin]
 			}
@@ -142,7 +142,7 @@ const authorUrl = `${siteOrigin}${SITE_AUTHOR.href}`;
 					</div>
 					<div>
 						<h2 id="architect-heading" class="ai-display text-2xl sm:text-3xl">
-							{OVERVIEW.architect.title}
+							{SITE_AUTHOR.name}
 						</h2>
 						<p
 							class="mt-2 font-mono text-[0.6rem] uppercase leading-relaxed tracking-[0.16em] text-[var(--ai-ink-4)]"

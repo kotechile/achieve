@@ -8,7 +8,7 @@
  *
  * The voice is the lab's, not an agency's: this is one person's applied AI and operations
  * sandbox. giniloh.com keeps reading `giniloh_overview.md`; this file is the engineering voice,
- * attributed to Jorge Fernandez (see SITE_AUTHOR in `./site-content.ts`, the single place the
+ * attributed to Jorge Fernandez Ilufi (SITE_AUTHOR in `./site-content.ts` is the single place the
  * byline name lives).
  */
 export interface MethodSection {
@@ -28,8 +28,9 @@ export interface OverviewContent {
 	lab: { title: string; body: string[] };
 	/** `// 02 THE METHODOLOGY` — the guardrails that keep the output out of slop territory. */
 	methodology: MethodSection[];
-	/** `// 03 THE ARCHITECT` — who builds it, and the independence disclaimer. */
-	architect: { title: string; body: string[]; disclaimer: string };
+	/** `// 03 THE ARCHITECT` — who builds it, and the independence disclaimer. The name itself
+	 *  comes from SITE_AUTHOR so it is written down once. */
+	architect: { body: string[]; disclaimer: string };
 	/** The compact architecture banner that sits beside the coverage board on the homepage. */
 	architecture: { kicker: string; body: string; steps: string[] };
 }
@@ -38,7 +39,7 @@ export const OVERVIEW: OverviewContent = {
 	eyebrow: 'AIChieve // Applied AI & Operations Lab',
 	headline: 'Where supply chain, enterprise data, and human-in-the-loop AI converge.',
 	subheadline:
-		'An independent engineering sandbox by Jorge Fernandez. Exploring how human-in-the-loop (HITL) agentic workflows turn field data into operational dispatches, deterministic calculators, and file-based audit prototypes.',
+		'An independent engineering sandbox by Jorge Fernandez Ilufi. Exploring how human-in-the-loop (HITL) agentic workflows turn field data into operational dispatches, deterministic calculators, and file-based audit prototypes.',
 	mission:
 		'The lab exists to put a number on a decision instead of a slide. What a GPU estate costs to own. What a vendor business case looks like re-run on loaded costs. Which invoice line has no basis. Each one is modelled, documented and published with the working shown.',
 	now:
@@ -81,7 +82,6 @@ export const OVERVIEW: OverviewContent = {
 		}
 	],
 	architect: {
-		title: 'Jorge Fernandez',
 		body: [
 			'I work at the intersection of supply chain operations, enterprise systems architecture, data and applied AI. That overlap is where the questions on this site come from.',
 			'I own the pipeline end to end: the agents do the monitoring, drafting and maintenance, and I do the verification and the judgement calls.'

@@ -33,7 +33,7 @@ const recent = posts.slice(0, 12);
 			'@context': 'https://schema.org',
 			'@type': 'Person',
 			name: SITE_AUTHOR.name,
-			alternateName: SITE_AUTHOR.schemaName,
+			alternateName: SITE_AUTHOR.shortName,
 			url: pageUrl,
 			jobTitle: SITE_AUTHOR.role,
 			worksFor: { '@type': 'Organization', name: 'AIChieve', url: `${siteOrigin}/` },
