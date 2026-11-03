@@ -130,6 +130,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"why-importers-forfeit-duty-refunds",
 	"you-think-youre-governing-your-agents",
 	"your-11-agents-3-die-none-wrong",
+	"your-128gb-laptop-2319-memory-bill",
 	"your-15-air-rule-195-break-even",
 	"your-15-percent-raise-is-a-price-hike",
 	"your-180-day-model-is-already-wrong",
@@ -147,6 +148,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"your-61-point-growth-was-a-refill",
 	"your-68k-tokens-cost-every-step",
 	"your-783-silent-cap-breach",
+	"your-9-day-notice-9-day-queue",
 	"your-90-day-key-is-two-live-keys",
 	"your-90-restart-monitor-proves-nothing",
 	"your-98-fill-rate-18-dont-ship",
@@ -154,6 +156,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"your-agent-obeyed-the-data-left",
 	"your-agent-team-loses-28-points",
 	"your-ai-fine-is-3-percent",
+	"your-ai-roi-28-rising-28-stalled",
 	"your-cache-pays-125x-for-nothing",
 	"your-carbon-report-skips-2-lines",
 	"your-carriers-750000-doesnt-cover-cargo",
@@ -171,6 +174,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"your-golden-zone-costs-10-miles",
 	"your-gpu-break-even-is-37-percent-busy",
 	"your-gpu-landlord-80-wont-survive",
+	"your-grader-adds-22-points",
 	"your-green-passes-hide-31-wrong",
 	"your-hidden-quantity-gap",
 	"your-inventory-bill-is-24-percent-prepaid",
@@ -178,6 +182,7 @@ export const OWNED_POST_SLUGS_GENERATED = [
 	"your-machine-duty-180-days-still-unpriced",
 	"your-mexico-hedge-renewal-risk",
 	"your-miss-costs-9x-the-chargeback",
+	"your-plant-was-1n-and-blind",
 	"your-platform-23-features-no-stop-rule",
 	"your-render-bill-multiplies-by-22-97",
 	"your-retrieval-misses-57",
@@ -298,4 +303,4 @@ export const FOREIGN_TARGETS = {
 	"zapier-notion-integration-calculate-your-tinkering-tax": "https://giniloh.com"
 };
 export const GENERATED_FOR = "aichieve.net";
-export const GENERATED_AT = "2026-11-03T01:07:51.163Z";
+export const GENERATED_AT = "2026-11-03T17:16:45.577Z";

@@ -21,6 +21,8 @@ export interface OverviewContent {
 	headline: string;
 	subheadline: string;
 	mission: string;
+	/** The operating model AS IT IS TODAY — agents on the pipeline, a human on the gate. */
+	now: string;
 	originStory: string;
 	/** `// 01 THE LAB` — what the sandbox is and why it exists. */
 	lab: { title: string; body: string[] };
@@ -39,6 +41,8 @@ export const OVERVIEW: OverviewContent = {
 		'An independent engineering sandbox by Jorge Fernandez. Exploring how human-in-the-loop (HITL) agentic workflows turn field data into operational dispatches, deterministic calculators, and file-based audit prototypes.',
 	mission:
 		'The lab exists to put a number on a decision instead of a slide. What a GPU estate costs to own. What a vendor business case looks like re-run on loaded costs. Which invoice line has no basis. Each one is modelled, documented and published with the working shown.',
+	now:
+		'Today the platform runs on an agentic workflow with a strict human-in-the-loop gate. Agents surface real operational bottlenecks from practitioner discussions across the web. Every model and dispatch that results is checked against trusted primary sources before release.',
 	originStory:
 		'AIChieve started in 2026 as the enterprise half of a split from giniloh.com. The consumer questions stayed on the other side; compute economics, agentic reliability and freight mechanics came here. It is now where I publish what the pipelines draft and what survives review.',
 	lab: {
@@ -50,6 +54,16 @@ export const OVERVIEW: OverviewContent = {
 		]
 	},
 	methodology: [
+		{
+			title: 'How tools are chosen: signal over speculation',
+			body:
+				'None of the calculators or audit tools here were invented in a vacuum. Research agents monitor operator forums, technical communities and practitioner threads. They look for where people running real businesses are losing money or fighting broken spreadsheet maths. A bottleneck that keeps surfacing gets queued, then built as a deterministic tool.'
+		},
+		{
+			title: 'Agent-maintained, human-validated (HITL)',
+			body:
+				'AIChieve runs on the architecture it writes about. Agents handle continuous site maintenance, tariff and rate-table monitoring, and first-pass research synthesis. A strict human review gate sits at the end of that: every benchmark, regulatory rule and cost assumption is cross-examined against primary sources before it goes live.'
+		},
 		{
 			title: 'Primary-source dispatches',
 			body:
@@ -69,8 +83,8 @@ export const OVERVIEW: OverviewContent = {
 	architect: {
 		title: 'Jorge Fernandez',
 		body: [
-			'I work at the intersection of supply chain operations, enterprise systems architecture, data and applied AI. The models here are the ones I needed and could not buy.',
-			'Everything on this site is built and maintained by one person, with agents doing the drafting and a human doing the verification.'
+			'I work at the intersection of supply chain operations, enterprise systems architecture, data and applied AI. That overlap is where the questions on this site come from.',
+			'I own the pipeline end to end: the agents do the monitoring, drafting and maintenance, and I do the verification and the judgement calls.'
 		],
 		disclaimer:
 			'Independence Disclaimer: AIChieve.net is an independent personal research and software engineering project. All dispatches, mathematical models, prototypes and opinions published here are strictly my own and do not represent the views, strategies or endorsements of my employer or any enterprise client.'
@@ -78,7 +92,7 @@ export const OVERVIEW: OverviewContent = {
 	architecture: {
 		kicker: 'System Architecture // Human-in-the-Loop',
 		body:
-			'AIChieve is a live engineering testbed for semi-autonomous research and tool generation. Multi-agent pipelines ingest primary research, supply chain telemetry and hardware benchmarks. They draft the dispatches and the deterministic models; a human systems architect then stress-tests, edits and verifies each output before it deploys.',
+			'AIChieve is a live engineering testbed for semi-autonomous research and tool generation. Agents monitor practitioner threads, operator forums and hardware benchmarks for bottlenecks worth modelling. They draft the dispatches and the models; a human systems architect then stress-tests, edits and verifies each output before it deploys.',
 		steps: ['Ingest', 'Draft', 'Human review', 'Deploy']
 	}
 };
