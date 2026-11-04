@@ -2,14 +2,14 @@
 /**
  * Privacy policy.
  *
- * Exists for two reasons: LinkedIn requires a policy URL before it will verify the profile link on
- * this site, and the site now loads a third-party consent script (Cookiebot), which has to be
- * disclosed where a reader can find it.
+ * Exists because LinkedIn requires a policy URL before it verifies the profile link, and because a
+ * site that measures traffic should say so in one place.
  *
- * Every claim here is checkable against the code: the analytics tag in `layouts/BaseLayout.astro`
- * (self-hosted Umami, no cookie), the Cookiebot tag beside it, and the WordPress install that serves
- * article bodies at build time. Update this file when any of those change — a policy that describes
- * a site that no longer exists is worse than no policy.
+ * Every claim here is checkable against the code: there is no consent script (a Cookiebot banner was
+ * evaluated on 2026-11-03 and removed — nothing on this site sets a non-essential cookie for it to
+ * gate), the only tag in `layouts/BaseLayout.astro` is self-hosted Umami, and article bodies are
+ * fetched from WordPress at build time. Update this file when any of that changes: a policy that
+ * describes a site which no longer exists is worse than no policy.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import JsonLd from '../components/JsonLd.astro';
@@ -18,6 +18,7 @@ import { SITE_AUTHOR, SIBLING_SITE } from '../lib/site-content';
 const siteOrigin = Astro.site?.toString().replace(/\/$/, '') || 'https://aichieve.net';
 const pageUrl = `${siteOrigin}/privacy/`;
 const updated = '3 November 2026';
+const contactEmail = 'privacy@aichieve.net';
 
 const sections = [
 	{
@@ -25,17 +26,16 @@ const sections = [
 		title: 'Who runs this site',
 		body: [
 			`AIChieve.net is an independent personal research and software engineering project, run by ${SITE_AUTHOR.name}. It is not a company, and there is no data team behind it — one person maintains the site and the pipelines that feed it.`,
-			'For anything in this policy, including a request about your own data, contact the address at the bottom of this page.'
+			'For anything in this policy, including a request about your own data, write to the address at the bottom of this page.'
 		]
 	},
 	{
 		id: 'collected',
 		title: 'What is collected',
 		body: [
-			'There are no accounts, no login, no newsletter and no comment system, so the site never asks you for personal details.',
+			'There are no accounts, no login, no newsletter, no comment system and no contact form, so the site never asks you to enter personal details.',
 			'**Hosting logs.** The server that serves these pages records the usual request data: the page requested, the time, the referring page and your IP address. The hosting provider keeps it for security and abuse prevention.',
-			'**Aggregate traffic measurement.** Page views are counted with Umami, a self-hosted analytics tool that runs on this same infrastructure. It sets no cookies, does not fingerprint the browser and does not build a profile that follows you to other sites.',
-			'**Consent records.** If you answer the cookie banner, Cookiebot stores your choice so the site can respect it on the next page. That record holds your consent state and an identifier for the browser session, not your identity.',
+			'**Aggregate traffic measurement.** Page views are counted with Umami, a self-hosted analytics tool running on this same infrastructure. It writes nothing to your browser, does not fingerprint it and cannot follow you to another site.',
 			'**Email.** If you write to me, I keep the message and your address so I can reply. Nothing else is done with it.'
 		]
 	},
@@ -43,42 +43,42 @@ const sections = [
 		id: 'not-collected',
 		title: 'What is not collected',
 		body: [
-			'No advertising identifiers, no cross-site tracking, no data brokers, no sale or rental of anything to anyone. There is no ad tech on this site and no social embed that reports your visit back to a platform.',
-			'The calculators use a different rule on purpose. Every number you type into one is computed in your own browser by deterministic code, and nothing is uploaded. You can disconnect the network and they still work.'
+			'No advertising identifiers, no cross-site tracking, no data brokers, no sale or rental of anything to anyone. There is no ad technology on this site and no social embed that reports your visit back to a platform.',
+			'The calculators follow a different rule on purpose. Every number you type into one is computed in your own browser by deterministic code, and nothing is uploaded. You can disconnect the network and they still work.'
 		]
 	},
 	{
 		id: 'cookies',
-		title: 'Cookies and consent',
+		title: 'Cookies',
 		body: [
-			'The site itself sets no cookies for reading. The banner you see is served by Cookiebot, which stores your answer in a first-party cookie named `CookieConsent` so the question is not asked twice. It may also keep a session ticket while you are on the page.',
-			'Preferences can be changed or withdrawn at any time. Use the cookie icon in the bottom corner of the page, or clear the site data in your browser — the banner will ask again on your next visit. Withdrawing consent never blocks the reading experience: every article and every calculator works without it.'
+			'This site sets no cookies. Not a preference cookie, not an analytics cookie, not a consent cookie. There is no banner to answer because there is nothing a banner would be asking permission for.',
+			'Counted page views are collected without storing anything on your device: one event per page, counted in the analytics database. No identifier is written to your browser and none is read back from it.',
+			'Clearing site data here removes nothing, because nothing was stored. Your browser settings still govern everything you do elsewhere.'
 		]
 	},
 	{
 		id: 'third-parties',
 		title: 'Third parties',
 		body: [
-			'**Cookiebot (Usercentrics A/S)** serves the consent banner. It receives the request for the banner script, which means your IP address reaches it. Nothing else about you is sent.',
 			'**The hosting provider** runs the servers for this site, its analytics instance and the PRO applications. Server logs stay with that provider under its own terms.',
-			'**WordPress** is the content system behind these pages. Article bodies are fetched at build time, so reading a page here does not contact it.',
-			'**LinkedIn** hosts the professional profile linked from this site. Following that link takes you to LinkedIn, where its own privacy policy applies.'
+			'**WordPress** is the content system behind these pages. Article bodies are fetched at build time, so reading a page here never contacts it.',
+			'**LinkedIn** hosts the professional profile linked from this site. Following that link takes you to LinkedIn, where its own privacy policy applies to what happens next.'
 		]
 	},
 	{
 		id: 'legal',
 		title: 'Legal bases and your rights',
 		body: [
-			'Where the GDPR applies: server logs rest on legitimate interest in keeping the site available and safe. Cookiebot records rest on your consent, which you can withdraw at any time.',
-			'You can ask for a copy of what is held about you, ask for it to be corrected or erased, or object to processing. Write to the address below and the answer comes from a person, not a form letter.',
-			'If you are unhappy with the response, you can complain to the data protection authority in your country of residence.'
+			'Where the GDPR applies: server logs rest on legitimate interest in keeping the site available and safe. Counted page views rest on legitimate interest as well — the measurement stores no identifier and is used only to see which pages are worth writing. You can object to either by writing to the address below.',
+			'You can ask for a copy of what is held about you, ask for it to be corrected or erased, or object to processing. The answer comes from a person, not a form letter.',
+			'If you are unhappy with the response, you can complain to the data protection authority where you live.'
 		]
 	},
 	{
 		id: 'retention',
 		title: 'How long things are kept',
 		body: [
-			'Hosting logs are kept for the short retention window the provider applies. Consent records last until you withdraw them or the cookie expires. Emails are kept while the conversation is useful, then deleted.'
+			'Hosting logs are kept for the short retention window the provider applies. Aggregate page counts last indefinitely, because they hold nothing that identifies a person. Emails are kept while the conversation is useful, then deleted.'
 		]
 	},
 	{
@@ -100,7 +100,7 @@ const sections = [
 
 <BaseLayout
 	title="Privacy policy | AIChieve"
-	description="What aichieve.net collects, what it does not, how cookies and consent work, and how to reach the person who runs it."
+	description="What aichieve.net collects, what it does not, why there are no cookies, and how to reach the person who runs it."
 >
 	<link slot="head" rel="canonical" href={pageUrl} />
 	<JsonLd
@@ -112,7 +112,7 @@ const sections = [
 			url: pageUrl,
 			dateModified: '2026-11-03',
 			description:
-				'What aichieve.net collects, what it does not, how cookies and consent work, and who to contact.',
+				'What aichieve.net collects, what it does not, why there are no cookies, and who to contact.',
 			author: {
 				'@type': 'Person',
 				name: SITE_AUTHOR.name,
@@ -127,8 +127,8 @@ const sections = [
 		<p class="ai-label ai-label--signal">Legal</p>
 		<h1 class="ai-display mt-4 max-w-4xl text-[2.2rem] sm:text-4xl lg:text-5xl">Privacy policy</h1>
 		<p class="ai-lede mt-6">
-			This site counts visits and asks about cookies. That is the whole of it — here is exactly what
-			that means, in the same plain terms as everything else on AIChieve.
+			This site counts page views and stores nothing in your browser. That is the whole of it — here
+			is exactly what that means, in the same plain terms as everything else on AIChieve.
 		</p>
 		<p class="mt-6 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-[var(--ai-ink-4)]">
 			Last updated · {updated}
@@ -154,8 +154,8 @@ const sections = [
 		<div class="grid gap-2 lg:sticky lg:top-24 lg:self-start">
 			<p class="ai-label">Summary</p>
 			<p class="mt-2 text-sm leading-relaxed text-[var(--ai-ink-2)]">
-				No accounts, no advertising, no data sold. Visit counts stay on infrastructure I run.
-				Consent covers the banner and can be withdrawn at any time.
+				No accounts, no advertising, no data sold, no cookies. Visit counts stay on infrastructure I
+				run, and nothing is written to your browser.
 			</p>
 		</div>
 
@@ -187,9 +187,9 @@ const sections = [
 		<p class="ai-label ai-label--signal">Contact</p>
 		<h2 id="contact-heading" class="ai-display mt-3 text-2xl sm:text-3xl">Ask a person</h2>
 		<p class="mt-4 max-w-2xl text-sm leading-relaxed text-[var(--ai-ink-2)]">
-			Write to <a class="ai-link" href="mailto:kotechile@gmail.com">kotechile@gmail.com</a> for anything
-			about data on this site — a copy of what is held, a correction, an erasure, or a question about
-			this policy. A message on
+			Write to <a class="ai-link" href={`mailto:${contactEmail}`}>{contactEmail}</a> for anything about
+			data on this site — a copy of what is held, a correction, an erasure, or a question about this
+			policy. A message on
 			<a class="ai-link" href={SITE_AUTHOR.linkedin} rel="me noopener" target="_blank">LinkedIn</a>
 			reaches the same person.
 		</p>
