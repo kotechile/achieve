@@ -1,4 +1,4 @@
 {
   "$comment": "Build-cache trigger. Article bodies live in WordPress and are fetched during `npm run build`, so a CMS-only edit never reaches production unless the Docker build layer is invalidated. The empty 'ci: re-trigger' commits of 2026-11-03 did not do that — Docker reused the cached `npm run build` layer and the new tag pointed at an image dated to the previous build, serving stale article text. `npm run rebuild:cms` stamps this file, which makes the commit a real change to the build context. Do not delete it.",
-  "stamp": "2026-11-03T21:52:40.406Z"
+  "stamp": "2026-11-04T01:09:06.660Z"
 }
