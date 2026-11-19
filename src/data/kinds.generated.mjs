@@ -9,12 +9,15 @@
  * property owns. See docs/content-kinds-plan.md.
  */
 export const KIND_COUNTS = {
-	"news": 99,
-	"evergreen": 96,
+	"news": 132,
+	"evergreen": 131,
 	"review": 0
 };
 
 /** Owned posts with no kind tag. Filed with /articles/ as unfiled; tag them to clear this. */
-export const KIND_UNTAGGED = [];
+export const KIND_UNTAGGED = [
+	"how-to-fix-case-fill-rate-8-days-before-the-order-is-cut",
+	"part-1-of-8-the-automated-cfr-protection-loop-series"
+];
 
 export const KINDS_GENERATED_FOR = "aichieve.net";

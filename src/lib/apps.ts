@@ -27,9 +27,11 @@ export interface ProApp {
 		| 'Logistics Operations'
 		| 'AI Platform'
 		| 'Warehouse / CAPEX'
-		| 'Energy Operations';
+		| 'Energy Operations'
+		| 'Trades Operations'
+		| 'Compliance Operations';
 	/** Glyph used wherever the app is listed beside the free engines (ToolRail, index cards). */
-	icon: 'table' | 'flow' | 'matrix' | 'server' | 'chart-line' | 'globe' | 'bolt';
+	icon: 'table' | 'flow' | 'matrix' | 'server' | 'chart-line' | 'globe' | 'bolt' | 'wrench' | 'shield';
 	path: string;
 }
 
@@ -100,6 +102,28 @@ export const PRO_APPS: ProApp[] = [
 		failure: 'A ratchet billed on a peak the tariff never bills, or a clause read as 0% because nobody opened it',
 		audience: 'Energy Operations',
 		path: '/ratchetproof'
+	},
+	{
+		slug: 'claimproof',
+		icon: 'wrench',
+		name: 'ClaimProof',
+		tagline: 'Warranty-claim short-payment audit for HVAC and refrigeration',
+		input: 'Warranty claim + manufacturer remittance export',
+		output: 'Re-derived labour allowances per repair code and line-by-line payment variance against the published schedule',
+		failure: 'Warranty claims quietly short-paid on labour hours, multiple-repair increments, travel or fee caps',
+		audience: 'Trades Operations',
+		path: '/claimproof'
+	},
+	{
+		slug: 'ffrproof',
+		icon: 'shield',
+		name: 'FFRProof',
+		tagline: 'SF-425 federal financial report pre-flight audit',
+		input: 'SF-425 report lines + payment system drawdown statement',
+		output: 'Cross-footed line identities, cash-to-drawdown reconciliation to the cent and unallowable budget variance findings',
+		failure: 'Federal grant reports submitted with cash-vs-drawdown drift, broken line identities or unapproved budget shifts',
+		audience: 'Compliance Operations',
+		path: '/ffrproof'
 	}
 ];
 
