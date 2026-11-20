@@ -238,6 +238,8 @@ a {
   text-decoration-color: rgba(90, 122, 143, 0.7) !important;
   text-decoration-thickness: 0.08em !important;
   text-underline-offset: 0.18em !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   transition:
     color 180ms ease,
     text-decoration-color 180ms ease,

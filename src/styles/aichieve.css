@@ -486,6 +486,9 @@ img {
 	color: var(--paper-ink);
 	border: 1px solid var(--ai-line);
 	padding: clamp(1.25rem, 4vw, 4rem);
+	min-width: 0;
+	overflow-wrap: break-word;
+	word-break: break-word;
 }
 /* Light surfaces win the heading ink back at higher specificity than the dark-chrome rule.
    Without this, the !important above would paint white text onto these white surfaces.
@@ -781,6 +784,8 @@ img {
    ───────────────────────────────────────────────────────────────────────────── */
 .prose, .article-body {
 	color: var(--paper-ink-2);
+	overflow-wrap: break-word;
+	word-break: break-word;
 }
 /* Reading column headings. Needs !important to survive the `:root h*` dark-chrome rule above —
    these sit on the white `.paper` surface and must stay dark. */
@@ -813,7 +818,11 @@ img {
    silently overriding it. The brand steel measures 4.55:1 on white and 4.35:1 on the #f8fafc
    plate the key-takeaway and blockquote styles paint, so links inside those fell below AA. */
 .paper .prose a,
-.paper .article-body a { color: #46647a !important; }
+.paper .article-body a {
+	color: #46647a !important;
+	overflow-wrap: anywhere;
+	word-break: break-word;
+}
 .paper .prose a:hover,
 .paper .article-body a:hover { color: var(--paper-ink) !important; }
 
