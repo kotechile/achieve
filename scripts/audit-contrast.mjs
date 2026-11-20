@@ -246,7 +246,7 @@ async function defaultPages() {
 	for (const d of dirs) {
 		if (!d.isDirectory() || TOP_LEVEL_SKIP.has(d.name) || isSyncConflict(d.name)) continue;
 		const html = await readFile(join(DIST, d.name, 'index.html'), 'utf8').catch(() => '');
-		if (html.includes('ai-quote')) { pages.push(`/${d.name}/`); break; }
+		if (html.includes('article-body') || html.includes('ai-quote')) { pages.push(`/${d.name}/`); break; }
 	}
 	return pages;
 }
